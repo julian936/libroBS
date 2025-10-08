@@ -1,4 +1,5 @@
 book_filename: "libro"
+output_dir: "docs"
 delete_merged_file: true
 new_session: yes
 language:
