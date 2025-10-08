@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+_bookdown_files
+libro.Rmd
+*.log
+*.knit.md
+*.utf8.md
