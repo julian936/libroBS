@@ -12,16 +12,3 @@ pre {
 pre code {
   white-space: inherit;
 }
-
-/* Enlaces en verde - con !important para forzar */
-a {
-  color: #28a745 !important;
-}
-
-a:hover {
-  color: #1e7e34 !important;
-}
-
-a:visited {
-  color: #20c997 !important;
-}
