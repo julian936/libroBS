@@ -1,7 +1,7 @@
 --- 
 title: "Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado"
 author: "Julian Rojas y Natalia Tangarife"
-date: "2025-10-07"
+date: "2025-10-08"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book

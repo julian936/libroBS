@@ -12,3 +12,36 @@ pre {
 pre code {
   white-space: inherit;
 }
+
+/* Enlaces en verde - con !important para forzar */
+a {
+  color: #28a745 !important;
+}
+
+a:hover {
+  color: #1e7e34 !important;
+}
+
+a:visited {
+  color: #20c997 !important;
+}
+
+/* Color del texto del índice/sidebar */
+.book .book-summary ul.summary li a {
+  color: #28a745 !important;
+}
+
+.book .book-summary ul.summary li.active > a {
+  color: #1e7e34 !important;
+  font-weight: bold;
+}
+
+/* Enlaces en el contenido principal */
+.book-body .page-wrapper .page-inner section a {
+  color: #28a745 !important;
+}
+
+/* Enlaces en tabla de contenidos */
+.book .book-body .page-wrapper .page-inner section.normal a {
+  color: #28a745 !important;
+}
