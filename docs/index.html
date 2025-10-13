@@ -4,16 +4,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Propuesta de Análisis | Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado</title>
+<title>Propuesta de Análisis | Análisis de Series de Tiempo para la Predicción de Precios de Acciones</title>
 <meta name="author" content="Julian Rojas y Natalia Tangarife">
-<meta name="description" content="Análisis de series de tiempo aplicado a la valoración de opciones financieras mediante el modelo de Black-Scholes.">
+<meta name="description" content="Análisis de series de tiempo aplicado a la predicción de precios de acciones y su integración con modelos de valoración de opciones financieras.">
 <meta name="generator" content="bookdown 0.45 with bs4_book()">
-<meta property="og:title" content="Propuesta de Análisis | Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado">
+<meta property="og:title" content="Propuesta de Análisis | Análisis de Series de Tiempo para la Predicción de Precios de Acciones">
 <meta property="og:type" content="book">
-<meta property="og:description" content="Análisis de series de tiempo aplicado a la valoración de opciones financieras mediante el modelo de Black-Scholes.">
+<meta property="og:description" content="Análisis de series de tiempo aplicado a la predicción de precios de acciones y su integración con modelos de valoración de opciones financieras.">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Propuesta de Análisis | Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado">
-<meta name="twitter:description" content="Análisis de series de tiempo aplicado a la valoración de opciones financieras mediante el modelo de Black-Scholes.">
+<meta name="twitter:title" content="Propuesta de Análisis | Análisis de Series de Tiempo para la Predicción de Precios de Acciones">
+<meta name="twitter:description" content="Análisis de series de tiempo aplicado a la predicción de precios de acciones y su integración con modelos de valoración de opciones financieras.">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -53,7 +53,7 @@
 
     <div class="d-flex align-items-start justify-content-between">
       <h1>
-        <a href="index.html" title="">Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado</a>
+        <a href="index.html" title="">Análisis de Series de Tiempo para la Predicción de Precios de Acciones</a>
       </h1>
       <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
@@ -82,65 +82,197 @@
   </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="propuesta-de-análisis" class="section level1 unnumbered">
 <h1>Propuesta de Análisis<a class="anchor" aria-label="anchor" href="#propuesta-de-an%C3%A1lisis"><i class="fas fa-link"></i></a>
 </h1>
-<div id="tema-seleccionado" class="section level2" number="0.1">
+<div id="descripción-de-la-información" class="section level2" number="0.1">
 <h2>
-<span class="header-section-number">0.1</span> Tema Seleccionado<a class="anchor" aria-label="anchor" href="#tema-seleccionado"><i class="fas fa-link"></i></a>
+<span class="header-section-number">0.1</span> Descripción de la Información<a class="anchor" aria-label="anchor" href="#descripci%C3%B3n-de-la-informaci%C3%B3n"><i class="fas fa-link"></i></a>
 </h2>
-<p>El presente trabajo se enfoca en el análisis de <strong>series de tiempo de precios de opciones financieras</strong> (calls y puts) sobre acciones cotizadas en mercados internacionales. Específicamente, se implementará el <strong>modelo de Black-Scholes</strong> para calcular el valor teórico de las opciones y se comparará con los precios reales observados en el mercado.</p>
+<p>Para este curso trabajaremos con <strong>series de tiempo de precios diarios de acciones</strong> de empresas tecnológicas cotizadas en mercados estadounidenses, específicamente de compañías como Apple (AAPL), Microsoft (MSFT) y Tesla (TSLA). Los datos incluyen precios de cierre, apertura, máximos, mínimos y volúmenes de negociación, capturados a través de la librería <code>quantmod</code> que accede a <strong>Yahoo Finance</strong>.</p>
+<p>La serie temporal abarca el período <strong>2015-2025 (últimos 10 años)</strong>, proporcionando aproximadamente <strong>2,500 observaciones por activo</strong>. Este período es particularmente valioso porque incluye:</p>
+<ul>
+<li>
+<strong>Pre-pandemia (2015-2019):</strong> Período de crecimiento estable y expansión económica</li>
+<li>
+<strong>Crisis COVID-19 (2020-2021):</strong> Caída abrupta del mercado en marzo 2020 y posterior recuperación acelerada</li>
+<li>
+<strong>Post-pandemia (2022-2025):</strong> Nuevas dinámicas de mercado, inflación y ajustes de tasas de interés</li>
+</ul>
+<p>Esta ventana temporal permite analizar cómo las series de tiempo se comportan ante choques externos extremos, cambios de volatilidad drásticos y diferentes regímenes de mercado.</p>
 </div>
-<div id="justificación" class="section level2" number="0.2">
+<div id="justificación-e-importancia-del-pronóstico" class="section level2" number="0.2">
 <h2>
-<span class="header-section-number">0.2</span> Justificación<a class="anchor" aria-label="anchor" href="#justificaci%C3%B3n"><i class="fas fa-link"></i></a>
+<span class="header-section-number">0.2</span> Justificación e Importancia del Pronóstico<a class="anchor" aria-label="anchor" href="#justificaci%C3%B3n-e-importancia-del-pron%C3%B3stico"><i class="fas fa-link"></i></a>
 </h2>
+<div id="el-problema" class="section level3" number="0.2.1">
+<h3>
+<span class="header-section-number">0.2.1</span> El Problema<a class="anchor" aria-label="anchor" href="#el-problema"><i class="fas fa-link"></i></a>
+</h3>
+<p>Los mercados financieros son inherentemente volátiles y presentan comportamientos complejos que combinan tendencias, estacionalidad y componentes aleatorios. Esta complejidad se intensifica dramáticamente durante crisis globales, como lo evidenció el COVID-19 cuando:</p>
+<ul>
+<li>Los mercados experimentaron caídas del 30-40% en semanas (crash de marzo 2020)</li>
+<li>La volatilidad alcanzó niveles no vistos desde la crisis financiera de 2008</li>
+<li>Las empresas tecnológicas mostraron recuperaciones y crecimientos explosivos</li>
+<li>Los patrones históricos de comportamiento se vieron alterados abruptamente</li>
+</ul>
+<p>Los inversionistas, analistas y gestores de riesgo necesitan herramientas que les permitan anticipar movimientos de precios incluso en contextos de alta incertidumbre para:</p>
+<ul>
+<li>Optimizar decisiones de compra y venta de activos durante crisis</li>
+<li>Gestionar carteras de inversión de manera proactiva ante cambios de régimen</li>
+<li>Evaluar estrategias de cobertura de riesgo en mercados turbulentos</li>
+<li>Valorar instrumentos derivados considerando volatilidades cambiantes</li>
+</ul>
+</div>
 </div>
 <div id="valor-agregado" class="section level2" number="0.3">
 <h2>
 <span class="header-section-number">0.3</span> Valor Agregado<a class="anchor" aria-label="anchor" href="#valor-agregado"><i class="fas fa-link"></i></a>
 </h2>
+<p>Este proyecto utiliza <strong>modelos ARIMA (AutoRegressive Integrated Moving Average)</strong> para pronosticar precios de acciones en horizontes de corto plazo. El valor agregado es particularmente significativo dado el período analizado:</p>
+<div id="análisis-de-múltiples-regímenes-de-mercado" class="section level3" number="0.3.1">
+<h3>
+<span class="header-section-number">0.3.1</span> 1. Análisis de Múltiples Regímenes de Mercado<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-m%C3%BAltiples-reg%C3%ADmenes-de-mercado"><i class="fas fa-link"></i></a>
+</h3>
+<p>Con datos de 2015-2025, podemos evaluar cómo los modelos ARIMA se desempeñan en tres contextos distintos:</p>
+<ul>
+<li>
+<strong>Estabilidad (pre-COVID):</strong> Tendencias predecibles y volatilidad moderada</li>
+<li>
+<strong>Crisis (COVID-19):</strong> Cambios estructurales abruptos y volatilidad extrema</li>
+<li>
+<strong>Recuperación y ajuste:</strong> Nuevas dinámicas post-pandemia</li>
+</ul>
+</div>
+<div id="robustez-ante-choques-externos" class="section level3" number="0.3.2">
+<h3>
+<span class="header-section-number">0.3.2</span> 2. Robustez ante Choques Externos<a class="anchor" aria-label="anchor" href="#robustez-ante-choques-externos"><i class="fas fa-link"></i></a>
+</h3>
+<p>La inclusión del período COVID-19 permite validar si los modelos pueden capturar o adaptarse a disrupciones mayores del mercado, un aspecto crítico que los análisis con datos “normales” no pueden evaluar.</p>
+</div>
+<div id="sector-tecnológico-como-caso-de-estudio" class="section level3" number="0.3.3">
+<h3>
+<span class="header-section-number">0.3.3</span> 3. Sector Tecnológico como Caso de Estudio<a class="anchor" aria-label="anchor" href="#sector-tecnol%C3%B3gico-como-caso-de-estudio"><i class="fas fa-link"></i></a>
+</h3>
+<p>Las empresas seleccionadas (AAPL, MSFT, TSLA) tuvieron comportamientos diferenciados durante la pandemia:</p>
+<ul>
+<li>
+<strong>AAPL y MSFT:</strong> Beneficiadas por digitalización acelerada</li>
+<li>
+<strong>TSLA:</strong> Crecimiento explosivo a pesar de disrupciones en manufactura</li>
+</ul>
+<p>Esto permite comparar cómo las series de tiempo reflejan fundamentos empresariales diferentes.</p>
+</div>
+<div id="aplicación-práctica-dual" class="section level3" number="0.3.4">
+<h3>
+<span class="header-section-number">0.3.4</span> 4. Aplicación Práctica Dual<a class="anchor" aria-label="anchor" href="#aplicaci%C3%B3n-pr%C3%A1ctica-dual"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>Pronóstico directo de precios para decisiones de trading en contextos de alta/baja volatilidad</li>
+<li>Insumo para valoración mejorada de opciones financieras mediante la combinación ARIMA + Black-Scholes</li>
+</ul>
+</div>
+<div id="cuantificación-de-incertidumbre-dinámica" class="section level3" number="0.3.5">
+<h3>
+<span class="header-section-number">0.3.5</span> 5. Cuantificación de Incertidumbre Dinámica<a class="anchor" aria-label="anchor" href="#cuantificaci%C3%B3n-de-incertidumbre-din%C3%A1mica"><i class="fas fa-link"></i></a>
+</h3>
+<p>Los intervalos de confianza generados reflejan cómo la incertidumbre varía según el contexto (ampliándose en crisis, estrechándose en estabilidad).</p>
+</div>
+<div id="innovación-metodológica" class="section level3" number="0.3.6">
+<h3>
+<span class="header-section-number">0.3.6</span> 6. Innovación Metodológica<a class="anchor" aria-label="anchor" href="#innovaci%C3%B3n-metodol%C3%B3gica"><i class="fas fa-link"></i></a>
+</h3>
+<p>Integrar predicciones ARIMA calibradas con datos que incluyen eventos extremos con modelos de valoración financiera (Black-Scholes) mejora significativamente la estimación de precios de derivados en mercados reales y complejos.</p>
+</div>
+<div id="relevancia-del-período-covid-19" class="section level3" number="0.3.7">
+<h3>
+<span class="header-section-number">0.3.7</span> Relevancia del Período COVID-19<a class="anchor" aria-label="anchor" href="#relevancia-del-per%C3%ADodo-covid-19"><i class="fas fa-link"></i></a>
+</h3>
+<p>El análisis del período 2020-2021 es especialmente valioso porque representa un <strong>experimento natural</strong> en finanzas:</p>
+<ul>
+<li>Permite estudiar quiebres estructurales en series de tiempo</li>
+<li>Evalúa la capacidad predictiva de modelos ante eventos de baja probabilidad pero alto impacto (“cisnes negros”)</li>
+<li>Proporciona lecciones sobre adaptación de estrategias de inversión en tiempo real</li>
+<li>Genera insights sobre sectores resilientes vs. vulnerables en crisis globales</li>
+</ul>
+</div>
 </div>
 <div id="fuentes-de-datos-y-permisos-de-uso" class="section level2" number="0.4">
 <h2>
 <span class="header-section-number">0.4</span> Fuentes de Datos y Permisos de Uso<a class="anchor" aria-label="anchor" href="#fuentes-de-datos-y-permisos-de-uso"><i class="fas fa-link"></i></a>
 </h2>
-<div id="fuentes-de-datos-propuestas" class="section level3" number="0.4.1">
+<p>La información es de carácter público y no requiere permisos especiales, proveniente de Yahoo Finance, una fuente reconocida y confiable en el sector financiero.</p>
+<div id="especificaciones-técnicas" class="section level3" number="0.4.1">
 <h3>
-<span class="header-section-number">0.4.1</span> Fuentes de Datos Propuestas:<a class="anchor" aria-label="anchor" href="#fuentes-de-datos-propuestas"><i class="fas fa-link"></i></a>
+<span class="header-section-number">0.4.1</span> Especificaciones Técnicas:<a class="anchor" aria-label="anchor" href="#especificaciones-t%C3%A9cnicas"><i class="fas fa-link"></i></a>
 </h3>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Yahoo Finance</strong> (<a href="https://finance.yahoo.com/" class="uri">https://finance.yahoo.com/</a>)
 <ul>
-<li>Acceso: Gratuito mediante API o descarga directa</li>
-<li>Datos: Precios históricos de acciones y opciones</li>
-<li>Permisos: Uso personal y académico permitido bajo sus términos de servicio</li>
-<li>Paquete R: <code>quantmod</code> o <code>yahoofinancer</code>
-</li>
+<li>
+<strong>Fuente principal:</strong> Yahoo Finance a través de la librería <code>quantmod</code> en R</li>
+<li>
+<strong>Período de análisis:</strong> 2015-2025 (10 años)</li>
+<li>
+<strong>Observaciones:</strong> Aproximadamente 2,500 datos por activo</li>
+<li>
+<strong>Frecuencia:</strong> Datos diarios de mercado (252 días por año aproximadamente)</li>
+<li>
+<strong>Acceso:</strong> API pública sin restricciones para uso académico y de investigación</li>
+<li>
+<strong>Empresas seleccionadas:</strong> Apple (AAPL), Microsoft (MSFT), Tesla (TSLA)</li>
 </ul>
-</li>
-</ol>
 </div>
 <div id="variables-a-recopilar" class="section level3" number="0.4.2">
 <h3>
 <span class="header-section-number">0.4.2</span> Variables a Recopilar:<a class="anchor" aria-label="anchor" href="#variables-a-recopilar"><i class="fas fa-link"></i></a>
 </h3>
 <ul>
-<li>Precio del activo subyacente (S): Serie temporal diaria</li>
-<li>Precio de ejercicio (K): Datos de contratos específicos</li>
-<li>Tiempo hasta vencimiento (T): Calculado desde fecha de observación</li>
-<li>Tasa libre de riesgo (r): US Treasury Bills (1-3 meses)</li>
-<li>Volatilidad histórica (σ): Calculada a partir de rendimientos del subyacente</li>
-<li>Precios de mercado de calls y puts: Datos históricos de opciones</li>
+<li>
+<strong>Precio de cierre (Close):</strong> Principal variable para modelado de series de tiempo</li>
+<li>
+<strong>Precio de apertura (Open):</strong> Para análisis de gaps y volatilidad intradiaria</li>
+<li>
+<strong>Precio máximo y mínimo (High/Low):</strong> Para cálculo de rangos y volatilidad</li>
+<li>
+<strong>Volumen de negociación:</strong> Indicador de liquidez y confirmación de tendencias</li>
+<li>
+<strong>Fechas:</strong> Para construcción de la serie temporal con frecuencia diaria</li>
 </ul>
 </div>
-<div id="consideraciones-legales" class="section level3" number="0.4.3">
+<div id="datos-complementarios" class="section level3" number="0.4.3">
 <h3>
-<span class="header-section-number">0.4.3</span> Consideraciones Legales:<a class="anchor" aria-label="anchor" href="#consideraciones-legales"><i class="fas fa-link"></i></a>
+<span class="header-section-number">0.4.3</span> Datos Complementarios:<a class="anchor" aria-label="anchor" href="#datos-complementarios"><i class="fas fa-link"></i></a>
 </h3>
-<p>Todos los datos utilizados provienen de fuentes públicas y gratuitas, destinadas explícitamente para uso académico y de investigación. Se citarán adecuadamente todas las fuentes de datos en el análisis final. No se utilizarán datos propietarios de empresas específicas que requieran licencias comerciales.</p>
-<hr>
-<p><strong>Nota</strong>: Este documento constituye la propuesta inicial del proyecto. A lo largo del curso se desarrollará el análisis completo incluyendo metodología, implementación en R, resultados y conclusiones.</p>
-
+<ul>
+<li>
+<strong>Tasa libre de riesgo:</strong> US Treasury Bills (para modelos de valoración)</li>
+<li>
+<strong>Volatilidad implícita:</strong> De mercado de opciones (comparación con volatilidad histórica)</li>
+</ul>
 </div>
+<div id="consideraciones-legales" class="section level3" number="0.4.4">
+<h3>
+<span class="header-section-number">0.4.4</span> Consideraciones Legales:<a class="anchor" aria-label="anchor" href="#consideraciones-legales"><i class="fas fa-link"></i></a>
+</h3>
+<p>Todos los datos utilizados provienen de fuentes públicas y gratuitas, destinadas explícitamente para uso académico y de investigación. Yahoo Finance permite el acceso a datos históricos sin restricciones para propósitos educativos. Se citarán adecuadamente todas las fuentes de datos en el análisis final.</p>
+</div>
+</div>
+<div id="impacto-esperado" class="section level2" number="0.5">
+<h2>
+<span class="header-section-number">0.5</span> Impacto Esperado<a class="anchor" aria-label="anchor" href="#impacto-esperado"><i class="fas fa-link"></i></a>
+</h2>
+<p>El pronóstico preciso de precios mediante series de tiempo que abarcan crisis globales beneficia directamente a:</p>
+<ul>
+<li>
+<strong>Inversionistas:</strong> Estrategias informadas sobre cómo activos tecnológicos responden a choques sistémicos</li>
+<li>
+<strong>Gestores de riesgo:</strong> Herramientas calibradas con eventos extremos reales, no solo simulaciones</li>
+<li>
+<strong>Analistas financieros:</strong> Comprensión profunda de resiliencia sectorial y patrones de recuperación</li>
+<li>
+<strong>Académicos e investigadores:</strong> Evidencia empírica sobre comportamiento de series financieras en crisis</li>
+<li>
+<strong>Traders de opciones:</strong> Valoración más precisa de instrumentos derivados mediante precios predichos más confiables</li>
+</ul>
+<hr>
+<p><strong>Nota</strong>: Este documento constituye la propuesta inicial del proyecto de series de tiempo. A lo largo del curso se desarrollará el análisis completo incluyendo metodología ARIMA, implementación en R, validación de modelos, análisis de residuos, pronósticos y su integración con modelos de valoración de opciones financieras.</p>
+
 </div>
 </div>
   <div class="chapter-nav">
@@ -150,16 +282,30 @@
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#propuesta-de-an%C3%A1lisis">Propuesta de Análisis</a></li>
-<li><a class="nav-link" href="#tema-seleccionado"><span class="header-section-number">0.1</span> Tema Seleccionado</a></li>
-<li><a class="nav-link" href="#justificaci%C3%B3n"><span class="header-section-number">0.2</span> Justificación</a></li>
-<li><a class="nav-link" href="#valor-agregado"><span class="header-section-number">0.3</span> Valor Agregado</a></li>
+<li><a class="nav-link" href="#descripci%C3%B3n-de-la-informaci%C3%B3n"><span class="header-section-number">0.1</span> Descripción de la Información</a></li>
 <li>
-<a class="nav-link" href="#fuentes-de-datos-y-permisos-de-uso"><span class="header-section-number">0.4</span> Fuentes de Datos y Permisos de Uso</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#fuentes-de-datos-propuestas"><span class="header-section-number">0.4.1</span> Fuentes de Datos Propuestas:</a></li>
-<li><a class="nav-link" href="#variables-a-recopilar"><span class="header-section-number">0.4.2</span> Variables a Recopilar:</a></li>
-<li><a class="nav-link" href="#consideraciones-legales"><span class="header-section-number">0.4.3</span> Consideraciones Legales:</a></li>
+<a class="nav-link" href="#justificaci%C3%B3n-e-importancia-del-pron%C3%B3stico"><span class="header-section-number">0.2</span> Justificación e Importancia del Pronóstico</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#el-problema"><span class="header-section-number">0.2.1</span> El Problema</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#valor-agregado"><span class="header-section-number">0.3</span> Valor Agregado</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#an%C3%A1lisis-de-m%C3%BAltiples-reg%C3%ADmenes-de-mercado"><span class="header-section-number">0.3.1</span> 1. Análisis de Múltiples Regímenes de Mercado</a></li>
+<li><a class="nav-link" href="#robustez-ante-choques-externos"><span class="header-section-number">0.3.2</span> 2. Robustez ante Choques Externos</a></li>
+<li><a class="nav-link" href="#sector-tecnol%C3%B3gico-como-caso-de-estudio"><span class="header-section-number">0.3.3</span> 3. Sector Tecnológico como Caso de Estudio</a></li>
+<li><a class="nav-link" href="#aplicaci%C3%B3n-pr%C3%A1ctica-dual"><span class="header-section-number">0.3.4</span> 4. Aplicación Práctica Dual</a></li>
+<li><a class="nav-link" href="#cuantificaci%C3%B3n-de-incertidumbre-din%C3%A1mica"><span class="header-section-number">0.3.5</span> 5. Cuantificación de Incertidumbre Dinámica</a></li>
+<li><a class="nav-link" href="#innovaci%C3%B3n-metodol%C3%B3gica"><span class="header-section-number">0.3.6</span> 6. Innovación Metodológica</a></li>
+<li><a class="nav-link" href="#relevancia-del-per%C3%ADodo-covid-19"><span class="header-section-number">0.3.7</span> Relevancia del Período COVID-19</a></li>
 </ul>
 </li>
+<li>
+<a class="nav-link" href="#fuentes-de-datos-y-permisos-de-uso"><span class="header-section-number">0.4</span> Fuentes de Datos y Permisos de Uso</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#especificaciones-t%C3%A9cnicas"><span class="header-section-number">0.4.1</span> Especificaciones Técnicas:</a></li>
+<li><a class="nav-link" href="#variables-a-recopilar"><span class="header-section-number">0.4.2</span> Variables a Recopilar:</a></li>
+<li><a class="nav-link" href="#datos-complementarios"><span class="header-section-number">0.4.3</span> Datos Complementarios:</a></li>
+<li><a class="nav-link" href="#consideraciones-legales"><span class="header-section-number">0.4.4</span> Consideraciones Legales:</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#impacto-esperado"><span class="header-section-number">0.5</span> Impacto Esperado</a></li>
 </ul>
 
       <div class="book-extra">
@@ -176,7 +322,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-10-08.</p>
+    <p>"<strong>Análisis de Series de Tiempo para la Predicción de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-10-13.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

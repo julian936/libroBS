@@ -119,14 +119,14 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
-  pdftitle={Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado},
+  pdftitle={Análisis de Series de Tiempo para la Predicción de Precios de Acciones},
   pdfauthor={Julian Rojas y Natalia Tangarife},
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 
-\title{Valoración de Opciones Financieras: Comparación del Modelo de Black-Scholes con Precios de Mercado}
+\title{Análisis de Series de Tiempo para la Predicción de Precios de Acciones}
 \author{Julian Rojas y Natalia Tangarife}
-\date{2025-10-08}
+\date{2025-10-13}
 
 \begin{document}
 \maketitle
@@ -138,62 +138,199 @@
 \chapter*{Propuesta de Análisis}\label{propuesta-de-anuxe1lisis}
 \addcontentsline{toc}{chapter}{Propuesta de Análisis}
 
-\section{Tema Seleccionado}\label{tema-seleccionado}
+\section{Descripción de la Información}\label{descripciuxf3n-de-la-informaciuxf3n}
 
-El presente trabajo se enfoca en el análisis de \textbf{series de tiempo de precios de opciones financieras} (calls y puts) sobre acciones cotizadas en mercados internacionales. Específicamente, se implementará el \textbf{modelo de Black-Scholes} para calcular el valor teórico de las opciones y se comparará con los precios reales observados en el mercado.
+Para este curso trabajaremos con \textbf{series de tiempo de precios diarios de acciones} de empresas tecnológicas cotizadas en mercados estadounidenses, específicamente de compañías como Apple (AAPL), Microsoft (MSFT) y Tesla (TSLA). Los datos incluyen precios de cierre, apertura, máximos, mínimos y volúmenes de negociación, capturados a través de la librería \texttt{quantmod} que accede a \textbf{Yahoo Finance}.
 
-\section{Justificación}\label{justificaciuxf3n}
+La serie temporal abarca el período \textbf{2015-2025 (últimos 10 años)}, proporcionando aproximadamente \textbf{2,500 observaciones por activo}. Este período es particularmente valioso porque incluye:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Pre-pandemia (2015-2019):} Período de crecimiento estable y expansión económica
+\item
+  \textbf{Crisis COVID-19 (2020-2021):} Caída abrupta del mercado en marzo 2020 y posterior recuperación acelerada
+\item
+  \textbf{Post-pandemia (2022-2025):} Nuevas dinámicas de mercado, inflación y ajustes de tasas de interés
+\end{itemize}
+
+Esta ventana temporal permite analizar cómo las series de tiempo se comportan ante choques externos extremos, cambios de volatilidad drásticos y diferentes regímenes de mercado.
+
+\section{Justificación e Importancia del Pronóstico}\label{justificaciuxf3n-e-importancia-del-pronuxf3stico}
+
+\subsection{El Problema}\label{el-problema}
+
+Los mercados financieros son inherentemente volátiles y presentan comportamientos complejos que combinan tendencias, estacionalidad y componentes aleatorios. Esta complejidad se intensifica dramáticamente durante crisis globales, como lo evidenció el COVID-19 cuando:
+
+\begin{itemize}
+\tightlist
+\item
+  Los mercados experimentaron caídas del 30-40\% en semanas (crash de marzo 2020)
+\item
+  La volatilidad alcanzó niveles no vistos desde la crisis financiera de 2008
+\item
+  Las empresas tecnológicas mostraron recuperaciones y crecimientos explosivos
+\item
+  Los patrones históricos de comportamiento se vieron alterados abruptamente
+\end{itemize}
+
+Los inversionistas, analistas y gestores de riesgo necesitan herramientas que les permitan anticipar movimientos de precios incluso en contextos de alta incertidumbre para:
+
+\begin{itemize}
+\tightlist
+\item
+  Optimizar decisiones de compra y venta de activos durante crisis
+\item
+  Gestionar carteras de inversión de manera proactiva ante cambios de régimen
+\item
+  Evaluar estrategias de cobertura de riesgo en mercados turbulentos
+\item
+  Valorar instrumentos derivados considerando volatilidades cambiantes
+\end{itemize}
 
 \section{Valor Agregado}\label{valor-agregado}
 
-\section{Fuentes de Datos y Permisos de Uso}\label{fuentes-de-datos-y-permisos-de-uso}
+Este proyecto utiliza \textbf{modelos ARIMA (AutoRegressive Integrated Moving Average)} para pronosticar precios de acciones en horizontes de corto plazo. El valor agregado es particularmente significativo dado el período analizado:
 
-\subsection{Fuentes de Datos Propuestas:}\label{fuentes-de-datos-propuestas}
+\subsection{1. Análisis de Múltiples Regímenes de Mercado}\label{anuxe1lisis-de-muxfaltiples-reguxedmenes-de-mercado}
 
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
+Con datos de 2015-2025, podemos evaluar cómo los modelos ARIMA se desempeñan en tres contextos distintos:
+
+\begin{itemize}
 \tightlist
 \item
-  \textbf{Yahoo Finance} (\url{https://finance.yahoo.com/})
+  \textbf{Estabilidad (pre-COVID):} Tendencias predecibles y volatilidad moderada
+\item
+  \textbf{Crisis (COVID-19):} Cambios estructurales abruptos y volatilidad extrema
+\item
+  \textbf{Recuperación y ajuste:} Nuevas dinámicas post-pandemia
+\end{itemize}
 
-  \begin{itemize}
-  \tightlist
-  \item
-    Acceso: Gratuito mediante API o descarga directa
-  \item
-    Datos: Precios históricos de acciones y opciones
-  \item
-    Permisos: Uso personal y académico permitido bajo sus términos de servicio
-  \item
-    Paquete R: \texttt{quantmod} o \texttt{yahoofinancer}
-  \end{itemize}
-\end{enumerate}
+\subsection{2. Robustez ante Choques Externos}\label{robustez-ante-choques-externos}
+
+La inclusión del período COVID-19 permite validar si los modelos pueden capturar o adaptarse a disrupciones mayores del mercado, un aspecto crítico que los análisis con datos ``normales'' no pueden evaluar.
+
+\subsection{3. Sector Tecnológico como Caso de Estudio}\label{sector-tecnoluxf3gico-como-caso-de-estudio}
+
+Las empresas seleccionadas (AAPL, MSFT, TSLA) tuvieron comportamientos diferenciados durante la pandemia:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{AAPL y MSFT:} Beneficiadas por digitalización acelerada
+\item
+  \textbf{TSLA:} Crecimiento explosivo a pesar de disrupciones en manufactura
+\end{itemize}
+
+Esto permite comparar cómo las series de tiempo reflejan fundamentos empresariales diferentes.
+
+\subsection{4. Aplicación Práctica Dual}\label{aplicaciuxf3n-pruxe1ctica-dual}
+
+\begin{itemize}
+\tightlist
+\item
+  Pronóstico directo de precios para decisiones de trading en contextos de alta/baja volatilidad
+\item
+  Insumo para valoración mejorada de opciones financieras mediante la combinación ARIMA + Black-Scholes
+\end{itemize}
+
+\subsection{5. Cuantificación de Incertidumbre Dinámica}\label{cuantificaciuxf3n-de-incertidumbre-dinuxe1mica}
+
+Los intervalos de confianza generados reflejan cómo la incertidumbre varía según el contexto (ampliándose en crisis, estrechándose en estabilidad).
+
+\subsection{6. Innovación Metodológica}\label{innovaciuxf3n-metodoluxf3gica}
+
+Integrar predicciones ARIMA calibradas con datos que incluyen eventos extremos con modelos de valoración financiera (Black-Scholes) mejora significativamente la estimación de precios de derivados en mercados reales y complejos.
+
+\subsection{Relevancia del Período COVID-19}\label{relevancia-del-peruxedodo-covid-19}
+
+El análisis del período 2020-2021 es especialmente valioso porque representa un \textbf{experimento natural} en finanzas:
+
+\begin{itemize}
+\tightlist
+\item
+  Permite estudiar quiebres estructurales en series de tiempo
+\item
+  Evalúa la capacidad predictiva de modelos ante eventos de baja probabilidad pero alto impacto (``cisnes negros'')
+\item
+  Proporciona lecciones sobre adaptación de estrategias de inversión en tiempo real
+\item
+  Genera insights sobre sectores resilientes vs.~vulnerables en crisis globales
+\end{itemize}
+
+\section{Fuentes de Datos y Permisos de Uso}\label{fuentes-de-datos-y-permisos-de-uso}
+
+La información es de carácter público y no requiere permisos especiales, proveniente de Yahoo Finance, una fuente reconocida y confiable en el sector financiero.
+
+\subsection{Especificaciones Técnicas:}\label{especificaciones-tuxe9cnicas}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Fuente principal:} Yahoo Finance a través de la librería \texttt{quantmod} en R
+\item
+  \textbf{Período de análisis:} 2015-2025 (10 años)
+\item
+  \textbf{Observaciones:} Aproximadamente 2,500 datos por activo
+\item
+  \textbf{Frecuencia:} Datos diarios de mercado (252 días por año aproximadamente)
+\item
+  \textbf{Acceso:} API pública sin restricciones para uso académico y de investigación
+\item
+  \textbf{Empresas seleccionadas:} Apple (AAPL), Microsoft (MSFT), Tesla (TSLA)
+\end{itemize}
 
 \subsection{Variables a Recopilar:}\label{variables-a-recopilar}
 
 \begin{itemize}
 \tightlist
 \item
-  Precio del activo subyacente (S): Serie temporal diaria
+  \textbf{Precio de cierre (Close):} Principal variable para modelado de series de tiempo
 \item
-  Precio de ejercicio (K): Datos de contratos específicos
+  \textbf{Precio de apertura (Open):} Para análisis de gaps y volatilidad intradiaria
 \item
-  Tiempo hasta vencimiento (T): Calculado desde fecha de observación
+  \textbf{Precio máximo y mínimo (High/Low):} Para cálculo de rangos y volatilidad
 \item
-  Tasa libre de riesgo (r): US Treasury Bills (1-3 meses)
+  \textbf{Volumen de negociación:} Indicador de liquidez y confirmación de tendencias
 \item
-  Volatilidad histórica (σ): Calculada a partir de rendimientos del subyacente
+  \textbf{Fechas:} Para construcción de la serie temporal con frecuencia diaria
+\end{itemize}
+
+\subsection{Datos Complementarios:}\label{datos-complementarios}
+
+\begin{itemize}
+\tightlist
 \item
-  Precios de mercado de calls y puts: Datos históricos de opciones
+  \textbf{Tasa libre de riesgo:} US Treasury Bills (para modelos de valoración)
+\item
+  \textbf{Volatilidad implícita:} De mercado de opciones (comparación con volatilidad histórica)
 \end{itemize}
 
 \subsection{Consideraciones Legales:}\label{consideraciones-legales}
 
-Todos los datos utilizados provienen de fuentes públicas y gratuitas, destinadas explícitamente para uso académico y de investigación. Se citarán adecuadamente todas las fuentes de datos en el análisis final. No se utilizarán datos propietarios de empresas específicas que requieran licencias comerciales.
+Todos los datos utilizados provienen de fuentes públicas y gratuitas, destinadas explícitamente para uso académico y de investigación. Yahoo Finance permite el acceso a datos históricos sin restricciones para propósitos educativos. Se citarán adecuadamente todas las fuentes de datos en el análisis final.
+
+\section{Impacto Esperado}\label{impacto-esperado}
+
+El pronóstico preciso de precios mediante series de tiempo que abarcan crisis globales beneficia directamente a:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Inversionistas:} Estrategias informadas sobre cómo activos tecnológicos responden a choques sistémicos
+\item
+  \textbf{Gestores de riesgo:} Herramientas calibradas con eventos extremos reales, no solo simulaciones
+\item
+  \textbf{Analistas financieros:} Comprensión profunda de resiliencia sectorial y patrones de recuperación
+\item
+  \textbf{Académicos e investigadores:} Evidencia empírica sobre comportamiento de series financieras en crisis
+\item
+  \textbf{Traders de opciones:} Valoración más precisa de instrumentos derivados mediante precios predichos más confiables
+\end{itemize}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\textbf{Nota}: Este documento constituye la propuesta inicial del proyecto. A lo largo del curso se desarrollará el análisis completo incluyendo metodología, implementación en R, resultados y conclusiones.
+\textbf{Nota}: Este documento constituye la propuesta inicial del proyecto de series de tiempo. A lo largo del curso se desarrollará el análisis completo incluyendo metodología ARIMA, implementación en R, validación de modelos, análisis de residuos, pronósticos y su integración con modelos de valoración de opciones financieras.
 
 \chapter{Introduction}\label{intro}
 
