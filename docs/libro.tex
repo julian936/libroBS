@@ -150,55 +150,245 @@ Para este curso trabajaremos con \textbf{series de tiempo de precios diarios de 
   \textbf{Farmacéuticas:} Pfizer (PFE), Moderna (MRNA), Johnson \& Johnson (JNJ)
 \end{itemize}
 
-Los datos abarcan el período \textbf{2015-2025 (10 años)}, proporcionando aproximadamente \textbf{2,500 observaciones por activo}. Las variables incluyen precios de cierre, apertura, máximos, mínimos y volúmenes de negociación diarios, obtenidos mediante la librería \texttt{quantmod} que accede a \textbf{Yahoo Finance}. Este período incluye cuatro fases claramente diferenciadas: Pre-COVID (2015-2019), Crisis COVID-19 (2020), Período de Vacunas (2021) y Post-pandemia (2022-2025).
+Los datos abarcan el período \textbf{2015-2025 (10 años)}, proporcionando un total de \textbf{14,286 observaciones}. Las variables incluyen precios de cierre, apertura, máximos, mínimos y volúmenes de negociación diarios, obtenidos mediante la librería \texttt{quantmod} que accede a \textbf{Yahoo Finance}.
+
+\subsection{Estadísticas Descriptivas del Dataset}\label{estaduxedsticas-descriptivas-del-dataset}
+
+\label{tab:tabla-resumen}Estadísticas descriptivas de las series de tiempo analizadas
+
+Ticker
+
+Sector
+
+Obs.
+
+Inicio
+
+Fin
+
+Precio.Mín\ldots.
+
+Precio.Máx\ldots.
+
+Volatilidad\ldots.
+
+Retorno.Total\ldots.
+
+AAPL
+
+Tecnología
+
+2514
+
+2015-10-13
+
+2025-10-10
+
+22.58
+
+259.02
+
+29.21
+
+777.61
+
+MSFT
+
+Tecnología
+
+2514
+
+2015-10-13
+
+2025-10-10
+
+46.68
+
+535.64
+
+26.96
+
+989.70
+
+TSLA
+
+Tecnología
+
+2514
+
+2015-10-13
+
+2025-10-10
+
+9.58
+
+479.86
+
+59.30
+
+2728.89
+
+PFE
+
+Farmacéutica
+
+2514
+
+2015-10-13
+
+2025-10-10
+
+21.59
+
+61.25
+
+24.00
+
+-20.81
+
+MRNA
+
+Farmacéutica
+
+1720
+
+2018-12-07
+
+2025-10-10
+
+12.26
+
+484.47
+
+72.08
+
+44.25
+
+JNJ
+
+Farmacéutica
+
+2514
+
+2015-10-13
+
+2025-10-10
+
+94.53
+
+191.08
+
+18.40
+
+99.81
+
+\textbf{Tabla 1.} Resumen estadístico del dataset con 6 activos y 14,286 observaciones totales. Tesla presenta el mayor retorno (+2,728\%) y Moderna la mayor volatilidad (72\%).
+
+Este período incluye cuatro fases claramente diferenciadas:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Pre-COVID (2015-2019):} Período de crecimiento estable y expansión económica
+\item
+  \textbf{Crisis COVID-19 (2020):} Caída abrupta del mercado y alta volatilidad
+\item
+  \textbf{Período de Vacunas (2021):} Desarrollo y distribución de vacunas COVID-19
+\item
+  \textbf{Post-pandemia (2022-2025):} Nuevas dinámicas de mercado
+\end{itemize}
+
+\subsection{Comparación por Sector}\label{comparaciuxf3n-por-sector}
+
+\begin{figure}
+\includegraphics[width=1\linewidth]{graficos/03_comparacion_sector} \caption{Comparación de desempeño normalizado por sector. Panel superior: Farmacéuticas con Moderna mostrando crecimiento explosivo durante vacunas. Panel inferior: Tecnología con Tesla liderando los retornos. Líneas rojas verticales marcan el período COVID-19.}\label{fig:figura-sectores}
+\end{figure}
+
+La Figura 1 muestra el comportamiento diferenciado entre sectores. El sector tecnológico presenta crecimiento sostenido con Tesla liderando (+2,728\%), mientras que el farmacéutico muestra un pico en Moderna durante vacunas seguido de corrección. Este contraste será analizado en capítulos posteriores.
 
 \section{Importancia del Pronóstico y Valor Agregado}\label{importancia-del-pronuxf3stico-y-valor-agregado}
 
 \subsection{El Problema}\label{el-problema}
 
-Los mercados financieros presentan comportamientos complejos que se intensifican durante crisis globales. El COVID-19 evidenció esto cuando los mercados experimentaron caídas del 30-40\% en semanas (marzo 2020), las empresas tecnológicas mostraron recuperaciones explosivas, y las farmacéuticas tuvieron comportamientos diferenciados según su participación en vacunas. Inversionistas y gestores de riesgo necesitan herramientas para entender y anticipar estos movimientos de precios incluso en contextos de alta incertidumbre.
+Los mercados financieros presentan comportamientos complejos que se intensifican durante crisis globales. El COVID-19 evidenció esto cuando los mercados experimentaron caídas abruptas, alta volatilidad y recuperaciones diferenciadas por sector. Los inversionistas y gestores de riesgo necesitan herramientas para anticipar movimientos de precios incluso en contextos de alta incertidumbre.
 
 \subsection{El Valor Agregado}\label{el-valor-agregado}
 
 Este proyecto analiza \textbf{series de tiempo de precios de acciones} durante un período de 10 años que incluye eventos extremos. El valor agregado reside en:
 
-\textbf{1. Análisis de Múltiples Regímenes:} Evaluar cómo las series de tiempo se comportan en diferentes contextos: estabilidad (pre-COVID), crisis extrema (marzo-nov 2020), recuperación con vacunas (dic 2020-2021) y ajuste post-pandemia (2022-2025).
+\textbf{1. Análisis con Datos Reales Abundantes:} Con 14,286 observaciones totales (2,514 por activo principal y 1,720 para MRNA), los análisis tienen suficiente poder estadístico para identificar patrones robustos, tendencias de largo plazo y quiebres estructurales.
 
-\textbf{2. Comprensión de Eventos Extremos:} El período COVID-19 representa un experimento natural que permite estudiar quiebres estructurales en series de tiempo, cambios abruptos de volatilidad y patrones de comportamiento ante eventos de baja probabilidad pero alto impacto.
+\textbf{2. Múltiples Regímenes de Mercado:} El período analizado captura diferentes contextos de mercado, desde estabilidad pre-COVID hasta volatilidad extrema durante la pandemia (hasta 72\% anual en MRNA) y posterior normalización.
 
-\textbf{3. Comparación Intersectorial:} Analizar cómo tecnología (beneficiada por digitalización) vs farmacéuticas (impacto diferenciado según desarrollo de vacunas) respondieron a la misma crisis, identificando patrones de volatilidad, correlaciones y resiliencia sectorial.
+\textbf{3. Eventos Extremos Documentados:} El dataset incluye el crash de marzo 2020, el desarrollo de vacunas y la recuperación post-pandemia, permitiendo estudiar quiebres estructurales en series de tiempo y evaluar capacidad predictiva ante eventos de baja probabilidad pero alto impacto.
 
-\textbf{4. Caracterización Estadística:} Identificar propiedades de las series de tiempo como estacionariedad, tendencias, estacionalidad, autocorrelación y heterocedasticidad en diferentes períodos del mercado.
+\textbf{4. Comparación Intersectorial Cuantificada:} Los datos revelan contrastes marcados:
 
-\textbf{5. Aplicación a Valoración de Opciones:} Los análisis de volatilidad histórica y comportamiento de precios se integran con el modelo Black-Scholes para mejorar la valoración de opciones financieras.
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Tecnología:} Retornos totales entre +777\% (AAPL) y +2,728\% (TSLA)
+\item
+  \textbf{Farmacéuticas:} Comportamiento heterogéneo desde -20\% (PFE) hasta +44\% (MRNA)
+\item
+  \textbf{Volatilidad:} Rango de 18\% (JNJ) hasta 72\% (MRNA)
+\end{itemize}
+
+\textbf{5. Caracterización Estadística:} Los datos permiten identificar propiedades como estacionariedad, autocorrelación, heterocedasticidad y cambios de régimen en volatilidad, aspectos que serán desarrollados en capítulos posteriores.
+
+\textbf{6. Aplicación a Valoración de Opciones:} Los análisis de volatilidad histórica y comportamiento de precios se integran con el modelo Black-Scholes para mejorar la valoración de opciones financieras.
 
 \section{Fuentes de Datos y Permisos de Uso}\label{fuentes-de-datos-y-permisos-de-uso}
 
 \textbf{Fuente:} Yahoo Finance a través de la librería \texttt{quantmod} en R. Es una fuente pública reconocida en el sector financiero que permite acceso a datos históricos sin restricciones para uso académico y de investigación.
 
-\textbf{Especificaciones:}
+\textbf{Especificaciones técnicas:}
 
 \begin{itemize}
 \tightlist
 \item
-  Período: 2015-2025 (10 años)
+  \textbf{Período:} 2015-2025 (10 años, excepto MRNA que inicia en 2018)
 \item
-  Observaciones: \textasciitilde2,500 por activo (\textasciitilde15,000 totales)
+  \textbf{Observaciones totales:} 14,286 datos distribuidos en 6 activos
 \item
-  Frecuencia: Diaria (252 días de trading por año)
+  \textbf{Frecuencia:} Diaria (aproximadamente 252 días de trading por año)
 \item
-  Acceso: API pública sin permisos especiales requeridos
+  \textbf{Acceso:} API pública sin permisos especiales requeridos
+\item
+  \textbf{Rango de precios:} Desde \$9.58 (TSLA mínimo) hasta \$535.64 (MSFT máximo)
 \end{itemize}
 
-\textbf{Variables:} Precio de cierre, apertura, máximo, mínimo, volumen, retornos diarios, volatilidad histórica, y clasificación de períodos COVID.
+\textbf{Variables recopiladas:}
+
+\begin{itemize}
+\tightlist
+\item
+  Precios: Cierre, apertura, máximo, mínimo (valores diarios en USD)
+\item
+  Volumen de negociación diario
+\item
+  Variables derivadas: Retornos diarios, retornos logarítmicos, volatilidad histórica
+\item
+  Clasificación temporal: Períodos COVID (Pre, Pandemia, Vacunas, Post)
+\end{itemize}
 
 \section{Impacto Esperado}\label{impacto-esperado}
 
-El análisis de series de tiempo beneficia a: \textbf{inversionistas} (comprensión de respuesta sectorial a crisis), \textbf{gestores de riesgo} (identificación de patrones de volatilidad en eventos extremos), \textbf{analistas} (caracterización de resiliencia sectorial), \textbf{traders de opciones} (mejor estimación de volatilidad para valoración de derivados) y \textbf{académicos} (evidencia empírica sobre series financieras en crisis). Este análisis ofrece aprendizajes críticos sobre el comportamiento del mercado en contextos adversos.
+El análisis de series de tiempo con más de 14,000 observaciones reales beneficia a:
+
+\textbf{Inversionistas:} Comprensión documentada de cómo diferentes sectores responden a choques sistémicos, con evidencia cuantitativa de retornos y volatilidades observados durante crisis.
+
+\textbf{Gestores de riesgo:} Identificación de patrones de volatilidad durante eventos extremos, con datos reales que muestran variaciones desde 18\% hasta 72\% de volatilidad anualizada según el activo y el período.
+
+\textbf{Analistas financieros:} Caracterización cuantitativa de resiliencia sectorial respaldada por datos históricos de una década, incluyendo el evento más disruptivo de los mercados financieros en la última generación.
+
+\textbf{Traders de opciones:} Estimación mejorada de volatilidad para valoración de derivados, con datos históricos que documentan cambios de régimen en volatilidad durante diferentes fases del mercado.
+
+\textbf{Académicos:} Evidencia empírica robusta sobre comportamiento de series financieras durante crisis globales, con suficientes observaciones para análisis estadísticamente significativos y validación de modelos de series de tiempo.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\textbf{Nota:} Este documento constituye la propuesta inicial del proyecto. A lo largo del curso se desarrollará el análisis completo de las series de tiempo incluyendo análisis exploratorio, pruebas de estacionariedad, descomposición de series, análisis de volatilidad y su integración con modelos de valoración de opciones financieras.
+\textbf{Nota:} Este documento constituye la propuesta inicial del proyecto. Los capítulos posteriores desarrollarán en detalle el análisis exploratorio de las series, pruebas de estacionariedad, modelado de volatilidad, identificación de quiebres estructurales y su integración con modelos de valoración de opciones financieras.
 
 \chapter{Introduction}\label{intro}
 

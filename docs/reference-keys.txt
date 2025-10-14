@@ -1,6 +1,10 @@
+tab:tabla-resumen
+fig:figura-sectores
 fig:nice-fig
 tab:nice-tab
 información-a-utilizar
+estadísticas-descriptivas-del-dataset
+comparación-por-sector
 importancia-del-pronóstico-y-valor-agregado
 el-problema
 el-valor-agregado

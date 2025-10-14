@@ -93,7 +93,246 @@
 <li>
 <strong>Farmacéuticas:</strong> Pfizer (PFE), Moderna (MRNA), Johnson &amp; Johnson (JNJ)</li>
 </ul>
-<p>Los datos abarcan el período <strong>2015-2025 (10 años)</strong>, proporcionando aproximadamente <strong>2,500 observaciones por activo</strong>. Las variables incluyen precios de cierre, apertura, máximos, mínimos y volúmenes de negociación diarios, obtenidos mediante la librería <code>quantmod</code> que accede a <strong>Yahoo Finance</strong>. Este período incluye cuatro fases claramente diferenciadas: Pre-COVID (2015-2019), Crisis COVID-19 (2020), Período de Vacunas (2021) y Post-pandemia (2022-2025).</p>
+<p>Los datos abarcan el período <strong>2015-2025 (10 años)</strong>, proporcionando un total de <strong>14,286 observaciones</strong>. Las variables incluyen precios de cierre, apertura, máximos, mínimos y volúmenes de negociación diarios, obtenidos mediante la librería <code>quantmod</code> que accede a <strong>Yahoo Finance</strong>.</p>
+<div id="estadísticas-descriptivas-del-dataset" class="section level3" number="0.1.1">
+<h3>
+<span class="header-section-number">0.1.1</span> Estadísticas Descriptivas del Dataset<a class="anchor" aria-label="anchor" href="#estad%C3%ADsticas-descriptivas-del-dataset"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tabla-resumen">Table 0.1: </span>Estadísticas descriptivas de las series de tiempo analizadas
+</caption>
+<thead><tr>
+<th style="text-align:left;">
+Ticker
+</th>
+<th style="text-align:left;">
+Sector
+</th>
+<th style="text-align:right;">
+Obs.
+</th>
+<th style="text-align:center;">
+Inicio
+</th>
+<th style="text-align:center;">
+Fin
+</th>
+<th style="text-align:right;">
+Precio.Mín….
+</th>
+<th style="text-align:right;">
+Precio.Máx….
+</th>
+<th style="text-align:right;">
+Volatilidad….
+</th>
+<th style="text-align:right;">
+Retorno.Total….
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+AAPL
+</td>
+<td style="text-align:left;">
+Tecnología
+</td>
+<td style="text-align:right;">
+2514
+</td>
+<td style="text-align:center;">
+2015-10-13
+</td>
+<td style="text-align:center;">
+2025-10-10
+</td>
+<td style="text-align:right;">
+22.58
+</td>
+<td style="text-align:right;">
+259.02
+</td>
+<td style="text-align:right;">
+29.21
+</td>
+<td style="text-align:right;">
+777.61
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MSFT
+</td>
+<td style="text-align:left;">
+Tecnología
+</td>
+<td style="text-align:right;">
+2514
+</td>
+<td style="text-align:center;">
+2015-10-13
+</td>
+<td style="text-align:center;">
+2025-10-10
+</td>
+<td style="text-align:right;">
+46.68
+</td>
+<td style="text-align:right;">
+535.64
+</td>
+<td style="text-align:right;">
+26.96
+</td>
+<td style="text-align:right;">
+989.70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TSLA
+</td>
+<td style="text-align:left;">
+Tecnología
+</td>
+<td style="text-align:right;">
+2514
+</td>
+<td style="text-align:center;">
+2015-10-13
+</td>
+<td style="text-align:center;">
+2025-10-10
+</td>
+<td style="text-align:right;">
+9.58
+</td>
+<td style="text-align:right;">
+479.86
+</td>
+<td style="text-align:right;">
+59.30
+</td>
+<td style="text-align:right;">
+2728.89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PFE
+</td>
+<td style="text-align:left;">
+Farmacéutica
+</td>
+<td style="text-align:right;">
+2514
+</td>
+<td style="text-align:center;">
+2015-10-13
+</td>
+<td style="text-align:center;">
+2025-10-10
+</td>
+<td style="text-align:right;">
+21.59
+</td>
+<td style="text-align:right;">
+61.25
+</td>
+<td style="text-align:right;">
+24.00
+</td>
+<td style="text-align:right;">
+-20.81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MRNA
+</td>
+<td style="text-align:left;">
+Farmacéutica
+</td>
+<td style="text-align:right;">
+1720
+</td>
+<td style="text-align:center;">
+2018-12-07
+</td>
+<td style="text-align:center;">
+2025-10-10
+</td>
+<td style="text-align:right;">
+12.26
+</td>
+<td style="text-align:right;">
+484.47
+</td>
+<td style="text-align:right;">
+72.08
+</td>
+<td style="text-align:right;">
+44.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+JNJ
+</td>
+<td style="text-align:left;">
+Farmacéutica
+</td>
+<td style="text-align:right;">
+2514
+</td>
+<td style="text-align:center;">
+2015-10-13
+</td>
+<td style="text-align:center;">
+2025-10-10
+</td>
+<td style="text-align:right;">
+94.53
+</td>
+<td style="text-align:right;">
+191.08
+</td>
+<td style="text-align:right;">
+18.40
+</td>
+<td style="text-align:right;">
+99.81
+</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Tabla 1.</strong> Resumen estadístico del dataset con 6 activos y 14,286 observaciones totales. Tesla presenta el mayor retorno (+2,728%) y Moderna la mayor volatilidad (72%).</p>
+<p>Este período incluye cuatro fases claramente diferenciadas:</p>
+<ul>
+<li>
+<strong>Pre-COVID (2015-2019):</strong> Período de crecimiento estable y expansión económica</li>
+<li>
+<strong>Crisis COVID-19 (2020):</strong> Caída abrupta del mercado y alta volatilidad</li>
+<li>
+<strong>Período de Vacunas (2021):</strong> Desarrollo y distribución de vacunas COVID-19</li>
+<li>
+<strong>Post-pandemia (2022-2025):</strong> Nuevas dinámicas de mercado</li>
+</ul>
+</div>
+<div id="comparación-por-sector" class="section level3" number="0.1.2">
+<h3>
+<span class="header-section-number">0.1.2</span> Comparación por Sector<a class="anchor" aria-label="anchor" href="#comparaci%C3%B3n-por-sector"><i class="fas fa-link"></i></a>
+</h3>
+<div class="figure">
+<span style="display:block;" id="fig:figura-sectores"></span>
+<img src="graficos/03_comparacion_sector.png" alt="Comparación de desempeño normalizado por sector. Panel superior: Farmacéuticas con Moderna mostrando crecimiento explosivo durante vacunas. Panel inferior: Tecnología con Tesla liderando los retornos. Líneas rojas verticales marcan el período COVID-19." width="100%"><p class="caption">
+Figure 0.1: Comparación de desempeño normalizado por sector. Panel superior: Farmacéuticas con Moderna mostrando crecimiento explosivo durante vacunas. Panel inferior: Tecnología con Tesla liderando los retornos. Líneas rojas verticales marcan el período COVID-19.
+</p>
+</div>
+<p>La Figura 1 muestra el comportamiento diferenciado entre sectores. El sector tecnológico presenta crecimiento sostenido con Tesla liderando (+2,728%), mientras que el farmacéutico muestra un pico en Moderna durante vacunas seguido de corrección. Este contraste será analizado en capítulos posteriores.</p>
+</div>
 </div>
 <div id="importancia-del-pronóstico-y-valor-agregado" class="section level2" number="0.2">
 <h2>
@@ -103,18 +342,27 @@
 <h3>
 <span class="header-section-number">0.2.1</span> El Problema<a class="anchor" aria-label="anchor" href="#el-problema"><i class="fas fa-link"></i></a>
 </h3>
-<p>Los mercados financieros presentan comportamientos complejos que se intensifican durante crisis globales. El COVID-19 evidenció esto cuando los mercados experimentaron caídas del 30-40% en semanas (marzo 2020), las empresas tecnológicas mostraron recuperaciones explosivas, y las farmacéuticas tuvieron comportamientos diferenciados según su participación en vacunas. Inversionistas y gestores de riesgo necesitan herramientas para entender y anticipar estos movimientos de precios incluso en contextos de alta incertidumbre.</p>
+<p>Los mercados financieros presentan comportamientos complejos que se intensifican durante crisis globales. El COVID-19 evidenció esto cuando los mercados experimentaron caídas abruptas, alta volatilidad y recuperaciones diferenciadas por sector. Los inversionistas y gestores de riesgo necesitan herramientas para anticipar movimientos de precios incluso en contextos de alta incertidumbre.</p>
 </div>
 <div id="el-valor-agregado" class="section level3" number="0.2.2">
 <h3>
 <span class="header-section-number">0.2.2</span> El Valor Agregado<a class="anchor" aria-label="anchor" href="#el-valor-agregado"><i class="fas fa-link"></i></a>
 </h3>
 <p>Este proyecto analiza <strong>series de tiempo de precios de acciones</strong> durante un período de 10 años que incluye eventos extremos. El valor agregado reside en:</p>
-<p><strong>1. Análisis de Múltiples Regímenes:</strong> Evaluar cómo las series de tiempo se comportan en diferentes contextos: estabilidad (pre-COVID), crisis extrema (marzo-nov 2020), recuperación con vacunas (dic 2020-2021) y ajuste post-pandemia (2022-2025).</p>
-<p><strong>2. Comprensión de Eventos Extremos:</strong> El período COVID-19 representa un experimento natural que permite estudiar quiebres estructurales en series de tiempo, cambios abruptos de volatilidad y patrones de comportamiento ante eventos de baja probabilidad pero alto impacto.</p>
-<p><strong>3. Comparación Intersectorial:</strong> Analizar cómo tecnología (beneficiada por digitalización) vs farmacéuticas (impacto diferenciado según desarrollo de vacunas) respondieron a la misma crisis, identificando patrones de volatilidad, correlaciones y resiliencia sectorial.</p>
-<p><strong>4. Caracterización Estadística:</strong> Identificar propiedades de las series de tiempo como estacionariedad, tendencias, estacionalidad, autocorrelación y heterocedasticidad en diferentes períodos del mercado.</p>
-<p><strong>5. Aplicación a Valoración de Opciones:</strong> Los análisis de volatilidad histórica y comportamiento de precios se integran con el modelo Black-Scholes para mejorar la valoración de opciones financieras.</p>
+<p><strong>1. Análisis con Datos Reales Abundantes:</strong> Con 14,286 observaciones totales (2,514 por activo principal y 1,720 para MRNA), los análisis tienen suficiente poder estadístico para identificar patrones robustos, tendencias de largo plazo y quiebres estructurales.</p>
+<p><strong>2. Múltiples Regímenes de Mercado:</strong> El período analizado captura diferentes contextos de mercado, desde estabilidad pre-COVID hasta volatilidad extrema durante la pandemia (hasta 72% anual en MRNA) y posterior normalización.</p>
+<p><strong>3. Eventos Extremos Documentados:</strong> El dataset incluye el crash de marzo 2020, el desarrollo de vacunas y la recuperación post-pandemia, permitiendo estudiar quiebres estructurales en series de tiempo y evaluar capacidad predictiva ante eventos de baja probabilidad pero alto impacto.</p>
+<p><strong>4. Comparación Intersectorial Cuantificada:</strong> Los datos revelan contrastes marcados:</p>
+<ul>
+<li>
+<strong>Tecnología:</strong> Retornos totales entre +777% (AAPL) y +2,728% (TSLA)</li>
+<li>
+<strong>Farmacéuticas:</strong> Comportamiento heterogéneo desde -20% (PFE) hasta +44% (MRNA)</li>
+<li>
+<strong>Volatilidad:</strong> Rango de 18% (JNJ) hasta 72% (MRNA)</li>
+</ul>
+<p><strong>5. Caracterización Estadística:</strong> Los datos permiten identificar propiedades como estacionariedad, autocorrelación, heterocedasticidad y cambios de régimen en volatilidad, aspectos que serán desarrollados en capítulos posteriores.</p>
+<p><strong>6. Aplicación a Valoración de Opciones:</strong> Los análisis de volatilidad histórica y comportamiento de precios se integran con el modelo Black-Scholes para mejorar la valoración de opciones financieras.</p>
 </div>
 </div>
 <div id="fuentes-de-datos-y-permisos-de-uso" class="section level2" number="0.3">
@@ -122,22 +370,39 @@
 <span class="header-section-number">0.3</span> Fuentes de Datos y Permisos de Uso<a class="anchor" aria-label="anchor" href="#fuentes-de-datos-y-permisos-de-uso"><i class="fas fa-link"></i></a>
 </h2>
 <p><strong>Fuente:</strong> Yahoo Finance a través de la librería <code>quantmod</code> en R. Es una fuente pública reconocida en el sector financiero que permite acceso a datos históricos sin restricciones para uso académico y de investigación.</p>
-<p><strong>Especificaciones:</strong></p>
+<p><strong>Especificaciones técnicas:</strong></p>
 <ul>
-<li>Período: 2015-2025 (10 años)</li>
-<li>Observaciones: ~2,500 por activo (~15,000 totales)</li>
-<li>Frecuencia: Diaria (252 días de trading por año)</li>
-<li>Acceso: API pública sin permisos especiales requeridos</li>
+<li>
+<strong>Período:</strong> 2015-2025 (10 años, excepto MRNA que inicia en 2018)</li>
+<li>
+<strong>Observaciones totales:</strong> 14,286 datos distribuidos en 6 activos</li>
+<li>
+<strong>Frecuencia:</strong> Diaria (aproximadamente 252 días de trading por año)</li>
+<li>
+<strong>Acceso:</strong> API pública sin permisos especiales requeridos</li>
+<li>
+<strong>Rango de precios:</strong> Desde $9.58 (TSLA mínimo) hasta $535.64 (MSFT máximo)</li>
 </ul>
-<p><strong>Variables:</strong> Precio de cierre, apertura, máximo, mínimo, volumen, retornos diarios, volatilidad histórica, y clasificación de períodos COVID.</p>
+<p><strong>Variables recopiladas:</strong></p>
+<ul>
+<li>Precios: Cierre, apertura, máximo, mínimo (valores diarios en USD)</li>
+<li>Volumen de negociación diario</li>
+<li>Variables derivadas: Retornos diarios, retornos logarítmicos, volatilidad histórica</li>
+<li>Clasificación temporal: Períodos COVID (Pre, Pandemia, Vacunas, Post)</li>
+</ul>
 </div>
 <div id="impacto-esperado" class="section level2" number="0.4">
 <h2>
 <span class="header-section-number">0.4</span> Impacto Esperado<a class="anchor" aria-label="anchor" href="#impacto-esperado"><i class="fas fa-link"></i></a>
 </h2>
-<p>El análisis de series de tiempo beneficia a: <strong>inversionistas</strong> (comprensión de respuesta sectorial a crisis), <strong>gestores de riesgo</strong> (identificación de patrones de volatilidad en eventos extremos), <strong>analistas</strong> (caracterización de resiliencia sectorial), <strong>traders de opciones</strong> (mejor estimación de volatilidad para valoración de derivados) y <strong>académicos</strong> (evidencia empírica sobre series financieras en crisis). Este análisis ofrece aprendizajes críticos sobre el comportamiento del mercado en contextos adversos.</p>
+<p>El análisis de series de tiempo con más de 14,000 observaciones reales beneficia a:</p>
+<p><strong>Inversionistas:</strong> Comprensión documentada de cómo diferentes sectores responden a choques sistémicos, con evidencia cuantitativa de retornos y volatilidades observados durante crisis.</p>
+<p><strong>Gestores de riesgo:</strong> Identificación de patrones de volatilidad durante eventos extremos, con datos reales que muestran variaciones desde 18% hasta 72% de volatilidad anualizada según el activo y el período.</p>
+<p><strong>Analistas financieros:</strong> Caracterización cuantitativa de resiliencia sectorial respaldada por datos históricos de una década, incluyendo el evento más disruptivo de los mercados financieros en la última generación.</p>
+<p><strong>Traders de opciones:</strong> Estimación mejorada de volatilidad para valoración de derivados, con datos históricos que documentan cambios de régimen en volatilidad durante diferentes fases del mercado.</p>
+<p><strong>Académicos:</strong> Evidencia empírica robusta sobre comportamiento de series financieras durante crisis globales, con suficientes observaciones para análisis estadísticamente significativos y validación de modelos de series de tiempo.</p>
 <hr>
-<p><strong>Nota:</strong> Este documento constituye la propuesta inicial del proyecto. A lo largo del curso se desarrollará el análisis completo de las series de tiempo incluyendo análisis exploratorio, pruebas de estacionariedad, descomposición de series, análisis de volatilidad y su integración con modelos de valoración de opciones financieras.</p>
+<p><strong>Nota:</strong> Este documento constituye la propuesta inicial del proyecto. Los capítulos posteriores desarrollarán en detalle el análisis exploratorio de las series, pruebas de estacionariedad, modelado de volatilidad, identificación de quiebres estructurales y su integración con modelos de valoración de opciones financieras.</p>
 
 </div>
 </div>
@@ -148,7 +413,12 @@
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#propuesta-de-an%C3%A1lisis">Propuesta de Análisis</a></li>
-<li><a class="nav-link" href="#informaci%C3%B3n-a-utilizar"><span class="header-section-number">0.1</span> Información a Utilizar</a></li>
+<li>
+<a class="nav-link" href="#informaci%C3%B3n-a-utilizar"><span class="header-section-number">0.1</span> Información a Utilizar</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#estad%C3%ADsticas-descriptivas-del-dataset"><span class="header-section-number">0.1.1</span> Estadísticas Descriptivas del Dataset</a></li>
+<li><a class="nav-link" href="#comparaci%C3%B3n-por-sector"><span class="header-section-number">0.1.2</span> Comparación por Sector</a></li>
+</ul>
+</li>
 <li>
 <a class="nav-link" href="#importancia-del-pron%C3%B3stico-y-valor-agregado"><span class="header-section-number">0.2</span> Importancia del Pronóstico y Valor Agregado</a><ul class="nav navbar-nav">
 <li><a class="nav-link" href="#el-problema"><span class="header-section-number">0.2.1</span> El Problema</a></li>
