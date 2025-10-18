@@ -2,12 +2,6 @@ tab:tabla-resumen
 fig:figura-sectores
 fig:series-tech
 fig:series-pharma
-fig:sma-tech-1
-fig:sma-tech-2
-fig:sma-tech-3
-fig:sma-pharma-1
-fig:sma-pharma-2
-fig:sma-pharma-3
 fig:lag-plots
 fig:estacionalidad
 información-a-utilizar

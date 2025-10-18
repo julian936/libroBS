@@ -1,4 +1,4 @@
-## Visualización de las Series de Tiempo  {#intro}
+# Visualización de las Series de Tiempo {#intro}
 
 Las visualizaciones tienen como objetivo explorar y comunicar los patrones, tendencias y comportamientos presentes en las series de tiempo de precios de acciones durante el período 2015-2025, con énfasis en el impacto del COVID-19.
 
@@ -8,6 +8,15 @@ library(readxl)
 library(lubridate)
 library(scales)
 library(gridExtra)
+
+# Cargar plotly solo si el output es HTML
+is_html_output <- function() {
+  knitr::opts_knit$get("rmarkdown.pandoc.to") %in% c("html", "html4", "html5")
+}
+
+if(is_html_output()) {
+  library(plotly)
+}
 
 # Cargar datos
 datos_completos <- read_xlsx("datos_yahoo/datasets/datos_completos.xlsx") %>%
@@ -26,27 +35,85 @@ Los siguientes gráficos proporcionan una visión general de la evolución de lo
 
 ### Sector Tecnológico
 
-```{r series-tech, echo=FALSE, fig.height=12, fig.cap="Series de tiempo del sector tecnológico. Se observa el crecimiento explosivo de Tesla post-2019, la estabilidad relativa de Apple y Microsoft, y el impacto del COVID-19 (área sombreada) en las tres empresas."}
+```{r series-tech, echo=FALSE, fig.height=10, fig.cap="Series de tiempo del sector tecnológico. Se observa el crecimiento explosivo de Tesla post-2019, la estabilidad relativa de Apple y Microsoft, y el impacto del COVID-19 (área sombreada) en las tres empresas."}
 datos_tech <- datos_completos %>% filter(Sector == "Tecnología")
 
-plots_tech <- list()
-for(ticker in c("AAPL", "MSFT", "TSLA")) {
-  df <- datos_tech %>% filter(Ticker == ticker)
+if(is_html_output()) {
+  # VERSION INTERACTIVA CON PLOTLY
+  fig_tech <- plot_ly()
   
-  p <- ggplot(df, aes(x = Fecha, y = Close)) +
-    geom_line(color = colores_tickers[ticker], linewidth = 0.7) +
-    geom_rect(aes(xmin = as.Date("2020-01-01"), xmax = as.Date("2022-01-01"),
-                  ymin = -Inf, ymax = Inf),
-              fill = "#E74C3C", alpha = 0.1) +
-    labs(title = paste(ticker, "- Tecnología"),
-         x = NULL, y = "Precio ($)") +
-    theme_minimal(base_size = 10) +
-    scale_y_continuous(labels = dollar_format())
+  # Agregar área COVID
+  fig_tech <- fig_tech %>%
+    add_trace(
+      x = c(as.Date("2020-01-01"), as.Date("2022-01-01"), 
+            as.Date("2022-01-01"), as.Date("2020-01-01")),
+      y = c(0, 0, 600, 600),
+      type = "scatter",
+      mode = "lines",
+      fill = "toself",
+      fillcolor = "rgba(231, 76, 60, 0.1)",
+      line = list(color = "transparent"),
+      showlegend = FALSE,
+      hoverinfo = "text",
+      text = "Período COVID-19",
+      name = "COVID-19"
+    )
   
-  plots_tech[[ticker]] <- p
+  # Agregar líneas por empresa
+  for(ticker in c("AAPL", "MSFT", "TSLA")) {
+    df <- datos_tech %>% filter(Ticker == ticker)
+    
+    fig_tech <- fig_tech %>%
+      add_trace(
+        data = df,
+        x = ~Fecha,
+        y = ~Close,
+        type = "scatter",
+        mode = "lines",
+        name = paste(ticker, "- Tecnología"),
+        line = list(color = colores_tickers[ticker], width = 2),
+        hovertemplate = paste(
+          "<b>%{fullData.name}</b><br>",
+          "Fecha: %{x|%Y-%m-%d}<br>",
+          "Precio: $%{y:,.2f}<br>",
+          "<extra></extra>"
+        )
+      )
+  }
+  
+  fig_tech <- fig_tech %>%
+    layout(
+      title = "Series de Tiempo del Sector Tecnológico (2015-2025)",
+      xaxis = list(title = ""),
+      yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
+      hovermode = "x unified",
+      legend = list(x = 0.01, y = 0.99),
+      height = 600
+    )
+  
+  fig_tech
+  
+} else {
+  # VERSION ESTATICA CON GGPLOT PARA PDF
+  plots_tech <- list()
+  for(ticker in c("AAPL", "MSFT", "TSLA")) {
+    df <- datos_tech %>% filter(Ticker == ticker)
+    
+    p <- ggplot(df, aes(x = Fecha, y = Close)) +
+      geom_rect(aes(xmin = as.Date("2020-01-01"), xmax = as.Date("2022-01-01"),
+                    ymin = -Inf, ymax = Inf),
+                fill = "#E74C3C", alpha = 0.05) +
+      geom_line(color = colores_tickers[ticker], linewidth = 0.7) +
+      labs(title = paste(ticker, "- Tecnología"),
+           x = NULL, y = "Precio ($)") +
+      theme_minimal(base_size = 10) +
+      scale_y_continuous(labels = dollar_format())
+    
+    plots_tech[[ticker]] <- p
+  }
+  
+  do.call(grid.arrange, c(plots_tech, ncol = 1))
 }
-
-do.call(grid.arrange, c(plots_tech, ncol = 1))
 ```
 
 **Observaciones clave del sector tecnológico:**
@@ -59,30 +126,105 @@ do.call(grid.arrange, c(plots_tech, ncol = 1))
 
 ### Sector Farmacéutico
 
-```{r series-pharma, echo=FALSE, fig.height=12, fig.cap="Series de tiempo del sector farmacéutico. Destaca el pico dramático de Moderna durante el período de vacunas (2020-2021), mientras que Pfizer y J&J muestran comportamientos más estables."}
+```{r series-pharma, echo=FALSE, fig.height=10, fig.cap="Series de tiempo del sector farmacéutico. Destaca el pico dramático de Moderna durante el período de vacunas (2020-2021), mientras que Pfizer y J&J muestran comportamientos más estables."}
 datos_pharma <- datos_completos %>% filter(Sector == "Farmacéutica")
 
-plots_pharma <- list()
-for(ticker in c("PFE", "MRNA", "JNJ")) {
-  df <- datos_pharma %>% filter(Ticker == ticker)
+if(is_html_output()) {
+  # VERSION INTERACTIVA CON PLOTLY
+  fig_pharma <- plot_ly()
   
-  p <- ggplot(df, aes(x = Fecha, y = Close)) +
-    geom_line(color = colores_tickers[ticker], linewidth = 0.7) +
-    geom_rect(aes(xmin = as.Date("2020-01-01"), xmax = as.Date("2022-01-01"),
-                  ymin = -Inf, ymax = Inf),
-              fill = "#E74C3C", alpha = 0.1) +
-    geom_rect(aes(xmin = as.Date("2020-12-01"), xmax = as.Date("2022-01-01"),
-                  ymin = -Inf, ymax = Inf),
-              fill = "#27AE60", alpha = 0.1) +
-    labs(title = paste(ticker, "- Farmacéutica"),
-         x = NULL, y = "Precio ($)") +
-    theme_minimal(base_size = 10) +
-    scale_y_continuous(labels = dollar_format())
+  # Agregar área COVID
+  fig_pharma <- fig_pharma %>%
+    add_trace(
+      x = c(as.Date("2020-01-01"), as.Date("2022-01-01"), 
+            as.Date("2022-01-01"), as.Date("2020-01-01")),
+      y = c(0, 0, 550, 550),
+      type = "scatter",
+      mode = "lines",
+      fill = "toself",
+      fillcolor = "rgba(231, 76, 60, 0.1)",
+      line = list(color = "transparent"),
+      showlegend = FALSE,
+      hoverinfo = "text",
+      text = "Período COVID-19",
+      name = "COVID-19"
+    )
   
-  plots_pharma[[ticker]] <- p
+  # Agregar área vacunas
+  fig_pharma <- fig_pharma %>%
+    add_trace(
+      x = c(as.Date("2020-12-01"), as.Date("2022-01-01"), 
+            as.Date("2022-01-01"), as.Date("2020-12-01")),
+      y = c(0, 0, 550, 550),
+      type = "scatter",
+      mode = "lines",
+      fill = "toself",
+      fillcolor = "rgba(39, 174, 96, 0.1)",
+      line = list(color = "transparent"),
+      showlegend = FALSE,
+      hoverinfo = "text",
+      text = "Período de Vacunas",
+      name = "Vacunas"
+    )
+  
+  # Agregar líneas por empresa
+  for(ticker in c("PFE", "MRNA", "JNJ")) {
+    df <- datos_pharma %>% filter(Ticker == ticker)
+    
+    fig_pharma <- fig_pharma %>%
+      add_trace(
+        data = df,
+        x = ~Fecha,
+        y = ~Close,
+        type = "scatter",
+        mode = "lines",
+        name = paste(ticker, "- Farmacéutica"),
+        line = list(color = colores_tickers[ticker], width = 2),
+        hovertemplate = paste(
+          "<b>%{fullData.name}</b><br>",
+          "Fecha: %{x|%Y-%m-%d}<br>",
+          "Precio: $%{y:,.2f}<br>",
+          "<extra></extra>"
+        )
+      )
+  }
+  
+  fig_pharma <- fig_pharma %>%
+    layout(
+      title = "Series de Tiempo del Sector Farmacéutico (2015-2025)",
+      xaxis = list(title = ""),
+      yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
+      hovermode = "x unified",
+      legend = list(x = 0.01, y = 0.99),
+      height = 600
+    )
+  
+  fig_pharma
+  
+} else {
+  # VERSION ESTATICA CON GGPLOT PARA PDF
+  plots_pharma <- list()
+  for(ticker in c("PFE", "MRNA", "JNJ")) {
+    df <- datos_pharma %>% filter(Ticker == ticker)
+    
+    p <- ggplot(df, aes(x = Fecha, y = Close)) +
+      geom_rect(aes(xmin = as.Date("2020-01-01"), xmax = as.Date("2022-01-01"),
+                    ymin = -Inf, ymax = Inf),
+                fill = "#E74C3C", alpha = 0.05) +
+      geom_rect(aes(xmin = as.Date("2020-12-01"), xmax = as.Date("2022-01-01"),
+                    ymin = -Inf, ymax = Inf),
+                fill = "#27AE60", alpha = 0.05) +
+      geom_line(color = colores_tickers[ticker], linewidth = 0.7) +
+      labs(title = paste(ticker, "- Farmacéutica"),
+           x = NULL, y = "Precio ($)") +
+      theme_minimal(base_size = 10) +
+      scale_y_continuous(labels = dollar_format())
+    
+    plots_pharma[[ticker]] <- p
+  }
+  
+  do.call(grid.arrange, c(plots_pharma, ncol = 1))
 }
-
-do.call(grid.arrange, c(plots_pharma, ncol = 1))
 ```
 
 **Observaciones clave del sector farmacéutico:**
@@ -120,20 +262,48 @@ for(ventana in c(7, 30, 90)) {
 for(ticker in c("AAPL", "MSFT", "TSLA")) {
   df <- datos_sma_tech %>% filter(Ticker == ticker)
   
-  p <- ggplot(df, aes(x = Fecha)) +
-    geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
-    geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
-    geom_line(aes(y = SMA_30, color = "30 días"), linewidth = 0.8) +
-    geom_line(aes(y = SMA_90, color = "90 días"), linewidth = 0.8) +
-    scale_color_manual(values = c("7 días" = "#E74C3C", 
-                                   "30 días" = "#F39C12", 
-                                   "90 días" = "#27AE60")) +
-    labs(title = paste(ticker, "- Promedios Móviles"),
-         x = NULL, y = "Precio ($)", color = "Promedio") +
-    theme_minimal(base_size = 10) +
-    theme(legend.position = "bottom")
-  
-  print(p)
+  if(is_html_output()) {
+    # VERSION PLOTLY
+    fig <- plot_ly(df)
+    
+    fig <- fig %>%
+      add_trace(x = ~Fecha, y = ~Close, type = "scatter", mode = "lines",
+                name = "Precio Diario",
+                line = list(color = "rgba(128, 128, 128, 0.3)", width = 1)) %>%
+      add_trace(x = ~Fecha, y = ~SMA_7, type = "scatter", mode = "lines",
+                name = "SMA 7 días",
+                line = list(color = "#E74C3C", width = 2)) %>%
+      add_trace(x = ~Fecha, y = ~SMA_30, type = "scatter", mode = "lines",
+                name = "SMA 30 días",
+                line = list(color = "#F39C12", width = 2)) %>%
+      add_trace(x = ~Fecha, y = ~SMA_90, type = "scatter", mode = "lines",
+                name = "SMA 90 días",
+                line = list(color = "#27AE60", width = 2)) %>%
+      layout(title = paste(ticker, "- Promedios Móviles"),
+             xaxis = list(title = ""),
+             yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
+             hovermode = "x unified",
+             height = 500)
+    
+    print(fig)
+    
+  } else {
+    # VERSION GGPLOT
+    p <- ggplot(df, aes(x = Fecha)) +
+      geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
+      geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
+      geom_line(aes(y = SMA_30, color = "30 días"), linewidth = 0.8) +
+      geom_line(aes(y = SMA_90, color = "90 días"), linewidth = 0.8) +
+      scale_color_manual(values = c("7 días" = "#E74C3C", 
+                                     "30 días" = "#F39C12", 
+                                     "90 días" = "#27AE60")) +
+      labs(title = paste(ticker, "- Promedios Móviles"),
+           x = NULL, y = "Precio ($)", color = "Promedio") +
+      theme_minimal(base_size = 10) +
+      theme(legend.position = "bottom")
+    
+    print(p)
+  }
 }
 ```
 
@@ -156,20 +326,48 @@ for(ventana in c(7, 30, 90)) {
 for(ticker in c("PFE", "MRNA", "JNJ")) {
   df <- datos_sma_pharma %>% filter(Ticker == ticker)
   
-  p <- ggplot(df, aes(x = Fecha)) +
-    geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
-    geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
-    geom_line(aes(y = SMA_30, color = "30 días"), linewidth = 0.8) +
-    geom_line(aes(y = SMA_90, color = "90 días"), linewidth = 0.8) +
-    scale_color_manual(values = c("7 días" = "#E74C3C", 
-                                   "30 días" = "#F39C12", 
-                                   "90 días" = "#27AE60")) +
-    labs(title = paste(ticker, "- Promedios Móviles"),
-         x = NULL, y = "Precio ($)", color = "Promedio") +
-    theme_minimal(base_size = 10) +
-    theme(legend.position = "bottom")
-  
-  print(p)
+  if(is_html_output()) {
+    # VERSION PLOTLY
+    fig <- plot_ly(df)
+    
+    fig <- fig %>%
+      add_trace(x = ~Fecha, y = ~Close, type = "scatter", mode = "lines",
+                name = "Precio Diario",
+                line = list(color = "rgba(128, 128, 128, 0.3)", width = 1)) %>%
+      add_trace(x = ~Fecha, y = ~SMA_7, type = "scatter", mode = "lines",
+                name = "SMA 7 días",
+                line = list(color = "#E74C3C", width = 2)) %>%
+      add_trace(x = ~Fecha, y = ~SMA_30, type = "scatter", mode = "lines",
+                name = "SMA 30 días",
+                line = list(color = "#F39C12", width = 2)) %>%
+      add_trace(x = ~Fecha, y = ~SMA_90, type = "scatter", mode = "lines",
+                name = "SMA 90 días",
+                line = list(color = "#27AE60", width = 2)) %>%
+      layout(title = paste(ticker, "- Promedios Móviles"),
+             xaxis = list(title = ""),
+             yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
+             hovermode = "x unified",
+             height = 500)
+    
+    print(fig)
+    
+  } else {
+    # VERSION GGPLOT
+    p <- ggplot(df, aes(x = Fecha)) +
+      geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
+      geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
+      geom_line(aes(y = SMA_30, color = "30 días"), linewidth = 0.8) +
+      geom_line(aes(y = SMA_90, color = "90 días"), linewidth = 0.8) +
+      scale_color_manual(values = c("7 días" = "#E74C3C", 
+                                     "30 días" = "#F39C12", 
+                                     "90 días" = "#27AE60")) +
+      labs(title = paste(ticker, "- Promedios Móviles"),
+           x = NULL, y = "Precio ($)", color = "Promedio") +
+      theme_minimal(base_size = 10) +
+      theme(legend.position = "bottom")
+    
+    print(p)
+  }
 }
 ```
 
@@ -225,7 +423,7 @@ datos_mensuales <- datos_completos %>%
   group_by(Ticker, Sector, Año, Mes) %>%
   summarise(Precio_Promedio = mean(Close, na.rm = TRUE),
             .groups = "drop") %>%
-  filter(Año >= 2019 & Año <= 2021)  # Enfocarse en período COVID
+  filter(Año >= 2019 & Año <= 2021)
 
 # Por sector
 ggplot(datos_mensuales, aes(x = Mes, y = Precio_Promedio, 
@@ -269,4 +467,3 @@ Las visualizaciones revelan hallazgos clave que serán profundizados en capítul
 5. **Estacionalidad interrumpida:** El COVID-19 alteró patrones estacionales tradicionales, creando un nuevo régimen de mercado.
 
 Estos patrones motivan el análisis formal de series de tiempo en los capítulos siguientes.
-
