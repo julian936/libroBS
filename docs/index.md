@@ -1,7 +1,7 @@
 ---
 title: "Análisis de Series de Tiempo de Precios de Acciones"
 author: "Julian Rojas y Natalia Tangarife"
-date: "2025-10-13"
+date: "2025-10-18"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book

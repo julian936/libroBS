@@ -1,21 +1,272 @@
-# Introduction {#intro}
+## Visualización de las Series de Tiempo  {#intro}
 
-You can label chapter and section titles using `{#label}` after them, e.g., we can reference Chapter \@ref(intro). If you do not manually label them, there will be automatic labels anyway, e.g., Chapter \@ref(methods).
+Las visualizaciones tienen como objetivo explorar y comunicar los patrones, tendencias y comportamientos presentes en las series de tiempo de precios de acciones durante el período 2015-2025, con énfasis en el impacto del COVID-19.
 
-Figures and tables with captions will be placed in `figure` and `table` environments, respectively.
+```{r setup-viz, include=FALSE}
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(scales)
+library(gridExtra)
 
-```{r nice-fig, fig.cap='Here is a nice figure!', out.width='80%', fig.asp=.75, fig.align='center'}
-par(mar = c(4, 4, .1, .1))
-plot(pressure, type = 'b', pch = 19)
-```
+# Cargar datos
+datos_completos <- read_xlsx("datos_yahoo/datasets/datos_completos.xlsx") %>%
+  mutate(Fecha = as.Date(Fecha))
 
-Reference a figure by its code chunk label with the `fig:` prefix, e.g., see Figure \@ref(fig:nice-fig). Similarly, you can reference tables generated from `knitr::kable()`, e.g., see Table \@ref(tab:nice-tab).
-
-```{r nice-tab, tidy=FALSE}
-knitr::kable(
-  head(iris, 20), caption = 'Here is a nice table!',
-  booktabs = TRUE
+# Colores por ticker
+colores_tickers <- c(
+  "AAPL" = "#007AFF", "MSFT" = "#34C759", "TSLA" = "#FF3B30",
+  "PFE" = "#AF52DE", "MRNA" = "#FF9500", "JNJ" = "#E91E63"
 )
 ```
 
-You can write citations, too. For example, we are using the **bookdown** package [@R-bookdown] in this sample book, which was built on top of R Markdown and **knitr** [@xie2015].
+## Series de Tiempo Completas
+
+Los siguientes gráficos proporcionan una visión general de la evolución de los precios de cada activo a lo largo del período 2015-2025.
+
+### Sector Tecnológico
+
+```{r series-tech, echo=FALSE, fig.height=12, fig.cap="Series de tiempo del sector tecnológico. Se observa el crecimiento explosivo de Tesla post-2019, la estabilidad relativa de Apple y Microsoft, y el impacto del COVID-19 (área sombreada) en las tres empresas."}
+datos_tech <- datos_completos %>% filter(Sector == "Tecnología")
+
+plots_tech <- list()
+for(ticker in c("AAPL", "MSFT", "TSLA")) {
+  df <- datos_tech %>% filter(Ticker == ticker)
+  
+  p <- ggplot(df, aes(x = Fecha, y = Close)) +
+    geom_line(color = colores_tickers[ticker], linewidth = 0.7) +
+    geom_rect(aes(xmin = as.Date("2020-01-01"), xmax = as.Date("2022-01-01"),
+                  ymin = -Inf, ymax = Inf),
+              fill = "#E74C3C", alpha = 0.1) +
+    labs(title = paste(ticker, "- Tecnología"),
+         x = NULL, y = "Precio ($)") +
+    theme_minimal(base_size = 10) +
+    scale_y_continuous(labels = dollar_format())
+  
+  plots_tech[[ticker]] <- p
+}
+
+do.call(grid.arrange, c(plots_tech, ncol = 1))
+```
+
+**Observaciones clave del sector tecnológico:**
+
+- **Apple (AAPL):** Muestra un crecimiento sostenido de $22.58 a $259.02 (+778%), con volatilidad moderada (29.2% anual). Durante el COVID-19, experimentó una caída breve seguida de recuperación acelerada.
+
+- **Microsoft (MSFT):** Presenta el comportamiento más estable del sector con crecimiento constante de $46.68 a $535.64 (+990%). La volatilidad de 27% anual es la más baja del sector tecnológico. Mínima afectación durante el crash de marzo 2020.
+
+- **Tesla (TSLA):** Exhibe el comportamiento más volátil (59.3% anual) y el mayor retorno (+2,729%). Se observa crecimiento casi exponencial desde 2019, con alta sensibilidad a eventos de mercado.
+
+### Sector Farmacéutico
+
+```{r series-pharma, echo=FALSE, fig.height=12, fig.cap="Series de tiempo del sector farmacéutico. Destaca el pico dramático de Moderna durante el período de vacunas (2020-2021), mientras que Pfizer y J&J muestran comportamientos más estables."}
+datos_pharma <- datos_completos %>% filter(Sector == "Farmacéutica")
+
+plots_pharma <- list()
+for(ticker in c("PFE", "MRNA", "JNJ")) {
+  df <- datos_pharma %>% filter(Ticker == ticker)
+  
+  p <- ggplot(df, aes(x = Fecha, y = Close)) +
+    geom_line(color = colores_tickers[ticker], linewidth = 0.7) +
+    geom_rect(aes(xmin = as.Date("2020-01-01"), xmax = as.Date("2022-01-01"),
+                  ymin = -Inf, ymax = Inf),
+              fill = "#E74C3C", alpha = 0.1) +
+    geom_rect(aes(xmin = as.Date("2020-12-01"), xmax = as.Date("2022-01-01"),
+                  ymin = -Inf, ymax = Inf),
+              fill = "#27AE60", alpha = 0.1) +
+    labs(title = paste(ticker, "- Farmacéutica"),
+         x = NULL, y = "Precio ($)") +
+    theme_minimal(base_size = 10) +
+    scale_y_continuous(labels = dollar_format())
+  
+  plots_pharma[[ticker]] <- p
+}
+
+do.call(grid.arrange, c(plots_pharma, ncol = 1))
+```
+
+**Observaciones clave del sector farmacéutico:**
+
+- **Pfizer (PFE):** Comportamiento estable con retorno negativo (-20.8%). Volatilidad moderada (24% anual). Pico durante el anuncio y distribución de vacunas, seguido de corrección.
+
+- **Moderna (MRNA):** La mayor volatilidad del dataset (72.1% anual). Crecimiento explosivo durante el desarrollo de vacunas (diciembre 2020), alcanzando $484.47 desde $12.26. Posterior corrección drástica reflejando la normalización post-pandemia.
+
+- **Johnson & Johnson (JNJ):** La menor volatilidad de todo el dataset (18.4% anual). Comportamiento defensivo con retorno total de +99.8%. Mínima afectación durante COVID-19.
+
+## Análisis con Promedios Móviles
+
+Los promedios móviles permiten suavizar la volatilidad diaria y visualizar tendencias subyacentes. Se calculan promedios de 7, 30 y 90 días.
+
+```{r promedio-movil-function, echo=FALSE}
+calcular_sma <- function(datos, ventana) {
+  datos %>%
+    group_by(Ticker) %>%
+    arrange(Fecha) %>%
+    mutate(SMA = zoo::rollmean(Close, k = ventana, fill = NA, align = "right")) %>%
+    ungroup()
+}
+```
+
+### Promedios Móviles - Tecnología
+
+```{r sma-tech, echo=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector tecnológico. Las líneas suavizadas (SMA 7, 30, 90 días) revelan las tendencias subyacentes y confirman el crecimiento sostenido post-COVID."}
+datos_sma_tech <- datos_tech
+
+for(ventana in c(7, 30, 90)) {
+  datos_sma_tech <- calcular_sma(datos_sma_tech, ventana)
+  names(datos_sma_tech)[names(datos_sma_tech) == "SMA"] <- paste0("SMA_", ventana)
+}
+
+for(ticker in c("AAPL", "MSFT", "TSLA")) {
+  df <- datos_sma_tech %>% filter(Ticker == ticker)
+  
+  p <- ggplot(df, aes(x = Fecha)) +
+    geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
+    geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
+    geom_line(aes(y = SMA_30, color = "30 días"), linewidth = 0.8) +
+    geom_line(aes(y = SMA_90, color = "90 días"), linewidth = 0.8) +
+    scale_color_manual(values = c("7 días" = "#E74C3C", 
+                                   "30 días" = "#F39C12", 
+                                   "90 días" = "#27AE60")) +
+    labs(title = paste(ticker, "- Promedios Móviles"),
+         x = NULL, y = "Precio ($)", color = "Promedio") +
+    theme_minimal(base_size = 10) +
+    theme(legend.position = "bottom")
+  
+  print(p)
+}
+```
+
+**Interpretación de promedios móviles:**
+
+- **SMA 7 días:** Reacciona rápidamente a cambios, útil para identificar reversiones de corto plazo.
+- **SMA 30 días:** Revela tendencias de mediano plazo, filtrando ruido diario.
+- **SMA 90 días:** Muestra la tendencia de largo plazo, especialmente útil para identificar cambios de régimen durante COVID-19.
+
+### Promedios Móviles - Farmacéuticas
+
+```{r sma-pharma, echo=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector farmacéutico. El caso de Moderna es particularmente interesante, mostrando cómo los promedios capturan el ciclo completo de auge y corrección."}
+datos_sma_pharma <- datos_pharma
+
+for(ventana in c(7, 30, 90)) {
+  datos_sma_pharma <- calcular_sma(datos_sma_pharma, ventana)
+  names(datos_sma_pharma)[names(datos_sma_pharma) == "SMA"] <- paste0("SMA_", ventana)
+}
+
+for(ticker in c("PFE", "MRNA", "JNJ")) {
+  df <- datos_sma_pharma %>% filter(Ticker == ticker)
+  
+  p <- ggplot(df, aes(x = Fecha)) +
+    geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
+    geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
+    geom_line(aes(y = SMA_30, color = "30 días"), linewidth = 0.8) +
+    geom_line(aes(y = SMA_90, color = "90 días"), linewidth = 0.8) +
+    scale_color_manual(values = c("7 días" = "#E74C3C", 
+                                   "30 días" = "#F39C12", 
+                                   "90 días" = "#27AE60")) +
+    labs(title = paste(ticker, "- Promedios Móviles"),
+         x = NULL, y = "Precio ($)", color = "Promedio") +
+    theme_minimal(base_size = 10) +
+    theme(legend.position = "bottom")
+  
+  print(p)
+}
+```
+
+## Análisis de Rezagos
+
+Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores.
+
+```{r lag-plots, echo=FALSE, fig.height=8, fig.width=12, fig.cap="Gráficos de rezago para lag 1 y lag 7 días. La concentración de puntos en la diagonal sugiere autocorrelación positiva, especialmente en lag 1."}
+# Función para crear gráficos de rezago
+crear_lag_plot <- function(datos, lag_days, ticker_sel) {
+  df <- datos %>%
+    filter(Ticker == ticker_sel) %>%
+    arrange(Fecha) %>%
+    mutate(Close_Lag = lag(Close, lag_days))
+  
+  ggplot(df, aes(x = Close_Lag, y = Close)) +
+    geom_point(color = colores_tickers[ticker_sel], alpha = 0.5, size = 1.5) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+    labs(title = paste(ticker_sel, "- Rezago", lag_days, "día(s)"),
+         x = paste("Precio (t -", lag_days, ")"),
+         y = "Precio (t)") +
+    theme_minimal(base_size = 10) +
+    scale_x_continuous(labels = dollar_format()) +
+    scale_y_continuous(labels = dollar_format())
+}
+
+# Crear panel de gráficos
+lag_plots <- list()
+for(ticker in c("AAPL", "TSLA", "MRNA")) {
+  lag_plots[[paste0(ticker, "_lag1")]] <- crear_lag_plot(datos_completos, 1, ticker)
+  lag_plots[[paste0(ticker, "_lag7")]] <- crear_lag_plot(datos_completos, 7, ticker)
+}
+
+do.call(grid.arrange, c(lag_plots, ncol = 2))
+```
+
+**Interpretación de rezagos:**
+
+- **Lag 1 (día anterior):** La mayoría de los puntos se concentran cerca de la diagonal, indicando autocorrelación positiva débil. Los precios tienden a persistir de un día al siguiente, especialmente en niveles bajos y altos.
+
+- **Lag 7 (semana anterior):** Mayor dispersión que lag 1, sugiriendo autocorrelación semanal muy débil. Las ventas de un día específico no predicen confiablemente el mismo día de la semana siguiente, excepto en valores extremos.
+
+- **Observación sectorial:** Tesla y Moderna muestran mayor dispersión debido a su alta volatilidad, mientras que activos más estables como J&J presentan patrones más concentrados.
+
+## Estacionalidad Anual
+
+El análisis de estacionalidad revela patrones recurrentes a lo largo del año calendario, particularmente relevantes durante el período COVID-19.
+
+```{r estacionalidad, echo=FALSE, fig.height=8, fig.cap="Patrón de precios mensuales por año. Se identifica claramente el impacto COVID en marzo 2020 y la recuperación diferenciada por sector."}
+datos_mensuales <- datos_completos %>%
+  mutate(Año = year(Fecha),
+         Mes = month(Fecha, label = TRUE)) %>%
+  group_by(Ticker, Sector, Año, Mes) %>%
+  summarise(Precio_Promedio = mean(Close, na.rm = TRUE),
+            .groups = "drop") %>%
+  filter(Año >= 2019 & Año <= 2021)  # Enfocarse en período COVID
+
+# Por sector
+ggplot(datos_mensuales, aes(x = Mes, y = Precio_Promedio, 
+                             color = as.factor(Año), group = interaction(Ticker, Año))) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  facet_wrap(~Sector, scales = "free_y", ncol = 1) +
+  scale_color_manual(values = c("2019" = "#3498DB", 
+                                 "2020" = "#E74C3C", 
+                                 "2021" = "#27AE60")) +
+  labs(title = "Patrón Estacional por Sector (2019-2021)",
+       x = "Mes", y = "Precio Promedio ($)",
+       color = "Año") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+**Patrones estacionales identificados:**
+
+- **Marzo 2020:** Caída drástica en todos los activos coincidiendo con el crash COVID-19.
+
+- **Noviembre-Diciembre:** Tradicionalmente meses fuertes para mercados financieros, patrón que se mantiene excepto durante 2020.
+
+- **Primer trimestre:** Generalmente muestra precios más bajos, con recuperación hacia mediados de año. Patrón interrumpido en 2020 por el COVID.
+
+- **Diferencias sectoriales:** El sector tecnológico muestra recuperación más rápida post-marzo 2020, mientras farmacéuticas tienen pico en el período de vacunas (Q4 2020 - Q1 2021).
+
+## Síntesis de Visualización
+
+Las visualizaciones revelan hallazgos clave que serán profundizados en capítulos posteriores:
+
+1. **Impacto COVID-19:** Claro quiebre estructural en marzo 2020 visible en todas las series.
+
+2. **Divergencia sectorial:** Tecnología muestra recuperación en "V", mientras farmacéuticas tienen comportamiento más heterogéneo.
+
+3. **Volatilidad variable:** Moderna (72%) vs J&J (18%) ejemplifican el rango de comportamientos dentro del mismo sector.
+
+4. **Autocorrelación limitada:** Los rezagos sugieren dependencia débil, indicando que modelos simples de persistencia no serán suficientes.
+
+5. **Estacionalidad interrumpida:** El COVID-19 alteró patrones estacionales tradicionales, creando un nuevo régimen de mercado.
+
+Estos patrones motivan el análisis formal de series de tiempo en los capítulos siguientes.
+
