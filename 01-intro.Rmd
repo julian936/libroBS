@@ -632,34 +632,32 @@ if(is_html_output()) {
 
 El análisis de estacionalidad revela patrones recurrentes a lo largo del año calendario, particularmente relevantes durante el período COVID-19.
 
-```{r estacionalidad, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Patrón de precios mensuales por año (interactivo). Se identifica claramente el impacto COVID en marzo 2020 y la recuperación diferenciada por sector."}
+### Estacionalidad - Sector Tecnológico
+
+```{r estacionalidad-tech, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Patrón estacional del sector tecnológico (2019-2021). Se observa crecimiento sostenido interrumpido por COVID-19 en marzo 2020."}
 datos_mensuales <- datos_completos %>%
-  mutate(Año = year(Fecha),
-         Mes = month(Fecha, label = TRUE)) %>%
+  mutate(
+    Año = year(Fecha),
+    Mes = month(Fecha, label = TRUE)
+  ) %>%
   group_by(Ticker, Sector, Año, Mes) %>%
-  summarise(Precio_Promedio = mean(Close, na.rm = TRUE),
-            .groups = "drop") %>%
+  summarise(Precio_Promedio = mean(Close, na.rm = TRUE), .groups = "drop") %>%
   filter(Año >= 2019 & Año <= 2021)
 
 if(is_html_output()) {
-  # VERSION PLOTLY INTERACTIVA
+  # VERSION PLOTLY - TECNOLOGIA
   
-  # Colores por año
   colores_años <- c("2019" = "#3498DB", "2020" = "#E74C3C", "2021" = "#27AE60")
   
-  # Crear gráficos por sector
-  sectores <- unique(datos_mensuales$Sector)
+  fig <- plot_ly(height = 500)
   
-  for(sector in sectores) {
-    df_sector <- datos_mensuales %>% filter(Sector == sector)
-    
-    fig <- plot_ly(height = 450)
-    
-    # Agregar una traza por cada combinación de ticker y año
-    for(año in c(2019, 2020, 2021)) {
-      for(ticker in unique(df_sector$Ticker)) {
-        df <- df_sector %>% filter(Año == año, Ticker == ticker)
-        
+  df_tech <- datos_mensuales %>% filter(Sector == "Tecnología")
+  
+  for(año in c(2019, 2020, 2021)) {
+    for(ticker in c("AAPL", "MSFT", "TSLA")) {
+      df <- df_tech %>% filter(Año == año, Ticker == ticker)
+      
+      if(nrow(df) > 0) {
         fig <- fig %>%
           add_trace(
             data = df,
@@ -667,83 +665,153 @@ if(is_html_output()) {
             y = ~Precio_Promedio,
             type = "scatter",
             mode = "lines+markers",
-            name = paste(ticker, año),
-            line = list(color = colores_años[as.character(año)], width = 2),
-            marker = list(size = 6),
-            legendgroup = as.character(año),
+            name = paste(ticker, año, sep = " - "),
+            line = list(color = colores_años[as.character(año)], width = 2.5),
+            marker = list(size = 7),
             hovertemplate = paste0(
               "<b>", ticker, " - ", año, "</b><br>",
               "Mes: %{x}<br>",
-              "Precio Promedio: $%{y:,.2f}<br>",
+              "Precio: $%{y:,.2f}<br>",
               "<extra></extra>"
             )
           )
       }
     }
-    
-    # Layout
-    fig <- fig %>%
-      layout(
-        title = list(
-          text = paste("Patrón Estacional -", sector, "(2019-2021)"),
-          font = list(size = 16)
-        ),
-        xaxis = list(
-          title = "Mes",
-          categoryorder = "array",
-          categoryarray = c("ene", "feb", "mar", "abr", "may", "jun", 
-                           "jul", "ago", "sep", "oct", "nov", "dic")
-        ),
-        yaxis = list(
-          title = "Precio Promedio ($)",
-          tickformat = "$,.0f"
-        ),
-        hovermode = "x unified",
-        legend = list(
-          title = list(text = "Ticker - Año"),
-          orientation = "v",
-          x = 1.02,
-          y = 1
-        )
-      )
-    
-    print(fig)
   }
   
+  fig <- fig %>%
+    layout(
+      title = list(text = "Sector Tecnológico - Patrón Estacional (2019-2021)", font = list(size = 16)),
+      xaxis = list(title = "Mes"),
+      yaxis = list(title = "Precio Promedio ($)", tickformat = "$,.0f"),
+      hovermode = "x unified",
+      legend = list(
+        orientation = "v",
+        x = 1.02,
+        y = 1,
+        font = list(size = 10)
+      )
+    )
+  
+  fig
+  
 } else {
-  # VERSION ESTATICA CON GGPLOT PARA PDF
-  ggplot(datos_mensuales, aes(x = Mes, y = Precio_Promedio, 
-                               color = as.factor(Año), group = interaction(Ticker, Año))) +
+  # VERSION GGPLOT
+  df_tech <- datos_mensuales %>% filter(Sector == "Tecnología")
+  
+  ggplot(df_tech, aes(x = Mes, y = Precio_Promedio, 
+                      color = as.factor(Año), group = interaction(Ticker, Año))) +
     geom_line(linewidth = 1) +
     geom_point(size = 2) +
-    facet_wrap(~Sector, scales = "free_y", ncol = 1) +
-    scale_color_manual(values = c("2019" = "#3498DB", 
-                                   "2020" = "#E74C3C", 
-                                   "2021" = "#27AE60")) +
-    labs(title = "Patrón Estacional por Sector (2019-2021)",
-         x = "Mes", y = "Precio Promedio ($)",
-         color = "Año") +
+    scale_color_manual(values = c("2019" = "#3498DB", "2020" = "#E74C3C", "2021" = "#27AE60")) +
+    labs(title = "Sector Tecnológico - Patrón Estacional (2019-2021)",
+         x = "Mes", y = "Precio Promedio ($)", color = "Año") +
     theme_minimal(base_size = 11) +
-    theme(legend.position = "bottom",
-          axis.text.x = element_text(angle = 45, hjust = 1))
+    theme(legend.position = "right", axis.text.x = element_text(angle = 45, hjust = 1))
 }
 ```
 
-**Patrones estacionales identificados:**
+**Interpretación - Tecnología:**
 
-- **Marzo 2020:** Caída drástica en todos los activos coincidiendo con el crash COVID-19. En tecnología, los precios cayeron bruscamente pero se recuperaron rápidamente. En farmacéuticas, Moderna y Pfizer mostraron volatilidad inicial antes del pico de desarrollo de vacunas.
+- **Crecimiento consistente (2019):** Apple, Microsoft y Tesla muestran tendencias alcistas estables durante todo el año, con el típico rally de fin de año visible en noviembre-diciembre.
 
-- **Abril-Mayo 2020:** Período de recuperación diferenciada. El sector tecnológico (especialmente Microsoft y Apple) mostró recuperación en "V", mientras que las farmacéuticas mantuvieron niveles relativamente estables, anticipando su rol en la pandemia.
+- **Crash y recuperación en V (2020):** Caída dramática en marzo coincidiendo con el inicio de la pandemia. Microsoft y Apple se recuperaron rápidamente (abril-mayo), mientras Tesla mostró aceleración explosiva desde julio, alcanzando ~$300 promedio en diciembre.
 
-- **Diciembre 2020 - Enero 2021:** Pico dramático en Moderna alcanzando ~$400 promedio mensual, coincidiendo con la autorización de emergencia y distribución masiva de vacunas. Tesla también experimentó crecimiento explosivo en este período, alcanzando máximos históricos.
+- **Consolidación y nuevos máximos (2021):** Microsoft supera los $300 promedio mensual, Apple se estabiliza en ~$150, y Tesla presenta alta volatilidad con picos en octubre-noviembre (~$350-400).
 
-- **Segundo semestre 2021:** Normalización post-vacunación. Moderna inicia corrección significativa desde sus máximos, mientras el sector tecnológico consolida ganancias con Microsoft superando los $300 promedio.
+### Estacionalidad - Sector Farmacéutico
 
-- **Diferencias sectoriales:** 
-  - **Tecnología**: Patrón de crecimiento sostenido interrumpido brevemente en marzo 2020. Recuperación rápida y tendencia alcista mantenida durante 2020-2021.
-  - **Farmacéutica**: Mayor heterogeneidad. J&J mantiene estabilidad (~$150-170), Pfizer presenta volatilidad moderada, y Moderna exhibe el patrón más extremo con auge y corrección dramáticos ligados directamente a eventos de COVID-19.
+```{r estacionalidad-pharma, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Patrón estacional del sector farmacéutico (2019-2021). Destaca el pico dramático de Moderna durante el desarrollo de vacunas."}
 
-- **Observación estacional general:** El típico rally de fin de año (noviembre-diciembre) se mantuvo en 2019 y 2021, pero fue interrumpido en 2020 por la dinámica única del sector farmacéutico durante el pico de vacunación.
+if(is_html_output()) {
+  # VERSION PLOTLY - FARMACEUTICA
+  
+  colores_años <- c("2019" = "#3498DB", "2020" = "#E74C3C", "2021" = "#27AE60")
+  
+  fig <- plot_ly(height = 500)
+  
+  df_pharma <- datos_mensuales %>% filter(Sector == "Farmacéutica")
+  
+  for(año in c(2019, 2020, 2021)) {
+    for(ticker in c("PFE", "MRNA", "JNJ")) {
+      df <- df_pharma %>% filter(Año == año, Ticker == ticker)
+      
+      if(nrow(df) > 0) {
+        fig <- fig %>%
+          add_trace(
+            data = df,
+            x = ~Mes,
+            y = ~Precio_Promedio,
+            type = "scatter",
+            mode = "lines+markers",
+            name = paste(ticker, año, sep = " - "),
+            line = list(color = colores_años[as.character(año)], width = 2.5),
+            marker = list(size = 7),
+            hovertemplate = paste0(
+              "<b>", ticker, " - ", año, "</b><br>",
+              "Mes: %{x}<br>",
+              "Precio: $%{y:,.2f}<br>",
+              "<extra></extra>"
+            )
+          )
+      }
+    }
+  }
+  
+  fig <- fig %>%
+    layout(
+      title = list(text = "Sector Farmacéutico - Patrón Estacional (2019-2021)", font = list(size = 16)),
+      xaxis = list(title = "Mes"),
+      yaxis = list(title = "Precio Promedio ($)", tickformat = "$,.0f"),
+      hovermode = "x unified",
+      legend = list(
+        orientation = "v",
+        x = 1.02,
+        y = 1,
+        font = list(size = 10)
+      )
+    )
+  
+  fig
+  
+} else {
+  # VERSION GGPLOT
+  df_pharma <- datos_mensuales %>% filter(Sector == "Farmacéutica")
+  
+  ggplot(df_pharma, aes(x = Mes, y = Precio_Promedio, 
+                        color = as.factor(Año), group = interaction(Ticker, Año))) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    scale_color_manual(values = c("2019" = "#3498DB", "2020" = "#E74C3C", "2021" = "#27AE60")) +
+    labs(title = "Sector Farmacéutico - Patrón Estacional (2019-2021)",
+         x = "Mes", y = "Precio Promedio ($)", color = "Año") +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "right", axis.text.x = element_text(angle = 45, hjust = 1))
+}
+```
+
+**Interpretación - Farmacéutica:**
+
+- **Estabilidad pre-pandemia (2019):** J&J, Pfizer y Moderna operan en rangos estables. J&J lidera con ~$130-150, Pfizer ~$35-45, y Moderna (empresa biotecnológica pequeña) en ~$15-25.
+
+- **Transformación durante COVID (2020):** 
+  - **Marzo-Mayo:** Volatilidad inicial mientras las empresas ajustan operaciones.
+  - **Junio-Noviembre:** Moderna inicia escalada dramática conforme avanza desarrollo de vacuna (~$50 a ~$100).
+  - **Diciembre:** Explosión de Moderna alcanzando ~$130 promedio con autorización de emergencia.
+
+- **Pico y corrección (2021):**
+  - **Enero-Febrero:** Moderna alcanza máximo histórico (~$400-430 promedio mensual) durante distribución masiva de vacunas.
+  - **Marzo en adelante:** Corrección significativa de Moderna hacia ~$280-330, reflejando normalización post-vacunación.
+  - **J&J y Pfizer:** Comportamiento más estable. J&J mantiene ~$160-170, Pfizer ~$40-45 con volatilidad moderada.
+
+**Síntesis comparativa sectorial:**
+
+- **Tecnología:** Muestra resiliencia y crecimiento sostenido. El COVID-19 causó disrupción temporal pero aceleró transformación digital, beneficiando al sector.
+
+- **Farmacéutica:** Comportamiento heterogéneo altamente dependiente de eventos COVID-19. Moderna ejemplifica el caso extremo de empresa pequeña transformada por evento global único. J&J demuestra estabilidad defensiva característica de farmacéuticas establecidas.
+
+- **Estacionalidad tradicional:** El rally de fin de año (nov-dic) se observa en tecnología en 2019 y 2021, pero fue eclipsado en farmacéutica durante 2020 por la dinámica de vacunas COVID-19.
+
 
 
 ## Síntesis de Visualización

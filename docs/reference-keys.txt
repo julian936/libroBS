@@ -5,6 +5,8 @@ fig:series-pharma
 fig:lag-plots-aapl
 fig:lag-plots-tsla
 fig:lag-plots-mrna
+fig:estacionalidad-tech
+fig:estacionalidad-pharma
 información-a-utilizar
 estadísticas-descriptivas-del-dataset
 comparación-por-sector
@@ -25,6 +27,8 @@ rezagos---apple-aapl
 rezagos---tesla-tsla
 rezagos---moderna-mrna
 estacionalidad-anual
+estacionalidad---sector-tecnológico
+estacionalidad---sector-farmacéutico
 síntesis-de-visualización
 literature
 methods
