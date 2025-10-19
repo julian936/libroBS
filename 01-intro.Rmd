@@ -250,7 +250,6 @@ calcular_sma <- function(datos, ventana) {
 
 ### Promedios Móviles - Tecnología
 
-# TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA
 ```{r sma-tech, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector tecnológico. Las líneas suavizadas (SMA 7, 30, 90 días) revelan las tendencias subyacentes y confirman el crecimiento sostenido post-COVID."}
 datos_sma_tech <- datos_tech
 
@@ -314,7 +313,6 @@ for(ticker in c("AAPL", "MSFT", "TSLA")) {
 
 ### Promedios Móviles - Farmacéuticas
 
-# TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS
 ```{r sma-pharma, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector farmacéutico. El caso de Moderna es particularmente interesante, mostrando cómo los promedios capturan el ciclo completo de auge y corrección."}
 datos_sma_pharma <- datos_pharma
 
@@ -374,7 +372,7 @@ for(ticker in c("PFE", "MRNA", "JNJ")) {
 
 Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores.
 
-```{r lag-plots, echo=FALSE, fig.height=8, fig.width=12, fig.cap="Gráficos de rezago para lag 1 y lag 7 días. La concentración de puntos en la diagonal sugiere autocorrelación positiva, especialmente en lag 1."}
+```{r lag-plots, echo=FALSE,  warning=FALSE, fig.height=8, fig.width=12, fig.cap="Gráficos de rezago para lag 1 y lag 7 días. La concentración de puntos en la diagonal sugiere autocorrelación positiva, especialmente en lag 1."}
 # Función para crear gráficos de rezago
 crear_lag_plot <- function(datos, lag_days, ticker_sel) {
   df <- datos %>%
