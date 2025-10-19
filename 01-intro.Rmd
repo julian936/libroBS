@@ -236,6 +236,7 @@ retorno total de +44.3%. Posterior corrección drástica reflejando la normaliza
 
 - **Johnson & Johnson (JNJ):** La menor volatilidad de todo el dataset (18.4% anual). Comportamiento defensivo con retorno total de +99.8%. Mínima afectación durante COVID-19.
 
+
 ## Análisis con Promedios Móviles
 
 Los promedios móviles permiten suavizar la volatilidad diaria y visualizar tendencias subyacentes. Se calculan promedios de 7, 30 y 90 días.
@@ -252,7 +253,10 @@ calcular_sma <- function(datos, ventana) {
 
 ### Promedios Móviles - Tecnología
 
-```{r sma-tech, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector tecnológico. Las líneas suavizadas (SMA 7, 30, 90 días) revelan las tendencias subyacentes y confirman el crecimiento sostenido post-COVID."}
+```{r sma-tech, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, results='asis', fig.cap="Series con promedios móviles del sector tecnológico. Las líneas suavizadas (SMA 7, 30, 90 días) revelan las tendencias subyacentes y confirman el crecimiento sostenido post-COVID."}
+# Filtrar datos de tecnología
+datos_tech <- datos_completos %>% filter(Sector == "Tecnología")
+
 datos_sma_tech <- datos_tech
 
 for(ventana in c(7, 30, 90)) {
@@ -260,35 +264,44 @@ for(ventana in c(7, 30, 90)) {
   names(datos_sma_tech)[names(datos_sma_tech) == "SMA"] <- paste0("SMA_", ventana)
 }
 
-for(ticker in c("AAPL", "MSFT", "TSLA")) {
-  df <- datos_sma_tech %>% filter(Ticker == ticker)
-  
-  if(is_html_output()) {
-    # VERSION PLOTLY
-    fig <- plot_ly(df, height = 500)  # ALTURA AQUI
+if(is_html_output()) {
+  # VERSION PLOTLY
+  for(ticker in c("AAPL", "MSFT", "TSLA")) {
+    df <- datos_sma_tech %>% filter(Ticker == ticker)
     
-    fig <- fig %>%
+    fig <- plot_ly(df, height = 450) %>%
       add_trace(x = ~Fecha, y = ~Close, type = "scatter", mode = "lines",
                 name = "Precio Diario",
-                line = list(color = "rgba(128, 128, 128, 0.3)", width = 1)) %>%
+                line = list(color = "rgba(128, 128, 128, 0.3)", width = 1),
+                hovertemplate = "Precio: $%{y:,.2f}<extra></extra>") %>%
       add_trace(x = ~Fecha, y = ~SMA_7, type = "scatter", mode = "lines",
                 name = "SMA 7 días",
-                line = list(color = "#E74C3C", width = 2)) %>%
+                line = list(color = "#E74C3C", width = 2.5),
+                hovertemplate = "SMA 7: $%{y:,.2f}<extra></extra>") %>%
       add_trace(x = ~Fecha, y = ~SMA_30, type = "scatter", mode = "lines",
                 name = "SMA 30 días",
-                line = list(color = "#F39C12", width = 2)) %>%
+                line = list(color = "#F39C12", width = 2.5),
+                hovertemplate = "SMA 30: $%{y:,.2f}<extra></extra>") %>%
       add_trace(x = ~Fecha, y = ~SMA_90, type = "scatter", mode = "lines",
                 name = "SMA 90 días",
-                line = list(color = "#27AE60", width = 2)) %>%
-      layout(title = paste(ticker, "- Promedios Móviles"),
-             xaxis = list(title = ""),
-             yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
-             hovermode = "x unified")  # SIN HEIGHT AQUI
+                line = list(color = "#27AE60", width = 2.5),
+                hovertemplate = "SMA 90: $%{y:,.2f}<extra></extra>") %>%
+      layout(
+        title = list(text = paste(ticker, "- Promedios Móviles"), font = list(size = 15)),
+        xaxis = list(title = "Fecha"),
+        yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
+        hovermode = "x unified",
+        legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15)
+      )
     
-    print(fig)
+    print(htmltools::tagList(fig))
+    cat("\n\n")
+  }
+} else {
+  # VERSION GGPLOT PARA PDF
+  for(ticker in c("AAPL", "MSFT", "TSLA")) {
+    df <- datos_sma_tech %>% filter(Ticker == ticker)
     
-  } else {
-    # VERSION GGPLOT
     p <- ggplot(df, aes(x = Fecha)) +
       geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
       geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
@@ -299,6 +312,7 @@ for(ticker in c("AAPL", "MSFT", "TSLA")) {
                                      "90 días" = "#27AE60")) +
       labs(title = paste(ticker, "- Promedios Móviles"),
            x = NULL, y = "Precio ($)", color = "Promedio") +
+      scale_y_continuous(labels = scales::dollar_format()) +
       theme_minimal(base_size = 10) +
       theme(legend.position = "bottom")
     
@@ -309,13 +323,18 @@ for(ticker in c("AAPL", "MSFT", "TSLA")) {
 
 **Interpretación de promedios móviles:**
 
-- **SMA 7 días:** Reacciona rápidamente a cambios, útil para identificar reversiones de corto plazo.
-- **SMA 30 días:** Revela tendencias de mediano plazo, filtrando ruido diario.
-- **SMA 90 días:** Muestra la tendencia de largo plazo, especialmente útil para identificar cambios de régimen durante COVID-19.
+- **SMA 7 días:** Reacciona rápidamente a cambios, útil para identificar reversiones de corto plazo. Sigue de cerca el precio diario pero elimina el ruido extremo.
+
+- **SMA 30 días:** Revela tendencias de mediano plazo, filtrando ruido diario. Útil para traders que buscan mantener posiciones por semanas.
+
+- **SMA 90 días:** Muestra la tendencia de largo plazo, especialmente útil para identificar cambios de régimen durante COVID-19. Esta línea es la más suave y revela la dirección fundamental del mercado.
 
 ### Promedios Móviles - Farmacéuticas
 
-```{r sma-pharma, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector farmacéutico. El caso de Moderna es particularmente interesante, mostrando cómo los promedios capturan el ciclo completo de auge y corrección."}
+```{r sma-pharma, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, results='asis', fig.cap="Series con promedios móviles del sector farmacéutico. El caso de Moderna es particularmente interesante, mostrando cómo los promedios capturan el ciclo completo de auge y corrección."}
+# Filtrar datos de farmacéuticas
+datos_pharma <- datos_completos %>% filter(Sector == "Farmacéutica")
+
 datos_sma_pharma <- datos_pharma
 
 for(ventana in c(7, 30, 90)) {
@@ -323,35 +342,44 @@ for(ventana in c(7, 30, 90)) {
   names(datos_sma_pharma)[names(datos_sma_pharma) == "SMA"] <- paste0("SMA_", ventana)
 }
 
-for(ticker in c("PFE", "MRNA", "JNJ")) {
-  df <- datos_sma_pharma %>% filter(Ticker == ticker)
-  
-  if(is_html_output()) {
-    # VERSION PLOTLY
-    fig <- plot_ly(df, height = 500)  # ALTURA AQUI
+if(is_html_output()) {
+  # VERSION PLOTLY
+  for(ticker in c("PFE", "MRNA", "JNJ")) {
+    df <- datos_sma_pharma %>% filter(Ticker == ticker)
     
-    fig <- fig %>%
+    fig <- plot_ly(df, height = 450) %>%
       add_trace(x = ~Fecha, y = ~Close, type = "scatter", mode = "lines",
                 name = "Precio Diario",
-                line = list(color = "rgba(128, 128, 128, 0.3)", width = 1)) %>%
+                line = list(color = "rgba(128, 128, 128, 0.3)", width = 1),
+                hovertemplate = "Precio: $%{y:,.2f}<extra></extra>") %>%
       add_trace(x = ~Fecha, y = ~SMA_7, type = "scatter", mode = "lines",
                 name = "SMA 7 días",
-                line = list(color = "#E74C3C", width = 2)) %>%
+                line = list(color = "#E74C3C", width = 2.5),
+                hovertemplate = "SMA 7: $%{y:,.2f}<extra></extra>") %>%
       add_trace(x = ~Fecha, y = ~SMA_30, type = "scatter", mode = "lines",
                 name = "SMA 30 días",
-                line = list(color = "#F39C12", width = 2)) %>%
+                line = list(color = "#F39C12", width = 2.5),
+                hovertemplate = "SMA 30: $%{y:,.2f}<extra></extra>") %>%
       add_trace(x = ~Fecha, y = ~SMA_90, type = "scatter", mode = "lines",
                 name = "SMA 90 días",
-                line = list(color = "#27AE60", width = 2)) %>%
-      layout(title = paste(ticker, "- Promedios Móviles"),
-             xaxis = list(title = ""),
-             yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
-             hovermode = "x unified")  # SIN HEIGHT AQUI
+                line = list(color = "#27AE60", width = 2.5),
+                hovertemplate = "SMA 90: $%{y:,.2f}<extra></extra>") %>%
+      layout(
+        title = list(text = paste(ticker, "- Promedios Móviles"), font = list(size = 15)),
+        xaxis = list(title = "Fecha"),
+        yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
+        hovermode = "x unified",
+        legend = list(orientation = "h", x = 0.5, xanchor = "center", y = -0.15)
+      )
     
-    print(fig)
+    print(htmltools::tagList(fig))
+    cat("\n\n")
+  }
+} else {
+  # VERSION GGPLOT PARA PDF
+  for(ticker in c("PFE", "MRNA", "JNJ")) {
+    df <- datos_sma_pharma %>% filter(Ticker == ticker)
     
-  } else {
-    # VERSION GGPLOT
     p <- ggplot(df, aes(x = Fecha)) +
       geom_line(aes(y = Close), color = "gray70", alpha = 0.5, linewidth = 0.3) +
       geom_line(aes(y = SMA_7, color = "7 días"), linewidth = 0.8) +
@@ -362,6 +390,7 @@ for(ticker in c("PFE", "MRNA", "JNJ")) {
                                      "90 días" = "#27AE60")) +
       labs(title = paste(ticker, "- Promedios Móviles"),
            x = NULL, y = "Precio ($)", color = "Promedio") +
+      scale_y_continuous(labels = scales::dollar_format()) +
       theme_minimal(base_size = 10) +
       theme(legend.position = "bottom")
     
@@ -369,6 +398,18 @@ for(ticker in c("PFE", "MRNA", "JNJ")) {
   }
 }
 ```
+
+**Observaciones por ticker:**
+
+- **MRNA (Moderna):** Los tres promedios móviles capturan dramáticamente el ciclo completo: ascenso gradual (2020), pico explosivo (dic 2020 - ene 2021), y corrección prolongada (2021-2025). El SMA 90 muestra la tendencia fundamental claramente.
+
+- **PFE (Pfizer):** Comportamiento más estable. Los SMAs revelan que a pesar de volatilidad diaria, la tendencia de largo plazo es relativamente plana con ligera tendencia bajista desde máximos de 2021.
+
+- **JNJ (Johnson & Johnson):** El caso más estable. Los tres SMAs permanecen muy cercanos entre sí, indicando baja volatilidad y crecimiento gradual consistente.
+
+
+
+
 ## Análisis de Rezagos
 
 Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores.

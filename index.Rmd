@@ -203,7 +203,7 @@ if(nrow(datos_completos) > 0) {
         ) %>%
         layout(
           xaxis = list(title = ""),
-          yaxis = list(title = "Farmacéutica - Índice (Base 100)"),
+          yaxis = list(title = "Farmacéutica (Base 100)"),
           annotations = list(
             list(
               text = "Farmacéutica",
@@ -259,7 +259,7 @@ if(nrow(datos_completos) > 0) {
         ) %>%
         layout(
           xaxis = list(title = "Fecha"),
-          yaxis = list(title = "Tecnología - Índice (Base 100)"),
+          yaxis = list(title = "Tecnología (Base 100)"),
           annotations = list(
             list(
               text = "Tecnología",
@@ -281,13 +281,12 @@ if(nrow(datos_completos) > 0) {
     ) %>%
       layout(
         title = list(
-          text = "Comparación de Desempeño Normalizado por Sector",
-          font = list(size = 16)
+          font = list(size = 14)
         ),
         showlegend = TRUE,
         legend = list(
           orientation = "h",
-          x = 0.5,
+          x = 0.1,
           xanchor = "center",
           y = -0.15
         ),
@@ -310,7 +309,6 @@ if(nrow(datos_completos) > 0) {
                ymin = 0, ymax = Inf, 
                alpha = 0.1, fill = "red") +
       labs(
-        title = "Comparación de Desempeño Normalizado por Sector",
         subtitle = "Área sombreada indica período COVID-19",
         x = "Fecha",
         y = "Índice (Base 100)",
