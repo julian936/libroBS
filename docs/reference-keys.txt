@@ -1,5 +1,4 @@
 tab:tabla-resumen
-fig:figura-sectores
 fig:series-tech
 fig:series-pharma
 fig:lag-plots-aapl

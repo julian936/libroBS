@@ -30,21 +30,23 @@ resumen_datos <- data.frame(
   Ticker = c("AAPL", "MSFT", "TSLA", "PFE", "MRNA", "JNJ"),
   Sector = c("Tecnología", "Tecnología", "Tecnología", 
              "Farmacéutica", "Farmacéutica", "Farmacéutica"),
-  Obs. = c(2514, 2514, 2514, 2514, 1720, 2514),
+  Obs = c(2514, 2514, 2514, 2514, 1720, 2514),
   Inicio = c("2015-10-13", "2015-10-13", "2015-10-13", 
              "2015-10-13", "2018-12-07", "2015-10-13"),
   Fin = rep("2025-10-10", 6),
-  `Precio Mín ($)` = c(22.58, 46.68, 9.58, 21.59, 12.26, 94.53),
-  `Precio Máx ($)` = c(259.02, 535.64, 479.86, 61.25, 484.47, 191.08),
-  `Volatilidad (%)` = c(29.21, 26.96, 59.30, 24.00, 72.08, 18.40),
-  `Retorno Total (%)` = c(777.61, 989.70, 2728.89, -20.81, 44.25, 99.81)
+  PrecioMin = c(22.58, 46.68, 9.58, 21.59, 12.26, 94.53),
+  PrecioMax = c(259.02, 535.64, 479.86, 61.25, 484.47, 191.08),
+  Volatilidad = c(29.21, 26.96, 59.30, 24.00, 72.08, 18.40),
+  RetornoTotal = c(777.61, 989.70, 2728.89, -20.81, 44.25, 99.81)
 )
 
 knitr::kable(
   resumen_datos,
-  caption = "Estadísticas descriptivas de las series de tiempo analizadas",
+  col.names = c("Ticker", "Sector", "Obs.", "Inicio", "Fin", 
+                "Precio Min ($)", "Precio Max ($)", "Volatilidad (%)", "Retorno Total (%)"),
   align = c('l', 'l', 'r', 'c', 'c', 'r', 'r', 'r', 'r'),
-  format = "html"
+  caption = "Estadísticas descriptivas de las series de tiempo analizadas",
+  digits = 2
 )
 ```
 
@@ -57,13 +59,279 @@ Este período incluye cuatro fases claramente diferenciadas:
 * **Período de Vacunas (2021):** Desarrollo y distribución de vacunas COVID-19
 * **Post-pandemia (2022-2025):** Nuevas dinámicas de mercado
 
-### Comparación por Sector
+```{r setup-datos-index, include=FALSE, message=FALSE, warning=FALSE}
+# Suprimir warnings
+options(warn = -1)
 
-```{r figura-sectores, echo=FALSE, fig.cap="Comparación de desempeño normalizado por sector. Panel superior: Farmacéuticas con Moderna mostrando crecimiento explosivo durante vacunas. Panel inferior: Tecnología con Tesla liderando los retornos. Líneas rojas verticales marcan el período COVID-19.", out.width='100%'}
-knitr::include_graphics("graficos/03_comparacion_sector.png")
+# Cargar librerías
+library(tidyverse)
+library(quantmod)
+library(knitr)
+
+# Intentar cargar plotly solo si está disponible
+plotly_available <- requireNamespace("plotly", quietly = TRUE)
+if(plotly_available) {
+  library(plotly)
+}
+
+# Función para obtener datos con manejo robusto de errores
+obtener_datos_safe <- function(ticker) {
+  tryCatch({
+    suppressWarnings({
+      datos <- getSymbols(ticker, 
+                         from = "2015-10-13", 
+                         to = Sys.Date(), 
+                         auto.assign = FALSE,
+                         src = "yahoo")
+    })
+    
+    # Convertir a data frame
+    df <- data.frame(
+      Fecha = index(datos),
+      Open = as.numeric(datos[,1]),
+      High = as.numeric(datos[,2]),
+      Low = as.numeric(datos[,3]),
+      Close = as.numeric(datos[,4]),
+      Volume = as.numeric(datos[,5]),
+      Adjusted = as.numeric(datos[,6]),
+      Ticker = ticker,
+      stringsAsFactors = FALSE
+    )
+    
+    return(df)
+    
+  }, error = function(e) {
+    message(paste("Error con", ticker, ":", e$message))
+    return(data.frame())
+  })
+}
+
+# Cargar datos para todos los tickers
+tickers <- c("AAPL", "MSFT", "TSLA", "PFE", "MRNA", "JNJ")
+
+datos_list <- lapply(tickers, obtener_datos_safe)
+datos_completos <- bind_rows(datos_list)
+
+# Agregar clasificación por sector
+if(nrow(datos_completos) > 0) {
+  datos_completos <- datos_completos %>%
+    mutate(Sector = case_when(
+      Ticker %in% c("AAPL", "MSFT", "TSLA") ~ "Tecnología",
+      Ticker %in% c("PFE", "MRNA", "JNJ") ~ "Farmacéutica",
+      TRUE ~ "Otro"
+    ))
+}
+
+# Definir paleta de colores
+colores_tickers <- c(
+  "AAPL" = "#1f77b4",
+  "MSFT" = "#2ca02c",
+  "TSLA" = "#ff7f0e",
+  "PFE" = "#d62728",
+  "MRNA" = "#9467bd",
+  "JNJ" = "#8c564b"
+)
 ```
 
-La Figura 1 muestra el comportamiento diferenciado entre sectores. El sector tecnológico presenta crecimiento sostenido con Tesla liderando (+2,728%), mientras que el farmacéutico muestra un pico en Moderna durante vacunas seguido de corrección. Este contraste será analizado en capítulos posteriores.
+### Comparación por Sector
+
+```{r comparacion-sector, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=6, out.width="100%"}
+# Verificar si hay datos
+if(nrow(datos_completos) > 0) {
+  
+  # Normalizar precios
+  datos_normalizados <- datos_completos %>%
+    group_by(Ticker) %>%
+    arrange(Fecha) %>%
+    mutate(Close_norm = (Close / first(Close)) * 100) %>%
+    ungroup()
+  
+  # Verificar si plotly está disponible y es salida HTML
+  usar_plotly <- plotly_available && knitr::is_html_output()
+  
+  if(usar_plotly) {
+    # VERSIÓN INTERACTIVA CON PLOTLY - CORREGIDA
+    
+    # Separar datos por sector
+    datos_pharma <- datos_normalizados %>% filter(Sector == "Farmacéutica")
+    datos_tech <- datos_normalizados %>% filter(Sector == "Tecnología")
+    
+    # Crear figura combinada con subplots
+    fig <- plotly::subplot(
+      
+      # PANEL 1: FARMACÉUTICAS
+      plot_ly(height = 220) %>%
+        # Área COVID
+        add_trace(
+          x = c(as.Date("2020-01-01"), as.Date("2022-01-01"), 
+                as.Date("2022-01-01"), as.Date("2020-01-01")),
+          y = c(0, 0, 3000, 3000),
+          type = "scatter",
+          mode = "lines",
+          fill = "toself",
+          fillcolor = "rgba(231, 76, 60, 0.1)",
+          line = list(color = "transparent"),
+          showlegend = FALSE,
+          hoverinfo = "skip"
+        ) %>%
+        # PFE
+        add_trace(
+          data = datos_pharma %>% filter(Ticker == "PFE"),
+          x = ~Fecha, y = ~Close_norm,
+          type = "scatter", mode = "lines",
+          name = "PFE",
+          line = list(color = colores_tickers["PFE"], width = 2),
+          legendgroup = "pharma"
+        ) %>%
+        # MRNA
+        add_trace(
+          data = datos_pharma %>% filter(Ticker == "MRNA"),
+          x = ~Fecha, y = ~Close_norm,
+          type = "scatter", mode = "lines",
+          name = "MRNA",
+          line = list(color = colores_tickers["MRNA"], width = 2),
+          legendgroup = "pharma"
+        ) %>%
+        # JNJ
+        add_trace(
+          data = datos_pharma %>% filter(Ticker == "JNJ"),
+          x = ~Fecha, y = ~Close_norm,
+          type = "scatter", mode = "lines",
+          name = "JNJ",
+          line = list(color = colores_tickers["JNJ"], width = 2),
+          legendgroup = "pharma"
+        ) %>%
+        layout(
+          xaxis = list(title = ""),
+          yaxis = list(title = "Farmacéutica - Índice (Base 100)"),
+          annotations = list(
+            list(
+              text = "Farmacéutica",
+              x = 0.5, xref = "paper", xanchor = "center",
+              y = 1, yref = "paper", yanchor = "bottom",
+              showarrow = FALSE,
+              font = list(size = 14, face = "bold")
+            )
+          )
+        ),
+      
+      # PANEL 2: TECNOLOGÍA
+      plot_ly(height = 220) %>%
+        # Área COVID
+        add_trace(
+          x = c(as.Date("2020-01-01"), as.Date("2022-01-01"), 
+                as.Date("2022-01-01"), as.Date("2020-01-01")),
+          y = c(0, 0, 3000, 3000),
+          type = "scatter",
+          mode = "lines",
+          fill = "toself",
+          fillcolor = "rgba(231, 76, 60, 0.1)",
+          line = list(color = "transparent"),
+          showlegend = FALSE,
+          hoverinfo = "skip"
+        ) %>%
+        # AAPL
+        add_trace(
+          data = datos_tech %>% filter(Ticker == "AAPL"),
+          x = ~Fecha, y = ~Close_norm,
+          type = "scatter", mode = "lines",
+          name = "AAPL",
+          line = list(color = colores_tickers["AAPL"], width = 2),
+          legendgroup = "tech"
+        ) %>%
+        # MSFT
+        add_trace(
+          data = datos_tech %>% filter(Ticker == "MSFT"),
+          x = ~Fecha, y = ~Close_norm,
+          type = "scatter", mode = "lines",
+          name = "MSFT",
+          line = list(color = colores_tickers["MSFT"], width = 2),
+          legendgroup = "tech"
+        ) %>%
+        # TSLA
+        add_trace(
+          data = datos_tech %>% filter(Ticker == "TSLA"),
+          x = ~Fecha, y = ~Close_norm,
+          type = "scatter", mode = "lines",
+          name = "TSLA",
+          line = list(color = colores_tickers["TSLA"], width = 2),
+          legendgroup = "tech"
+        ) %>%
+        layout(
+          xaxis = list(title = "Fecha"),
+          yaxis = list(title = "Tecnología - Índice (Base 100)"),
+          annotations = list(
+            list(
+              text = "Tecnología",
+              x = 0.5, xref = "paper", xanchor = "center",
+              y = 1, yref = "paper", yanchor = "bottom",
+              showarrow = FALSE,
+              font = list(size = 14, face = "bold")
+            )
+          )
+        ),
+      
+      # Configuración del subplot
+      nrows = 2,
+      shareX = TRUE,
+      titleY = TRUE,
+      margin = 0.05,
+      heights = c(0.5, 0.5)
+      
+    ) %>%
+      layout(
+        title = list(
+          text = "Comparación de Desempeño Normalizado por Sector",
+          font = list(size = 16)
+        ),
+        showlegend = TRUE,
+        legend = list(
+          orientation = "h",
+          x = 0.5,
+          xanchor = "center",
+          y = -0.15
+        ),
+        height = 500,
+        hovermode = "x unified"
+      )
+    
+    fig
+    
+  } else {
+    # VERSIÓN ESTÁTICA CON GGPLOT2
+    p <- ggplot(datos_normalizados, 
+                aes(x = Fecha, y = Close_norm, color = Ticker)) +
+      geom_line(linewidth = 0.8) +
+      facet_wrap(~Sector, ncol = 1, scales = "free_y") +
+      scale_color_manual(values = colores_tickers) +
+      annotate("rect", 
+               xmin = as.Date("2020-01-01"), 
+               xmax = as.Date("2022-01-01"),
+               ymin = 0, ymax = Inf, 
+               alpha = 0.1, fill = "red") +
+      labs(
+        title = "Comparación de Desempeño Normalizado por Sector",
+        subtitle = "Área sombreada indica período COVID-19",
+        x = "Fecha",
+        y = "Índice (Base 100)",
+        color = "Ticker"
+      ) +
+      theme_minimal(base_size = 12) +
+      theme(
+        legend.position = "bottom",
+        plot.title = element_text(face = "bold", size = 14),
+        strip.text = element_text(face = "bold", size = 12)
+      )
+    
+    print(p)
+  }
+  
+} else {
+  cat("\n**Nota:** No se pudieron cargar los datos de Yahoo Finance. Por favor verifica tu conexión a internet.\n")
+}
+```
+
+La figura muestra el comportamiento diferenciado entre sectores usando series normalizadas (Base 100 = primera observación). El sector tecnológico presenta crecimiento sostenido con Tesla liderando (+2,728%), mientras que el farmacéutico muestra un pico en Moderna durante el desarrollo de vacunas seguido de corrección. Este contraste será analizado en detalle en el Capítulo 1.
 
 ## Importancia del Pronóstico y Valor Agregado
 
@@ -129,9 +397,9 @@ El análisis de series de tiempo con más de 14,000 observaciones reales benefic
 **Nota:** Este documento constituye la propuesta inicial del proyecto. Los capítulos posteriores desarrollarán en detalle el análisis exploratorio de las series, pruebas de estacionariedad, modelado de volatilidad, identificación de quiebres estructurales y su integración con modelos de valoración de opciones financieras.
 
 ```{r include=FALSE}
-# Automatically create a bib database for R packages
+# Crear bibliografía automática
 knitr::write_bib(c(
   .packages(), 'bookdown', 'knitr', 'rmarkdown',
-  'quantmod', 'tseries', 'tidyverse', 'forecast'
+  'quantmod', 'tidyverse'
 ), 'packages.bib')
 ```

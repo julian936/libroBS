@@ -230,7 +230,9 @@ if(is_html_output()) {
 
 - **Pfizer (PFE):** Comportamiento estable con retorno negativo (-20.8%). Volatilidad moderada (24% anual). Pico durante el anuncio y distribución de vacunas, seguido de corrección.
 
-- **Moderna (MRNA):** La mayor volatilidad del dataset (72.1% anual). Crecimiento explosivo durante el desarrollo de vacunas (diciembre 2020), alcanzando $484.47 desde $12.26. Posterior corrección drástica reflejando la normalización post-pandemia.
+- **Moderna (MRNA):** La mayor volatilidad del dataset (72.1% anual). Crecimiento explosivo durante 
+el desarrollo de vacunas (diciembre 2020), alcanzando $484.47 desde $12.26, resultando en un 
+retorno total de +44.3%. Posterior corrección drástica reflejando la normalización post-pandemia.
 
 - **Johnson & Johnson (JNJ):** La menor volatilidad de todo el dataset (18.4% anual). Comportamiento defensivo con retorno total de +99.8%. Mínima afectación durante COVID-19.
 
