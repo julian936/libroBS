@@ -2,7 +2,9 @@ tab:tabla-resumen
 fig:figura-sectores
 fig:series-tech
 fig:series-pharma
-fig:lag-plots
+fig:lag-plots-aapl
+fig:lag-plots-tsla
+fig:lag-plots-mrna
 fig:estacionalidad
 información-a-utilizar
 estadísticas-descriptivas-del-dataset
@@ -20,6 +22,9 @@ análisis-con-promedios-móviles
 promedios-móviles---tecnología
 promedios-móviles---farmacéuticas
 análisis-de-rezagos
+rezagos---apple-aapl
+rezagos---tesla-tsla
+rezagos---moderna-mrna
 estacionalidad-anual
 síntesis-de-visualización
 literature

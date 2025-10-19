@@ -367,38 +367,239 @@ for(ticker in c("PFE", "MRNA", "JNJ")) {
   }
 }
 ```
-
 ## Análisis de Rezagos
 
 Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores.
 
-```{r lag-plots, echo=FALSE,  warning=FALSE, fig.height=8, fig.width=12, fig.cap="Gráficos de rezago para lag 1 y lag 7 días. La concentración de puntos en la diagonal sugiere autocorrelación positiva, especialmente en lag 1."}
-# Función para crear gráficos de rezago
-crear_lag_plot <- function(datos, lag_days, ticker_sel) {
-  df <- datos %>%
-    filter(Ticker == ticker_sel) %>%
-    arrange(Fecha) %>%
-    mutate(Close_Lag = lag(Close, lag_days))
+### Rezagos - Apple (AAPL)
+
+```{r lag-plots-aapl, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Gráficos de rezago para Apple. Lag 1 y lag 7 días muestran autocorrelación positiva moderada."}
+
+if(is_html_output()) {
+  crear_lag_plot_plotly <- function(datos, lag_days, ticker_sel) {
+    df <- datos %>%
+      filter(Ticker == ticker_sel) %>%
+      arrange(Fecha) %>%
+      mutate(Close_Lag = lag(Close, lag_days)) %>%
+      filter(!is.na(Close_Lag))
+    
+    max_val <- max(c(df$Close, df$Close_Lag), na.rm = TRUE)
+    min_val <- min(c(df$Close, df$Close_Lag), na.rm = TRUE)
+    
+    fig <- plot_ly(height = 400) %>%
+      add_trace(
+        data = df,
+        x = ~Close_Lag, 
+        y = ~Close,
+        type = "scatter",
+        mode = "markers",
+        marker = list(color = colores_tickers[ticker_sel], size = 5, opacity = 0.6),
+        hovertemplate = paste0(
+          "<b>", ticker_sel, "</b><br>",
+          "Precio (t-", lag_days, "): $%{x:,.2f}<br>",
+          "Precio (t): $%{y:,.2f}<br>",
+          "<extra></extra>"
+        ),
+        showlegend = FALSE
+      ) %>%
+      add_trace(
+        x = c(min_val, max_val),
+        y = c(min_val, max_val),
+        type = "scatter",
+        mode = "lines",
+        line = list(dash = "dash", color = "red", width = 2),
+        showlegend = FALSE,
+        hoverinfo = "skip"
+      ) %>%
+      layout(
+        title = list(text = paste(ticker_sel, "- Rezago", lag_days, "día(s)"), font = list(size = 14)),
+        xaxis = list(title = paste("Precio (t -", lag_days, ")"), tickformat = "$,.0f"),
+        yaxis = list(title = "Precio (t)", tickformat = "$,.0f")
+      )
+    return(fig)
+  }
   
-  ggplot(df, aes(x = Close_Lag, y = Close)) +
-    geom_point(color = colores_tickers[ticker_sel], alpha = 0.5, size = 1.5) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
-    labs(title = paste(ticker_sel, "- Rezago", lag_days, "día(s)"),
-         x = paste("Precio (t -", lag_days, ")"),
-         y = "Precio (t)") +
-    theme_minimal(base_size = 10) +
-    scale_x_continuous(labels = dollar_format()) +
-    scale_y_continuous(labels = dollar_format())
+  p1 <- crear_lag_plot_plotly(datos_completos, 1, "AAPL")
+  p2 <- crear_lag_plot_plotly(datos_completos, 7, "AAPL")
+  
+  plotly::subplot(p1, p2, nrows = 1, margin = 0.08) %>%
+    layout(showlegend = FALSE, title = list(text = "Apple (AAPL) - Análisis de Rezagos", font = list(size = 16)))
+  
+} else {
+  crear_lag_plot <- function(datos, lag_days, ticker_sel) {
+    df <- datos %>%
+      filter(Ticker == ticker_sel) %>%
+      arrange(Fecha) %>%
+      mutate(Close_Lag = lag(Close, lag_days))
+    
+    ggplot(df, aes(x = Close_Lag, y = Close)) +
+      geom_point(color = colores_tickers[ticker_sel], alpha = 0.5, size = 1.5) +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+      labs(title = paste(ticker_sel, "- Rezago", lag_days, "día(s)"),
+           x = paste("Precio (t -", lag_days, ")"), y = "Precio (t)") +
+      theme_minimal(base_size = 10) +
+      scale_x_continuous(labels = dollar_format()) +
+      scale_y_continuous(labels = dollar_format())
+  }
+  
+  p1 <- crear_lag_plot(datos_completos, 1, "AAPL")
+  p2 <- crear_lag_plot(datos_completos, 7, "AAPL")
+  grid.arrange(p1, p2, ncol = 2)
 }
+```
 
-# Crear panel de gráficos
-lag_plots <- list()
-for(ticker in c("AAPL", "TSLA", "MRNA")) {
-  lag_plots[[paste0(ticker, "_lag1")]] <- crear_lag_plot(datos_completos, 1, ticker)
-  lag_plots[[paste0(ticker, "_lag7")]] <- crear_lag_plot(datos_completos, 7, ticker)
+### Rezagos - Tesla (TSLA)
+
+```{r lag-plots-tsla, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Gráficos de rezago para Tesla. Mayor dispersión debido a alta volatilidad."}
+
+if(is_html_output()) {
+  crear_lag_plot_plotly <- function(datos, lag_days, ticker_sel) {
+    df <- datos %>%
+      filter(Ticker == ticker_sel) %>%
+      arrange(Fecha) %>%
+      mutate(Close_Lag = lag(Close, lag_days)) %>%
+      filter(!is.na(Close_Lag))
+    
+    max_val <- max(c(df$Close, df$Close_Lag), na.rm = TRUE)
+    min_val <- min(c(df$Close, df$Close_Lag), na.rm = TRUE)
+    
+    fig <- plot_ly(height = 400) %>%
+      add_trace(
+        data = df,
+        x = ~Close_Lag, 
+        y = ~Close,
+        type = "scatter",
+        mode = "markers",
+        marker = list(color = colores_tickers[ticker_sel], size = 5, opacity = 0.6),
+        hovertemplate = paste0(
+          "<b>", ticker_sel, "</b><br>",
+          "Precio (t-", lag_days, "): $%{x:,.2f}<br>",
+          "Precio (t): $%{y:,.2f}<br>",
+          "<extra></extra>"
+        ),
+        showlegend = FALSE
+      ) %>%
+      add_trace(
+        x = c(min_val, max_val),
+        y = c(min_val, max_val),
+        type = "scatter",
+        mode = "lines",
+        line = list(dash = "dash", color = "red", width = 2),
+        showlegend = FALSE,
+        hoverinfo = "skip"
+      ) %>%
+      layout(
+        title = list(text = paste(ticker_sel, "- Rezago", lag_days, "día(s)"), font = list(size = 14)),
+        xaxis = list(title = paste("Precio (t -", lag_days, ")"), tickformat = "$,.0f"),
+        yaxis = list(title = "Precio (t)", tickformat = "$,.0f")
+      )
+    return(fig)
+  }
+  
+  p1 <- crear_lag_plot_plotly(datos_completos, 1, "TSLA")
+  p2 <- crear_lag_plot_plotly(datos_completos, 7, "TSLA")
+  
+  plotly::subplot(p1, p2, nrows = 1, margin = 0.08) %>%
+    layout(showlegend = FALSE, title = list(text = "Tesla (TSLA) - Análisis de Rezagos", font = list(size = 16)))
+  
+} else {
+  crear_lag_plot <- function(datos, lag_days, ticker_sel) {
+    df <- datos %>%
+      filter(Ticker == ticker_sel) %>%
+      arrange(Fecha) %>%
+      mutate(Close_Lag = lag(Close, lag_days))
+    
+    ggplot(df, aes(x = Close_Lag, y = Close)) +
+      geom_point(color = colores_tickers[ticker_sel], alpha = 0.5, size = 1.5) +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+      labs(title = paste(ticker_sel, "- Rezago", lag_days, "día(s)"),
+           x = paste("Precio (t -", lag_days, ")"), y = "Precio (t)") +
+      theme_minimal(base_size = 10) +
+      scale_x_continuous(labels = dollar_format()) +
+      scale_y_continuous(labels = dollar_format())
+  }
+  
+  p1 <- crear_lag_plot(datos_completos, 1, "TSLA")
+  p2 <- crear_lag_plot(datos_completos, 7, "TSLA")
+  grid.arrange(p1, p2, ncol = 2)
 }
+```
 
-do.call(grid.arrange, c(lag_plots, ncol = 2))
+### Rezagos - Moderna (MRNA)
+
+```{r lag-plots-mrna, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Gráficos de rezago para Moderna. Comportamiento similar a Tesla con alta dispersión."}
+
+if(is_html_output()) {
+  crear_lag_plot_plotly <- function(datos, lag_days, ticker_sel) {
+    df <- datos %>%
+      filter(Ticker == ticker_sel) %>%
+      arrange(Fecha) %>%
+      mutate(Close_Lag = lag(Close, lag_days)) %>%
+      filter(!is.na(Close_Lag))
+    
+    max_val <- max(c(df$Close, df$Close_Lag), na.rm = TRUE)
+    min_val <- min(c(df$Close, df$Close_Lag), na.rm = TRUE)
+    
+    fig <- plot_ly(height = 400) %>%
+      add_trace(
+        data = df,
+        x = ~Close_Lag, 
+        y = ~Close,
+        type = "scatter",
+        mode = "markers",
+        marker = list(color = colores_tickers[ticker_sel], size = 5, opacity = 0.6),
+        hovertemplate = paste0(
+          "<b>", ticker_sel, "</b><br>",
+          "Precio (t-", lag_days, "): $%{x:,.2f}<br>",
+          "Precio (t): $%{y:,.2f}<br>",
+          "<extra></extra>"
+        ),
+        showlegend = FALSE
+      ) %>%
+      add_trace(
+        x = c(min_val, max_val),
+        y = c(min_val, max_val),
+        type = "scatter",
+        mode = "lines",
+        line = list(dash = "dash", color = "red", width = 2),
+        showlegend = FALSE,
+        hoverinfo = "skip"
+      ) %>%
+      layout(
+        title = list(text = paste(ticker_sel, "- Rezago", lag_days, "día(s)"), font = list(size = 14)),
+        xaxis = list(title = paste("Precio (t -", lag_days, ")"), tickformat = "$,.0f"),
+        yaxis = list(title = "Precio (t)", tickformat = "$,.0f")
+      )
+    return(fig)
+  }
+  
+  p1 <- crear_lag_plot_plotly(datos_completos, 1, "MRNA")
+  p2 <- crear_lag_plot_plotly(datos_completos, 7, "MRNA")
+  
+  plotly::subplot(p1, p2, nrows = 1, margin = 0.08) %>%
+    layout(showlegend = FALSE, title = list(text = "Moderna (MRNA) - Análisis de Rezagos", font = list(size = 16)))
+  
+} else {
+  crear_lag_plot <- function(datos, lag_days, ticker_sel) {
+    df <- datos %>%
+      filter(Ticker == ticker_sel) %>%
+      arrange(Fecha) %>%
+      mutate(Close_Lag = lag(Close, lag_days))
+    
+    ggplot(df, aes(x = Close_Lag, y = Close)) +
+      geom_point(color = colores_tickers[ticker_sel], alpha = 0.5, size = 1.5) +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+      labs(title = paste(ticker_sel, "- Rezago", lag_days, "día(s)"),
+           x = paste("Precio (t -", lag_days, ")"), y = "Precio (t)") +
+      theme_minimal(base_size = 10) +
+      scale_x_continuous(labels = dollar_format()) +
+      scale_y_continuous(labels = dollar_format())
+  }
+  
+  p1 <- crear_lag_plot(datos_completos, 1, "MRNA")
+  p2 <- crear_lag_plot(datos_completos, 7, "MRNA")
+  grid.arrange(p1, p2, ncol = 2)
+}
 ```
 
 **Interpretación de rezagos:**
@@ -407,7 +608,7 @@ do.call(grid.arrange, c(lag_plots, ncol = 2))
 
 - **Lag 7 (semana anterior):** Mayor dispersión que lag 1, sugiriendo autocorrelación semanal muy débil. Las ventas de un día específico no predicen confiablemente el mismo día de la semana siguiente, excepto en valores extremos.
 
-- **Observación sectorial:** Tesla y Moderna muestran mayor dispersión debido a su alta volatilidad, mientras que activos más estables como J&J presentan patrones más concentrados.
+- **Observación sectorial:** Tesla y Moderna muestran mayor dispersión debido a su alta volatilidad, mientras que activos más estables como Apple presentan patrones más concentrados.
 
 ## Estacionalidad Anual
 
