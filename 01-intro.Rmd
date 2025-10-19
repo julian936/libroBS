@@ -35,12 +35,12 @@ Los siguientes gráficos proporcionan una visión general de la evolución de lo
 
 ### Sector Tecnológico
 
-```{r series-tech, echo=FALSE, fig.height=10, fig.cap="Series de tiempo del sector tecnológico. Se observa el crecimiento explosivo de Tesla post-2019, la estabilidad relativa de Apple y Microsoft, y el impacto del COVID-19 (área sombreada) en las tres empresas."}
+```{r series-tech, warning=FALSE, message=FALSE, echo=FALSE, fig.height=7, fig.cap="Series de tiempo del sector tecnológico. Se observa el crecimiento explosivo de Tesla post-2019, la estabilidad relativa de Apple y Microsoft, y el impacto del COVID-19 (área sombreada) en las tres empresas."}
 datos_tech <- datos_completos %>% filter(Sector == "Tecnología")
 
 if(is_html_output()) {
   # VERSION INTERACTIVA CON PLOTLY
-  fig_tech <- plot_ly()
+  fig_tech <- plot_ly(height = 500)  # ✅ CAMBIO 1: height aquí (reducido de 600 a 500)
   
   # Agregar área COVID
   fig_tech <- fig_tech %>%
@@ -87,8 +87,8 @@ if(is_html_output()) {
       xaxis = list(title = ""),
       yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
       hovermode = "x unified",
-      legend = list(x = 0.01, y = 0.99),
-      height = 600
+      legend = list(x = 0.01, y = 0.99)
+      # ✅ CAMBIO 2: height eliminado de aquí
     )
   
   fig_tech
@@ -126,12 +126,12 @@ if(is_html_output()) {
 
 ### Sector Farmacéutico
 
-```{r series-pharma, echo=FALSE, fig.height=10, fig.cap="Series de tiempo del sector farmacéutico. Destaca el pico dramático de Moderna durante el período de vacunas (2020-2021), mientras que Pfizer y J&J muestran comportamientos más estables."}
+```{r series-pharma, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.cap="Series de tiempo del sector farmacéutico. Destaca el pico dramático de Moderna durante el período de vacunas (2020-2021), mientras que Pfizer y J&J muestran comportamientos más estables."}
 datos_pharma <- datos_completos %>% filter(Sector == "Farmacéutica")
 
 if(is_html_output()) {
   # VERSION INTERACTIVA CON PLOTLY
-  fig_pharma <- plot_ly()
+  fig_pharma <- plot_ly(height = 600)
   
   # Agregar área COVID
   fig_pharma <- fig_pharma %>%
@@ -195,8 +195,7 @@ if(is_html_output()) {
       xaxis = list(title = ""),
       yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
       hovermode = "x unified",
-      legend = list(x = 0.01, y = 0.99),
-      height = 600
+      legend = list(x = 0.01, y = 0.99)
     )
   
   fig_pharma
@@ -251,7 +250,8 @@ calcular_sma <- function(datos, ventana) {
 
 ### Promedios Móviles - Tecnología
 
-```{r sma-tech, echo=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector tecnológico. Las líneas suavizadas (SMA 7, 30, 90 días) revelan las tendencias subyacentes y confirman el crecimiento sostenido post-COVID."}
+# TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA
+```{r sma-tech, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector tecnológico. Las líneas suavizadas (SMA 7, 30, 90 días) revelan las tendencias subyacentes y confirman el crecimiento sostenido post-COVID."}
 datos_sma_tech <- datos_tech
 
 for(ventana in c(7, 30, 90)) {
@@ -264,7 +264,7 @@ for(ticker in c("AAPL", "MSFT", "TSLA")) {
   
   if(is_html_output()) {
     # VERSION PLOTLY
-    fig <- plot_ly(df)
+    fig <- plot_ly(df, height = 500)  # ALTURA AQUI
     
     fig <- fig %>%
       add_trace(x = ~Fecha, y = ~Close, type = "scatter", mode = "lines",
@@ -282,8 +282,7 @@ for(ticker in c("AAPL", "MSFT", "TSLA")) {
       layout(title = paste(ticker, "- Promedios Móviles"),
              xaxis = list(title = ""),
              yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
-             hovermode = "x unified",
-             height = 500)
+             hovermode = "x unified")  # SIN HEIGHT AQUI
     
     print(fig)
     
@@ -315,7 +314,8 @@ for(ticker in c("AAPL", "MSFT", "TSLA")) {
 
 ### Promedios Móviles - Farmacéuticas
 
-```{r sma-pharma, echo=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector farmacéutico. El caso de Moderna es particularmente interesante, mostrando cómo los promedios capturan el ciclo completo de auge y corrección."}
+# TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS
+```{r sma-pharma, echo=FALSE, warning=FALSE, message=FALSE, fig.height=10, fig.cap="Series con promedios móviles del sector farmacéutico. El caso de Moderna es particularmente interesante, mostrando cómo los promedios capturan el ciclo completo de auge y corrección."}
 datos_sma_pharma <- datos_pharma
 
 for(ventana in c(7, 30, 90)) {
@@ -328,7 +328,7 @@ for(ticker in c("PFE", "MRNA", "JNJ")) {
   
   if(is_html_output()) {
     # VERSION PLOTLY
-    fig <- plot_ly(df)
+    fig <- plot_ly(df, height = 500)  # ALTURA AQUI
     
     fig <- fig %>%
       add_trace(x = ~Fecha, y = ~Close, type = "scatter", mode = "lines",
@@ -346,8 +346,7 @@ for(ticker in c("PFE", "MRNA", "JNJ")) {
       layout(title = paste(ticker, "- Promedios Móviles"),
              xaxis = list(title = ""),
              yaxis = list(title = "Precio ($)", tickformat = "$,.0f"),
-             hovermode = "x unified",
-             height = 500)
+             hovermode = "x unified")  # SIN HEIGHT AQUI
     
     print(fig)
     

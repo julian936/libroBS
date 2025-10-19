@@ -18,7 +18,9 @@ sector-tecnológico
 sector-farmacéutico
 análisis-con-promedios-móviles
 promedios-móviles---tecnología
+template-para-promedios-moviles---tecnologia
 promedios-móviles---farmacéuticas
+template-para-promedios-moviles---farmaceuticas
 análisis-de-rezagos
 estacionalidad-anual
 síntesis-de-visualización

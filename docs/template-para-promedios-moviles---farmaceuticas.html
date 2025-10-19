@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Capítulo 3 TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS | Análisis de Series de Tiempo de Precios de Acciones</title>
+<meta name="author" content="Julian Rojas y Natalia Tangarife">
+<meta name="description" content="3.1 Análisis de Rezagos Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores. ##...">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Capítulo 3 TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS | Análisis de Series de Tiempo de Precios de Acciones">
+<meta property="og:type" content="book">
+<meta property="og:description" content="3.1 Análisis de Rezagos Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores. ##...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Capítulo 3 TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS | Análisis de Series de Tiempo de Precios de Acciones">
+<meta name="twitter:description" content="3.1 Análisis de Rezagos Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores. ##...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.11.0/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Análisis de Series de Tiempo de Precios de Acciones</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Propuesta de Análisis</a></li>
+<li><a class="" href="intro.html"><span class="header-section-number">1</span> Visualización de las Series de Tiempo</a></li>
+<li><a class="" href="template-para-promedios-moviles---tecnologia.html"><span class="header-section-number">2</span> TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA</a></li>
+<li><a class="active" href="template-para-promedios-moviles---farmaceuticas.html"><span class="header-section-number">3</span> TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS</a></li>
+<li><a class="" href="literature.html"><span class="header-section-number">4</span> Literature</a></li>
+<li><a class="" href="methods.html"><span class="header-section-number">5</span> Methods</a></li>
+<li><a class="" href="applications.html"><span class="header-section-number">6</span> Applications</a></li>
+<li><a class="" href="final-words.html"><span class="header-section-number">7</span> Final Words</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="template-para-promedios-moviles---farmaceuticas" class="section level1" number="3">
+<h1>
+<span class="header-section-number">Capítulo 3</span> TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS<a class="anchor" aria-label="anchor" href="#template-para-promedios-moviles---farmaceuticas"><i class="fas fa-link"></i></a>
+</h1>
+<div id="análisis-de-rezagos" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> Análisis de Rezagos<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-rezagos"><i class="fas fa-link"></i></a>
+</h2>
+<p>Los gráficos de rezago permiten identificar dependencia temporal en las series, evaluando si el precio de hoy está correlacionado con el precio de días anteriores.</p>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<div class="figure">
+<span style="display:block;" id="fig:lag-plots"></span>
+<img src="01-intro_files/figure-html/lag-plots-1.png" alt="Gráficos de rezago para lag 1 y lag 7 días. La concentración de puntos en la diagonal sugiere autocorrelación positiva, especialmente en lag 1." width="1152"><p class="caption">
+Figure 3.1: Gráficos de rezago para lag 1 y lag 7 días. La concentración de puntos en la diagonal sugiere autocorrelación positiva, especialmente en lag 1.
+</p>
+</div>
+<p><strong>Interpretación de rezagos:</strong></p>
+<ul>
+<li><p><strong>Lag 1 (día anterior):</strong> La mayoría de los puntos se concentran cerca de la diagonal, indicando autocorrelación positiva débil. Los precios tienden a persistir de un día al siguiente, especialmente en niveles bajos y altos.</p></li>
+<li><p><strong>Lag 7 (semana anterior):</strong> Mayor dispersión que lag 1, sugiriendo autocorrelación semanal muy débil. Las ventas de un día específico no predicen confiablemente el mismo día de la semana siguiente, excepto en valores extremos.</p></li>
+<li><p><strong>Observación sectorial:</strong> Tesla y Moderna muestran mayor dispersión debido a su alta volatilidad, mientras que activos más estables como J&amp;J presentan patrones más concentrados.</p></li>
+</ul>
+</div>
+<div id="estacionalidad-anual" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> Estacionalidad Anual<a class="anchor" aria-label="anchor" href="#estacionalidad-anual"><i class="fas fa-link"></i></a>
+</h2>
+<p>El análisis de estacionalidad revela patrones recurrentes a lo largo del año calendario, particularmente relevantes durante el período COVID-19.</p>
+<div class="figure">
+<span style="display:block;" id="fig:estacionalidad"></span>
+<img src="01-intro_files/figure-html/estacionalidad-1.png" alt="Patrón de precios mensuales por año. Se identifica claramente el impacto COVID en marzo 2020 y la recuperación diferenciada por sector." width="672"><p class="caption">
+Figure 3.2: Patrón de precios mensuales por año. Se identifica claramente el impacto COVID en marzo 2020 y la recuperación diferenciada por sector.
+</p>
+</div>
+<p><strong>Patrones estacionales identificados:</strong></p>
+<ul>
+<li><p><strong>Marzo 2020:</strong> Caída drástica en todos los activos coincidiendo con el crash COVID-19.</p></li>
+<li><p><strong>Noviembre-Diciembre:</strong> Tradicionalmente meses fuertes para mercados financieros, patrón que se mantiene excepto durante 2020.</p></li>
+<li><p><strong>Primer trimestre:</strong> Generalmente muestra precios más bajos, con recuperación hacia mediados de año. Patrón interrumpido en 2020 por el COVID.</p></li>
+<li><p><strong>Diferencias sectoriales:</strong> El sector tecnológico muestra recuperación más rápida post-marzo 2020, mientras farmacéuticas tienen pico en el período de vacunas (Q4 2020 - Q1 2021).</p></li>
+</ul>
+</div>
+<div id="síntesis-de-visualización" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> Síntesis de Visualización<a class="anchor" aria-label="anchor" href="#s%C3%ADntesis-de-visualizaci%C3%B3n"><i class="fas fa-link"></i></a>
+</h2>
+<p>Las visualizaciones revelan hallazgos clave que serán profundizados en capítulos posteriores:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Impacto COVID-19:</strong> Claro quiebre estructural en marzo 2020 visible en todas las series.</p></li>
+<li><p><strong>Divergencia sectorial:</strong> Tecnología muestra recuperación en “V”, mientras farmacéuticas tienen comportamiento más heterogéneo.</p></li>
+<li><p><strong>Volatilidad variable:</strong> Moderna (72%) vs J&amp;J (18%) ejemplifican el rango de comportamientos dentro del mismo sector.</p></li>
+<li><p><strong>Autocorrelación limitada:</strong> Los rezagos sugieren dependencia débil, indicando que modelos simples de persistencia no serán suficientes.</p></li>
+<li><p><strong>Estacionalidad interrumpida:</strong> El COVID-19 alteró patrones estacionales tradicionales, creando un nuevo régimen de mercado.</p></li>
+</ol>
+<p>Estos patrones motivan el análisis formal de series de tiempo en los capítulos siguientes.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="template-para-promedios-moviles---tecnologia.html"><span class="header-section-number">2</span> TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA</a></div>
+<div class="next"><a href="literature.html"><span class="header-section-number">4</span> Literature</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#template-para-promedios-moviles---farmaceuticas"><span class="header-section-number">3</span> TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS</a></li>
+<li><a class="nav-link" href="#an%C3%A1lisis-de-rezagos"><span class="header-section-number">3.1</span> Análisis de Rezagos</a></li>
+<li><a class="nav-link" href="#estacionalidad-anual"><span class="header-section-number">3.2</span> Estacionalidad Anual</a></li>
+<li><a class="nav-link" href="#s%C3%ADntesis-de-visualizaci%C3%B3n"><span class="header-section-number">3.3</span> Síntesis de Visualización</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Análisis de Series de Tiempo de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-10-18.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

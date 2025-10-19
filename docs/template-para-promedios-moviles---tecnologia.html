@@ -4,16 +4,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Capítulo 5 Methods | Análisis de Series de Tiempo de Precios de Acciones</title>
+<title>Capítulo 2 TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA | Análisis de Series de Tiempo de Precios de Acciones</title>
 <meta name="author" content="Julian Rojas y Natalia Tangarife">
-<meta name="description" content="We describe our methods in this chapter. Math can be added in body using usual syntax like this  5.1 math example \(p\) is unknown but expected to be around 1/3. Standard error will be...">
+<meta name="description" content="Interpretación de promedios móviles: SMA 7 días: Reacciona rápidamente a cambios, útil para identificar reversiones de corto plazo. SMA 30 días: Revela tendencias de mediano plazo, filtrando ruido...">
 <meta name="generator" content="bookdown 0.45 with bs4_book()">
-<meta property="og:title" content="Capítulo 5 Methods | Análisis de Series de Tiempo de Precios de Acciones">
+<meta property="og:title" content="Capítulo 2 TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA | Análisis de Series de Tiempo de Precios de Acciones">
 <meta property="og:type" content="book">
-<meta property="og:description" content="We describe our methods in this chapter. Math can be added in body using usual syntax like this  5.1 math example \(p\) is unknown but expected to be around 1/3. Standard error will be...">
+<meta property="og:description" content="Interpretación de promedios móviles: SMA 7 días: Reacciona rápidamente a cambios, útil para identificar reversiones de corto plazo. SMA 30 días: Revela tendencias de mediano plazo, filtrando ruido...">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Capítulo 5 Methods | Análisis de Series de Tiempo de Precios de Acciones">
-<meta name="twitter:description" content="We describe our methods in this chapter. Math can be added in body using usual syntax like this  5.1 math example \(p\) is unknown but expected to be around 1/3. Standard error will be...">
+<meta name="twitter:title" content="Capítulo 2 TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA | Análisis de Series de Tiempo de Precios de Acciones">
+<meta name="twitter:description" content="Interpretación de promedios móviles: SMA 7 días: Reacciona rápidamente a cambios, útil para identificar reversiones de corto plazo. SMA 30 días: Revela tendencias de mediano plazo, filtrando ruido...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -47,10 +47,10 @@
         <ul class="book-toc list-unstyled">
 <li><a class="" href="index.html">Propuesta de Análisis</a></li>
 <li><a class="" href="intro.html"><span class="header-section-number">1</span> Visualización de las Series de Tiempo</a></li>
-<li><a class="" href="template-para-promedios-moviles---tecnologia.html"><span class="header-section-number">2</span> TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA</a></li>
+<li><a class="active" href="template-para-promedios-moviles---tecnologia.html"><span class="header-section-number">2</span> TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA</a></li>
 <li><a class="" href="template-para-promedios-moviles---farmaceuticas.html"><span class="header-section-number">3</span> TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS</a></li>
 <li><a class="" href="literature.html"><span class="header-section-number">4</span> Literature</a></li>
-<li><a class="active" href="methods.html"><span class="header-section-number">5</span> Methods</a></li>
+<li><a class="" href="methods.html"><span class="header-section-number">5</span> Methods</a></li>
 <li><a class="" href="applications.html"><span class="header-section-number">6</span> Applications</a></li>
 <li><a class="" href="final-words.html"><span class="header-section-number">7</span> Final Words</a></li>
 <li><a class="" href="references.html">References</a></li>
@@ -61,37 +61,33 @@
         </div>
       </nav>
 </div>
-  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="methods" class="section level1" number="5">
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="template-para-promedios-moviles---tecnologia" class="section level1" number="2">
 <h1>
-<span class="header-section-number">Capítulo 5</span> Methods<a class="anchor" aria-label="anchor" href="#methods"><i class="fas fa-link"></i></a>
+<span class="header-section-number">Capítulo 2</span> TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA<a class="anchor" aria-label="anchor" href="#template-para-promedios-moviles---tecnologia"><i class="fas fa-link"></i></a>
 </h1>
-<p>We describe our methods in this chapter.</p>
-<p>Math can be added in body using usual syntax like this</p>
-<div id="math-example" class="section level2" number="5.1">
-<h2>
-<span class="header-section-number">5.1</span> math example<a class="anchor" aria-label="anchor" href="#math-example"><i class="fas fa-link"></i></a>
-</h2>
-<p><span class="math inline">\(p\)</span> is unknown but expected to be around 1/3. Standard error will be approximated</p>
-<p><span class="math display">\[
-SE = \sqrt{\frac{p(1-p)}{n}} \approx \sqrt{\frac{1/3 (1 - 1/3)} {300}} = 0.027
-\]</span></p>
-<p>You can also use math in footnotes like this<a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;where we mention &lt;span class="math inline"&gt;\(p = \frac{a}{b}\)&lt;/span&gt;&lt;/p&gt;'><sup>1</sup></a>.</p>
-<p>We will approximate standard error to 0.027<a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;&lt;span class="math inline"&gt;\(p\)&lt;/span&gt; is unknown but expected to be around 1/3. Standard error will be approximated&lt;/p&gt;&lt;p&gt;&lt;span class="math display"&gt;\[
-SE = \sqrt{\frac{p(1-p)}{n}} \approx \sqrt{\frac{1/3 (1 - 1/3)} {300}} = 0.027
-\]&lt;/span&gt;&lt;/p&gt;'><sup>2</sup></a></p>
-
+<p><strong>Interpretación de promedios móviles:</strong></p>
+<ul>
+<li>
+<strong>SMA 7 días:</strong> Reacciona rápidamente a cambios, útil para identificar reversiones de corto plazo.</li>
+<li>
+<strong>SMA 30 días:</strong> Revela tendencias de mediano plazo, filtrando ruido diario.</li>
+<li>
+<strong>SMA 90 días:</strong> Muestra la tendencia de largo plazo, especialmente útil para identificar cambios de régimen durante COVID-19.</li>
+</ul>
+<div id="promedios-móviles---farmacéuticas" class="section level3" number="2.0.1">
+<h3>
+<span class="header-section-number">2.0.1</span> Promedios Móviles - Farmacéuticas<a class="anchor" aria-label="anchor" href="#promedios-m%C3%B3viles---farmac%C3%A9uticas"><i class="fas fa-link"></i></a>
+</h3>
 </div>
 </div>
-
   <div class="chapter-nav">
-<div class="prev"><a href="literature.html"><span class="header-section-number">4</span> Literature</a></div>
-<div class="next"><a href="applications.html"><span class="header-section-number">6</span> Applications</a></div>
+<div class="prev"><a href="intro.html"><span class="header-section-number">1</span> Visualización de las Series de Tiempo</a></div>
+<div class="next"><a href="template-para-promedios-moviles---farmaceuticas.html"><span class="header-section-number">3</span> TEMPLATE PARA PROMEDIOS MOVILES - FARMACEUTICAS</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#methods"><span class="header-section-number">5</span> Methods</a></li>
-<li><a class="nav-link" href="#math-example"><span class="header-section-number">5.1</span> math example</a></li>
-</ul>
+      <ul class="nav navbar-nav"><li>
+<a class="nav-link" href="#template-para-promedios-moviles---tecnologia"><span class="header-section-number">2</span> TEMPLATE PARA PROMEDIOS MOVILES - TECNOLOGIA</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#promedios-m%C3%B3viles---farmac%C3%A9uticas"><span class="header-section-number">2.0.1</span> Promedios Móviles - Farmacéuticas</a></li></ul>
+</li></ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
