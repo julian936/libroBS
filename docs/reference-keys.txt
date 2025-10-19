@@ -5,7 +5,6 @@ fig:series-pharma
 fig:lag-plots-aapl
 fig:lag-plots-tsla
 fig:lag-plots-mrna
-fig:estacionalidad
 información-a-utilizar
 estadísticas-descriptivas-del-dataset
 comparación-por-sector
@@ -29,8 +28,5 @@ estacionalidad-anual
 síntesis-de-visualización
 literature
 methods
-math-example
 applications
-example-one
-example-two
 final-words

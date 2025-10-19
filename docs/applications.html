@@ -6,14 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Capítulo 4 Applications | Análisis de Series de Tiempo de Precios de Acciones</title>
 <meta name="author" content="Julian Rojas y Natalia Tangarife">
-<meta name="description" content="Some significant applications are demonstrated in this chapter.  4.1 Example one   4.2 Example two">
+<meta name="description" content="Análisis de series de tiempo de precios de acciones durante el período COVID-19 y su integración con modelos de valoración de opciones financieras.">
 <meta name="generator" content="bookdown 0.45 with bs4_book()">
 <meta property="og:title" content="Capítulo 4 Applications | Análisis de Series de Tiempo de Precios de Acciones">
 <meta property="og:type" content="book">
-<meta property="og:description" content="Some significant applications are demonstrated in this chapter.  4.1 Example one   4.2 Example two">
+<meta property="og:description" content="Análisis de series de tiempo de precios de acciones durante el período COVID-19 y su integración con modelos de valoración de opciones financieras.">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Capítulo 4 Applications | Análisis de Series de Tiempo de Precios de Acciones">
-<meta name="twitter:description" content="Some significant applications are demonstrated in this chapter.  4.1 Example one   4.2 Example two">
+<meta name="twitter:description" content="Análisis de series de tiempo de precios de acciones durante el período COVID-19 y su integración con modelos de valoración de opciones financieras.">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -63,29 +63,14 @@
 <h1>
 <span class="header-section-number">Capítulo 4</span> Applications<a class="anchor" aria-label="anchor" href="#applications"><i class="fas fa-link"></i></a>
 </h1>
-<p>Some <em>significant</em> applications are demonstrated in this chapter.</p>
-<div id="example-one" class="section level2" number="4.1">
-<h2>
-<span class="header-section-number">4.1</span> Example one<a class="anchor" aria-label="anchor" href="#example-one"><i class="fas fa-link"></i></a>
-</h2>
-</div>
-<div id="example-two" class="section level2" number="4.2">
-<h2>
-<span class="header-section-number">4.2</span> Example two<a class="anchor" aria-label="anchor" href="#example-two"><i class="fas fa-link"></i></a>
-</h2>
 
-</div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="methods.html"><span class="header-section-number">3</span> Methods</a></div>
 <div class="next"><a href="final-words.html"><span class="header-section-number">5</span> Final Words</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#applications"><span class="header-section-number">4</span> Applications</a></li>
-<li><a class="nav-link" href="#example-one"><span class="header-section-number">4.1</span> Example one</a></li>
-<li><a class="nav-link" href="#example-two"><span class="header-section-number">4.2</span> Example two</a></li>
-</ul>
+      <ul class="nav navbar-nav"><li><a class="nav-link" href="#applications"><span class="header-section-number">4</span> Applications</a></li></ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
@@ -109,34 +94,6 @@
   </div>
 
 </div></div>
-</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    var src = "true";
-    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:")
-      if (/^https?:/.test(src))
-        src = src.replace(/^https?:/, '');
-    script.src = src;
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
-for (let popover of popovers) {
-  const div = document.createElement('div');
-  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
-  div.innerHTML = popover.getAttribute('data-content');
-
-  var has_math = div.querySelector("span.math");
-  if (has_math) {
-    document.body.appendChild(div);
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
-    MathJax.Hub.Queue(function() {
-      popover.setAttribute('data-content', div.innerHTML);
-      document.body.removeChild(div);
-    })
-  }
-}
-</script>
+</footer>
 </body>
 </html>

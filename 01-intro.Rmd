@@ -448,6 +448,12 @@ if(is_html_output()) {
 }
 ```
 
+**Interpretación Apple (AAPL):**
+
+- **Lag 1**: Concentración fuerte de puntos a lo largo de la diagonal, indicando alta persistencia de precios día a día. La autocorrelación positiva es clara - si el precio fue alto ayer, es probable que sea alto hoy. Patrón lineal muy definido con poca dispersión, reflejo de la relativa estabilidad de Apple.
+
+- **Lag 7**: Mantiene la concentración en la diagonal pero con ligera mayor dispersión que lag 1. Los precios de hace una semana aún tienen poder predictivo moderado sobre los precios actuales, aunque debilitado. La relación lineal se preserva, consistente con la baja volatilidad histórica de AAPL (29.2% anual).
+
 ### Rezagos - Tesla (TSLA)
 
 ```{r lag-plots-tsla, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Gráficos de rezago para Tesla. Mayor dispersión debido a alta volatilidad."}
@@ -524,6 +530,12 @@ if(is_html_output()) {
   grid.arrange(p1, p2, ncol = 2)
 }
 ```
+
+**Interpretación Tesla (TSLA):**
+
+- **Lag 1**: Aunque sigue la diagonal, presenta notablemente mayor dispersión que Apple. Se observan clusters de alta densidad en diferentes rangos de precio (especialmente en niveles bajos ~$20-50 y altos ~$300-400), reflejando los distintos regímenes de precio que experimentó Tesla durante el período explosivo 2019-2021. La volatilidad de 59.3% anual se manifiesta claramente en la nube de puntos.
+
+- **Lag 7**: Dispersión significativamente mayor que lag 1. La relación con precios de hace una semana es débil, indicando que Tesla puede experimentar cambios sustanciales de precio en períodos cortos. Los movimientos bruscos semanales son comunes, consistente con su naturaleza de "acción de crecimiento" altamente sensible a noticias y sentimiento del mercado.
 
 ### Rezagos - Moderna (MRNA)
 
@@ -602,19 +614,25 @@ if(is_html_output()) {
 }
 ```
 
-**Interpretación de rezagos:**
+**Interpretación Moderna (MRNA):**
 
-- **Lag 1 (día anterior):** La mayoría de los puntos se concentran cerca de la diagonal, indicando autocorrelación positiva débil. Los precios tienden a persistir de un día al siguiente, especialmente en niveles bajos y altos.
+- **Lag 1**: La mayor dispersión del dataset, reflejando su extrema volatilidad (72.1% anual). Se identifican claramente tres regímenes de precio: pre-vacuna (~$20-80), pico de vacuna (~$200-480), y post-corrección (~$50-150). La nube de puntos muestra múltiples clusters verticales, evidenciando cambios de precio abruptos día a día sin relación lineal consistente con el día anterior.
 
-- **Lag 7 (semana anterior):** Mayor dispersión que lag 1, sugiriendo autocorrelación semanal muy débil. Las ventas de un día específico no predicen confiablemente el mismo día de la semana siguiente, excepto en valores extremos.
+- **Lag 7**: Dispersión masiva que prácticamente elimina cualquier patrón predecible. La correlación semanal es casi nula - el precio de hace 7 días no ofrece información útil sobre el precio actual. Este comportamiento es típico de acciones impulsadas por eventos específicos (anuncios de vacunas, aprobaciones regulatorias, cambios en demanda pandémica) que generan shocks independientes del comportamiento histórico.
 
-- **Observación sectorial:** Tesla y Moderna muestran mayor dispersión debido a su alta volatilidad, mientras que activos más estables como Apple presentan patrones más concentrados.
+**Síntesis comparativa:**
+
+- **Apple**: Patrón más predecible con fuerte autocorrelación en ambos rezagos. Persistencia de precios día a día y semana a semana.
+
+- **Tesla**: Autocorrelación moderada en lag 1, debilitada en lag 7. Volatilidad alta pero con cierta estructura temporal.
+
+- **Moderna**: Autocorrelación muy débil en ambos rezagos. Comportamiento casi aleatorio dominado por eventos externos más que por dinámica interna de precios. Los modelos de persistencia simple serán insuficientes para esta serie.
 
 ## Estacionalidad Anual
 
 El análisis de estacionalidad revela patrones recurrentes a lo largo del año calendario, particularmente relevantes durante el período COVID-19.
 
-```{r estacionalidad, echo=FALSE, fig.height=8, fig.cap="Patrón de precios mensuales por año. Se identifica claramente el impacto COVID en marzo 2020 y la recuperación diferenciada por sector."}
+```{r estacionalidad, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Patrón de precios mensuales por año (interactivo). Se identifica claramente el impacto COVID en marzo 2020 y la recuperación diferenciada por sector."}
 datos_mensuales <- datos_completos %>%
   mutate(Año = year(Fecha),
          Mes = month(Fecha, label = TRUE)) %>%
@@ -623,32 +641,110 @@ datos_mensuales <- datos_completos %>%
             .groups = "drop") %>%
   filter(Año >= 2019 & Año <= 2021)
 
-# Por sector
-ggplot(datos_mensuales, aes(x = Mes, y = Precio_Promedio, 
-                             color = as.factor(Año), group = interaction(Ticker, Año))) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  facet_wrap(~Sector, scales = "free_y", ncol = 1) +
-  scale_color_manual(values = c("2019" = "#3498DB", 
-                                 "2020" = "#E74C3C", 
-                                 "2021" = "#27AE60")) +
-  labs(title = "Patrón Estacional por Sector (2019-2021)",
-       x = "Mes", y = "Precio Promedio ($)",
-       color = "Año") +
-  theme_minimal(base_size = 11) +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 45, hjust = 1))
+if(is_html_output()) {
+  # VERSION PLOTLY INTERACTIVA
+  
+  # Colores por año
+  colores_años <- c("2019" = "#3498DB", "2020" = "#E74C3C", "2021" = "#27AE60")
+  
+  # Crear gráficos por sector
+  sectores <- unique(datos_mensuales$Sector)
+  
+  for(sector in sectores) {
+    df_sector <- datos_mensuales %>% filter(Sector == sector)
+    
+    fig <- plot_ly(height = 450)
+    
+    # Agregar una traza por cada combinación de ticker y año
+    for(año in c(2019, 2020, 2021)) {
+      for(ticker in unique(df_sector$Ticker)) {
+        df <- df_sector %>% filter(Año == año, Ticker == ticker)
+        
+        fig <- fig %>%
+          add_trace(
+            data = df,
+            x = ~Mes,
+            y = ~Precio_Promedio,
+            type = "scatter",
+            mode = "lines+markers",
+            name = paste(ticker, año),
+            line = list(color = colores_años[as.character(año)], width = 2),
+            marker = list(size = 6),
+            legendgroup = as.character(año),
+            hovertemplate = paste0(
+              "<b>", ticker, " - ", año, "</b><br>",
+              "Mes: %{x}<br>",
+              "Precio Promedio: $%{y:,.2f}<br>",
+              "<extra></extra>"
+            )
+          )
+      }
+    }
+    
+    # Layout
+    fig <- fig %>%
+      layout(
+        title = list(
+          text = paste("Patrón Estacional -", sector, "(2019-2021)"),
+          font = list(size = 16)
+        ),
+        xaxis = list(
+          title = "Mes",
+          categoryorder = "array",
+          categoryarray = c("ene", "feb", "mar", "abr", "may", "jun", 
+                           "jul", "ago", "sep", "oct", "nov", "dic")
+        ),
+        yaxis = list(
+          title = "Precio Promedio ($)",
+          tickformat = "$,.0f"
+        ),
+        hovermode = "x unified",
+        legend = list(
+          title = list(text = "Ticker - Año"),
+          orientation = "v",
+          x = 1.02,
+          y = 1
+        )
+      )
+    
+    print(fig)
+  }
+  
+} else {
+  # VERSION ESTATICA CON GGPLOT PARA PDF
+  ggplot(datos_mensuales, aes(x = Mes, y = Precio_Promedio, 
+                               color = as.factor(Año), group = interaction(Ticker, Año))) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    facet_wrap(~Sector, scales = "free_y", ncol = 1) +
+    scale_color_manual(values = c("2019" = "#3498DB", 
+                                   "2020" = "#E74C3C", 
+                                   "2021" = "#27AE60")) +
+    labs(title = "Patrón Estacional por Sector (2019-2021)",
+         x = "Mes", y = "Precio Promedio ($)",
+         color = "Año") +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "bottom",
+          axis.text.x = element_text(angle = 45, hjust = 1))
+}
 ```
 
 **Patrones estacionales identificados:**
 
-- **Marzo 2020:** Caída drástica en todos los activos coincidiendo con el crash COVID-19.
+- **Marzo 2020:** Caída drástica en todos los activos coincidiendo con el crash COVID-19. En tecnología, los precios cayeron bruscamente pero se recuperaron rápidamente. En farmacéuticas, Moderna y Pfizer mostraron volatilidad inicial antes del pico de desarrollo de vacunas.
 
-- **Noviembre-Diciembre:** Tradicionalmente meses fuertes para mercados financieros, patrón que se mantiene excepto durante 2020.
+- **Abril-Mayo 2020:** Período de recuperación diferenciada. El sector tecnológico (especialmente Microsoft y Apple) mostró recuperación en "V", mientras que las farmacéuticas mantuvieron niveles relativamente estables, anticipando su rol en la pandemia.
 
-- **Primer trimestre:** Generalmente muestra precios más bajos, con recuperación hacia mediados de año. Patrón interrumpido en 2020 por el COVID.
+- **Diciembre 2020 - Enero 2021:** Pico dramático en Moderna alcanzando ~$400 promedio mensual, coincidiendo con la autorización de emergencia y distribución masiva de vacunas. Tesla también experimentó crecimiento explosivo en este período, alcanzando máximos históricos.
 
-- **Diferencias sectoriales:** El sector tecnológico muestra recuperación más rápida post-marzo 2020, mientras farmacéuticas tienen pico en el período de vacunas (Q4 2020 - Q1 2021).
+- **Segundo semestre 2021:** Normalización post-vacunación. Moderna inicia corrección significativa desde sus máximos, mientras el sector tecnológico consolida ganancias con Microsoft superando los $300 promedio.
+
+- **Diferencias sectoriales:** 
+  - **Tecnología**: Patrón de crecimiento sostenido interrumpido brevemente en marzo 2020. Recuperación rápida y tendencia alcista mantenida durante 2020-2021.
+  - **Farmacéutica**: Mayor heterogeneidad. J&J mantiene estabilidad (~$150-170), Pfizer presenta volatilidad moderada, y Moderna exhibe el patrón más extremo con auge y corrección dramáticos ligados directamente a eventos de COVID-19.
+
+- **Observación estacional general:** El típico rally de fin de año (noviembre-diciembre) se mantuvo en 2019 y 2021, pero fue interrumpido en 2020 por la dinámica única del sector farmacéutico durante el pico de vacunación.
+
 
 ## Síntesis de Visualización
 
