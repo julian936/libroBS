@@ -42,10 +42,6 @@ estacionalidad---sector-tecnológico
 estacionalidad---sector-farmacéutico
 síntesis-de-visualización
 literature
-marco-teórico-componentes-de-una-serie-de-tiempo
-justificación-del-análisis
-análisis-por-sector
-series-seleccionadas-para-análisis-detallado
 descomposición-de-series-de-tiempo
 apple-aapl---sector-tecnología
 moderna-mrna---sector-farmacéutico
@@ -64,6 +60,7 @@ síntesis-y-decisiones-de-modelado
 hallazgos-clave
 transformaciones-necesarias
 justificación-de-procedimientos
+próximos-pasos
 methods
 applications
 final-words

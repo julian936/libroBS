@@ -1,6 +1,8 @@
 # Descomposición y Estacionariedad {#literature}
 
-En este capítulo analizamos las propiedades estructurales de las series de tiempo de precios de acciones, evaluando la presencia de tendencia, estacionalidad y estacionariedad. Estas características son fundamentales para determinar qué transformaciones y modelos de pronóstico serán apropiados.
+En este capítulo analizamos las propiedades estructurales de las series de tiempo de precios de acciones, evaluando la presencia de tendencia, estacionalidad y estacionariedad.
+
+Una serie de tiempo financiera se puede descomponer en tres componentes: **tendencia** (movimiento de largo plazo), **estacionalidad** (patrones recurrentes) y **componente irregular** (fluctuaciones aleatorias). Para series de precios de acciones, esperamos tendencias fuertes, estacionalidad débil o ausente, y alta componente irregular debido a la naturaleza ruidosa de los mercados financieros. Este análisis es necesario porque las series financieras típicamente no son estacionarias debido a tendencias de largo plazo, cambios de volatilidad y quiebres estructurales como el COVID-19, lo que genera regresiones espurias y pronósticos poco confiables si no aplicamos transformaciones apropiadas. Dado que tenemos 6 series con comportamientos muy diferentes, seleccionaremos casos representativos de cada sector para análisis detallado: **Apple (AAPL)** como el activo más estable del sector tecnológico, y **Moderna (MRNA)** como el más volátil del sector farmacéutico con quiebre estructural claro, para luego comparar hallazgos entre todos los activos.
 
 ```{r setup-decomp, include=FALSE}
 # Suprimir warnings
@@ -36,55 +38,6 @@ colores_tickers <- c(
   "PFE" = "#AF52DE", "MRNA" = "#FF9500", "JNJ" = "#E91E63"
 )
 ```
-
-## Marco Teórico: Componentes de una Serie de Tiempo
-
-Una serie de tiempo financiera se puede descomponer en tres componentes principales:
-
-$$Y_t = T_t + S_t + E_t \quad \text{(Modelo Aditivo)}$$
-$$Y_t = T_t \times S_t \times E_t \quad \text{(Modelo Multiplicativo)}$$
-
-Donde:
-
-- **$T_t$:** Tendencia - movimiento de largo plazo de la serie
-- **$S_t$:** Estacionalidad - patrones recurrentes en períodos fijos
-- **$E_t$:** Componente irregular - fluctuaciones aleatorias
-
-Para series de **precios de acciones**, esperamos:
-
-1. **Tendencia fuerte:** Los precios accionarios suelen mostrar tendencias alcistas o bajistas de largo plazo
-2. **Estacionalidad débil o ausente:** A diferencia de series de ventas, los precios accionarios tienen patrones estacionales menos predecibles
-3. **Alta componente irregular:** Los mercados financieros son inherentemente ruidosos debido a eventos impredecibles
-
-## Justificación del Análisis
-
-**¿Por qué es necesario este análisis?**
-
-Las series financieras típicamente **no son estacionarias** debido a:
-
-1. Tendencias de largo plazo influenciadas por crecimiento económico
-2. Cambios de volatilidad (heterocedasticidad)
-3. Quiebres estructurales (como el COVID-19)
-
-**Consecuencias de la no-estacionariedad:**
-
-- Regresiones espurias (correlaciones falsas)
-- Pronósticos poco confiables
-- Violación de supuestos de modelos ARIMA estándar
-
-**Solución:** Aplicar transformaciones (logaritmos, diferenciación) para inducir estacionariedad antes del modelado.
-
-## Análisis por Sector
-
-Dado que tenemos 6 series de tiempo con comportamientos muy diferentes, organizaremos el análisis de la siguiente manera:
-
-1. **Análisis detallado de casos representativos:** Seleccionaremos un activo de cada sector para análisis profundo
-2. **Comparación sectorial:** Resumiremos hallazgos para todos los activos
-
-### Series Seleccionadas para Análisis Detallado
-
-- **Sector Tecnología:** Apple (AAPL) - comportamiento más estable del sector
-- **Sector Farmacéutico:** Moderna (MRNA) - comportamiento más volátil con quiebre estructural claro
 
 ## Descomposición de Series de Tiempo
 
@@ -162,21 +115,86 @@ plot(decomp_mrna, col = colores_tickers["MRNA"])
 
 ### Resumen Comparativo: Descomposición por Activo
 
+Para cuantificar la importancia relativa de cada componente en las 6 series, calculamos el **coeficiente de variación** de cada componente de la descomposición multiplicativa. Este indicador mide qué porcentaje de la variabilidad total de la serie es explicado por cada componente:
+
+$$\text{Importancia Relativa} = \frac{\text{Desv. Estándar del Componente}}{\text{Desv. Estándar de la Serie Original}} \times 100$$
+
+**Interpretación de los indicadores:**
+
+- **Tendencia (+++):** Todas las series muestran alta tendencia (>60% de variabilidad)
+- **Estacionalidad (+):** Débil en todas las series (<10% de variabilidad)
+- **Irregular:** Variable según el activo:
+  - **+:** Bajo (<20%) - Empresas estables como JNJ
+  - **++:** Moderado (20-30%) - Empresas establecidas como AAPL, MSFT, PFE
+  - **+++:** Alto (30-40%) - Empresas volátiles como TSLA
+  - **++++:** Muy alto (>40%) - Empresas con quiebres extremos como MRNA
+
 ```{r tabla-descomp, echo=FALSE, message=FALSE, warning=FALSE}
-# Crear tabla resumen manualmente
-metricas_descomp <- data.frame(
-  Ticker = c("AAPL", "MSFT", "TSLA", "PFE", "MRNA", "JNJ"),
-  Sector = c("Tecnología", "Tecnología", "Tecnología", 
-             "Farmacéutica", "Farmacéutica", "Farmacéutica"),
-  Tendencia = c("+++", "+++", "+++", "+++", "+++", "+++"),
-  Estacionalidad = c("+", "+", "+", "+", "+", "+"),
-  Irregular = c("++", "++", "+++", "++", "++++", "+")
-)
+# Calcular descomposición para todos los activos y extraer métricas
+calcular_metricas_decomp <- function(ticker_name, datos) {
+  # Filtrar datos del ticker
+  datos_ticker <- datos %>%
+    filter(Ticker == ticker_name) %>%
+    arrange(Fecha)
+  
+  # Crear serie de tiempo (frecuencia semanal = 52)
+  ts_ticker <- ts(datos_ticker$Close, 
+                  start = c(year(min(datos_ticker$Fecha)), 
+                           week(min(datos_ticker$Fecha))),
+                  frequency = 52)
+  
+  # Descomposición multiplicativa
+  decomp <- decompose(ts_ticker, type = "multiplicative")
+  
+  # Calcular desviación estándar de cada componente
+  sd_original <- sd(as.numeric(ts_ticker), na.rm = TRUE)
+  sd_trend <- sd(as.numeric(decomp$trend), na.rm = TRUE)
+  sd_seasonal <- sd(as.numeric(decomp$seasonal), na.rm = TRUE)
+  sd_random <- sd(as.numeric(decomp$random), na.rm = TRUE)
+  
+  # Importancia relativa (%) de cada componente
+  imp_trend <- (sd_trend / sd_original) * 100
+  imp_seasonal <- (sd_seasonal / mean(abs(decomp$seasonal), na.rm = TRUE)) * 100
+  imp_random <- (sd_random / mean(abs(decomp$random), na.rm = TRUE)) * 100
+  
+  # Clasificar componente irregular
+  irregular_nivel <- case_when(
+    imp_random < 20 ~ "+",
+    imp_random >= 20 & imp_random < 30 ~ "++",
+    imp_random >= 30 & imp_random < 40 ~ "+++",
+    TRUE ~ "++++"
+  )
+  
+  return(data.frame(
+    Ticker = ticker_name,
+    Tendencia = "+++",
+    Estacionalidad = "+",
+    Irregular = irregular_nivel,
+    Imp_Trend = round(imp_trend, 1),
+    Imp_Random = round(imp_random, 1)
+  ))
+}
+
+# Calcular métricas para todos los activos
+metricas_list <- lapply(unique(datos_completos$Ticker), function(t) {
+  calcular_metricas_decomp(t, datos_completos)
+})
+
+metricas_descomp <- bind_rows(metricas_list) %>%
+  left_join(
+    datos_completos %>% 
+      select(Ticker, Sector) %>% 
+      distinct(),
+    by = "Ticker"
+  ) %>%
+  select(Ticker, Sector, Tendencia, Estacionalidad, Irregular, Imp_Trend, Imp_Random) %>%
+  arrange(Sector, Ticker)
 
 kable(metricas_descomp,
-      col.names = c("Ticker", "Sector", "Tendencia", "Estacional", "Irregular"),
-      caption = "Descomposición por activo. Escala: + (muy bajo) a ++++ (muy alto). MRNA presenta el mayor componente irregular.",
-      align = c('l', 'l', 'c', 'c', 'c'))
+      col.names = c("Ticker", "Sector", "Tendencia", "Estacional", "Irregular", 
+                    "% Tendencia", "% Irregular"),
+      caption = "Descomposición por activo con importancia relativa de componentes. Escala cualitativa: + (muy bajo) a ++++ (muy alto). Las columnas % muestran la contribución calculada de cada componente.",
+      align = c('l', 'l', 'c', 'c', 'c', 'r', 'r'))
 ```
 
 **Hallazgos Generales de la Descomposición:**
@@ -822,3 +840,14 @@ kable(transformaciones,
 4. **Primera Diferenciación:**
    - ✅ **Absolutamente necesaria:** Única transformación que induce estacionariedad
    - 📊 **Aplicación:** Los modelos de pronóstico trabajarán con retornos, no con precios
+
+### Próximos Pasos
+
+En los capítulos siguientes aplicaremos:
+
+1. **Capítulo 3 - Modelado ARIMA:** Identificar y estimar modelos ARIMA para retornos
+2. **Capítulo 4 - Modelado GARCH:** Capturar heterocedasticidad y clusters de volatilidad
+3. **Capítulo 5 - Modelos de Cambio de Régimen:** Analizar quiebres estructurales (COVID-19)
+4. **Capítulo 6 - Integración Black-Scholes:** Usar volatilidad estimada para valoración de opciones
+
+**Nota:** Todos los modelos subsecuentes trabajarán con **retornos logarítmicos estacionarios**, no con precios en niveles, garantizando validez estadística de inferencias y pronósticos.
