@@ -329,6 +329,7 @@ if(nrow(datos_completos) > 0) {
 }
 ```
 
+
 La figura muestra el comportamiento diferenciado entre sectores usando series normalizadas (Base 100 = primera observación). El sector tecnológico presenta crecimiento sostenido con Tesla liderando (+2,728%), mientras que el farmacéutico muestra un pico en Moderna durante el desarrollo de vacunas seguido de corrección. Este contraste será analizado en detalle en el Capítulo 1.
 
 ## Importancia del Pronóstico y Valor Agregado

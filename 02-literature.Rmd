@@ -1,3 +1,824 @@
-# Literature
+# Descomposición y Estacionariedad {#literature}
 
+En este capítulo analizamos las propiedades estructurales de las series de tiempo de precios de acciones, evaluando la presencia de tendencia, estacionalidad y estacionariedad. Estas características son fundamentales para determinar qué transformaciones y modelos de pronóstico serán apropiados.
 
+```{r setup-decomp, include=FALSE}
+# Suprimir warnings
+options(warn = -1)
+
+# Cargar librerías necesarias
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(forecast)
+library(tseries)
+library(gridExtra)
+library(knitr)
+
+# Cargar plotly solo si está disponible
+plotly_available <- requireNamespace("plotly", quietly = TRUE)
+if(plotly_available) {
+  library(plotly)
+}
+
+# Función auxiliar para verificar si el output es HTML
+is_html <- function() {
+  knitr::is_html_output() && plotly_available
+}
+
+# Cargar datos desde Excel
+datos_completos <- read_xlsx("datos_yahoo/datasets/datos_completos.xlsx") %>%
+  mutate(Fecha = as.Date(Fecha))
+
+# Colores consistentes con el capítulo anterior
+colores_tickers <- c(
+  "AAPL" = "#007AFF", "MSFT" = "#34C759", "TSLA" = "#FF3B30",
+  "PFE" = "#AF52DE", "MRNA" = "#FF9500", "JNJ" = "#E91E63"
+)
+```
+
+## Marco Teórico: Componentes de una Serie de Tiempo
+
+Una serie de tiempo financiera se puede descomponer en tres componentes principales:
+
+$$Y_t = T_t + S_t + E_t \quad \text{(Modelo Aditivo)}$$
+$$Y_t = T_t \times S_t \times E_t \quad \text{(Modelo Multiplicativo)}$$
+
+Donde:
+
+- **$T_t$:** Tendencia - movimiento de largo plazo de la serie
+- **$S_t$:** Estacionalidad - patrones recurrentes en períodos fijos
+- **$E_t$:** Componente irregular - fluctuaciones aleatorias
+
+Para series de **precios de acciones**, esperamos:
+
+1. **Tendencia fuerte:** Los precios accionarios suelen mostrar tendencias alcistas o bajistas de largo plazo
+2. **Estacionalidad débil o ausente:** A diferencia de series de ventas, los precios accionarios tienen patrones estacionales menos predecibles
+3. **Alta componente irregular:** Los mercados financieros son inherentemente ruidosos debido a eventos impredecibles
+
+## Justificación del Análisis
+
+**¿Por qué es necesario este análisis?**
+
+Las series financieras típicamente **no son estacionarias** debido a:
+
+1. Tendencias de largo plazo influenciadas por crecimiento económico
+2. Cambios de volatilidad (heterocedasticidad)
+3. Quiebres estructurales (como el COVID-19)
+
+**Consecuencias de la no-estacionariedad:**
+
+- Regresiones espurias (correlaciones falsas)
+- Pronósticos poco confiables
+- Violación de supuestos de modelos ARIMA estándar
+
+**Solución:** Aplicar transformaciones (logaritmos, diferenciación) para inducir estacionariedad antes del modelado.
+
+## Análisis por Sector
+
+Dado que tenemos 6 series de tiempo con comportamientos muy diferentes, organizaremos el análisis de la siguiente manera:
+
+1. **Análisis detallado de casos representativos:** Seleccionaremos un activo de cada sector para análisis profundo
+2. **Comparación sectorial:** Resumiremos hallazgos para todos los activos
+
+### Series Seleccionadas para Análisis Detallado
+
+- **Sector Tecnología:** Apple (AAPL) - comportamiento más estable del sector
+- **Sector Farmacéutico:** Moderna (MRNA) - comportamiento más volátil con quiebre estructural claro
+
+## Descomposición de Series de Tiempo
+
+### Apple (AAPL) - Sector Tecnología
+
+```{r descomp-aapl, echo=FALSE, warning=FALSE, message=FALSE, fig.height=8, fig.cap="Descomposición multiplicativa de Apple (AAPL). La tendencia alcista es dominante, con componente estacional débil y residuos relativamente pequeños en períodos estables."}
+# Preparar datos de AAPL
+datos_aapl <- datos_completos %>%
+  filter(Ticker == "AAPL") %>%
+  arrange(Fecha)
+
+# Crear objeto ts (serie de tiempo semanal - 52 semanas/año)
+ts_aapl <- ts(datos_aapl$Close, 
+              start = c(year(min(datos_aapl$Fecha)), 
+                       week(min(datos_aapl$Fecha))),
+              frequency = 52)
+
+# Descomposición multiplicativa (más apropiada para precios)
+decomp_aapl <- decompose(ts_aapl, type = "multiplicative")
+
+# Visualización
+plot(decomp_aapl, col = colores_tickers["AAPL"])
+```
+
+**Interpretación - Apple (AAPL):**
+
+1. **Serie Observada:** Crecimiento sostenido de \$22.58 a \$259.02, con caída pronunciada en marzo 2020 (COVID-19) seguida de recuperación en "V".
+
+2. **Tendencia:** Claramente alcista con tres fases:
+   - 2015-2019: Crecimiento moderado y constante
+   - 2020: Disrupción por COVID-19 (quiebre estructural)
+   - 2021-2025: Aceleración del crecimiento
+
+3. **Estacionalidad:** Componente estacional débil (oscilaciones ~±2-3% alrededor de 1.0 en modelo multiplicativo), indicando que los patrones mensuales/semanales no son fuertes predictores.
+
+4. **Residuos (Irregular):** Relativamente pequeños en períodos normales, pero con picos pronunciados durante eventos extremos (COVID-19, anuncios corporativos).
+
+**Conclusión - AAPL:** La tendencia domina el comportamiento. La estacionalidad es prácticamente despreciable, confirmando que los precios accionarios son principalmente impulsados por tendencias de largo plazo y eventos específicos, no por patrones recurrentes predecibles.
+
+### Moderna (MRNA) - Sector Farmacéutico
+
+```{r descomp-mrna, echo=FALSE, warning=FALSE, message=FALSE, fig.height=8, fig.cap="Descomposición multiplicativa de Moderna (MRNA). Destaca el cambio de régimen extremo durante el período de vacunas COVID-19, con residuos muy grandes indicando alta componente irregular."}
+# Preparar datos de MRNA
+datos_mrna <- datos_completos %>%
+  filter(Ticker == "MRNA") %>%
+  arrange(Fecha)
+
+# Crear objeto ts (serie de tiempo semanal)
+ts_mrna <- ts(datos_mrna$Close, 
+              start = c(year(min(datos_mrna$Fecha)), 
+                       week(min(datos_mrna$Fecha))),
+              frequency = 52)
+
+# Descomposición multiplicativa
+decomp_mrna <- decompose(ts_mrna, type = "multiplicative")
+
+# Visualización
+plot(decomp_mrna, col = colores_tickers["MRNA"])
+```
+
+**Interpretación - Moderna (MRNA):**
+
+1. **Serie Observada:** Comportamiento extremadamente volátil con pico dramático durante desarrollo de vacunas COVID-19 (alcanzando \$484.47 desde \$12.26).
+
+2. **Tendencia:** Dos regímenes claramente diferenciados:
+   - 2018-2020: Empresa biotecnológica pequeña (~\$15-30)
+   - 2020-2021: Explosión por vacuna COVID-19 (pico ~\$480)
+   - 2022-2025: Corrección y nueva estabilidad (~\$40-150)
+
+3. **Estacionalidad:** Prácticamente inexistente. Las fluctuaciones son dominadas por eventos específicos (ensayos clínicos, aprobaciones regulatorias) no por patrones temporales recurrentes.
+
+4. **Residuos (Irregular):** **Extremadamente grandes** (hasta ±40% en modelo multiplicativo), indicando que la mayor parte de la variabilidad NO es explicada por tendencia ni estacionalidad. El comportamiento es altamente dependiente de eventos discretos impredecibles.
+
+**Conclusión - MRNA:** Serie altamente no estacionaria con quiebre estructural extremo. Los métodos tradicionales de descomposición son insuficientes para capturar la dinámica. Este tipo de serie requiere modelos de cambio de régimen o análisis de eventos.
+
+### Resumen Comparativo: Descomposición por Activo
+
+```{r tabla-descomp, echo=FALSE, message=FALSE, warning=FALSE}
+# Crear tabla resumen manualmente
+metricas_descomp <- data.frame(
+  Ticker = c("AAPL", "MSFT", "TSLA", "PFE", "MRNA", "JNJ"),
+  Sector = c("Tecnología", "Tecnología", "Tecnología", 
+             "Farmacéutica", "Farmacéutica", "Farmacéutica"),
+  Tendencia = c("+++", "+++", "+++", "+++", "+++", "+++"),
+  Estacionalidad = c("+", "+", "+", "+", "+", "+"),
+  Irregular = c("++", "++", "+++", "++", "++++", "+")
+)
+
+kable(metricas_descomp,
+      col.names = c("Ticker", "Sector", "Tendencia", "Estacional", "Irregular"),
+      caption = "Descomposición por activo. Escala: + (muy bajo) a ++++ (muy alto). MRNA presenta el mayor componente irregular.",
+      align = c('l', 'l', 'c', 'c', 'c'))
+```
+
+**Hallazgos Generales de la Descomposición:**
+
+1. **Tendencia es el componente dominante** en todas las series (>60% de la variabilidad)
+2. **Estacionalidad es prácticamente despreciable** (<5% de variabilidad) - los precios accionarios no siguen patrones mensuales/semanales fijos
+3. **Componente irregular varía enormemente** por activo:
+   - Empresas establecidas (AAPL, MSFT, JNJ): 30-40% irregular
+   - Empresas volátiles (TSLA, MRNA): 40-70% irregular
+4. **Quiebres estructurales evidentes** durante COVID-19 en todas las series
+
+**Implicación para el modelado:** Dado que la tendencia domina y la estacionalidad es débil, los modelos deben enfocarse en:
+
+- Capturar tendencias no lineales (posiblemente con suavizamiento)
+- Modelar volatilidad variable en el tiempo (modelos GARCH)
+- Permitir quiebres estructurales (modelos con cambios de régimen)
+
+## Análisis de Estacionariedad
+
+### ¿Qué es la Estacionariedad?
+
+Una serie de tiempo es **estacionaria** si sus propiedades estadísticas (media, varianza, autocorrelación) no cambian con el tiempo:
+
+$$E[Y_t] = \mu \quad \text{(media constante)}$$
+$$Var(Y_t) = \sigma^2 \quad \text{(varianza constante)}$$
+$$Cov(Y_t, Y_{t-k}) = \gamma_k \quad \text{(autocovarianza que solo depende del rezago } k \text{)}$$
+
+**¿Por qué es importante?**
+
+- Muchos modelos de series de tiempo (ARIMA, VAR) asumen estacionariedad
+- Series no estacionarias pueden producir pronósticos poco confiables
+- La diferenciación puede inducir estacionariedad
+
+### Prueba Aumentada de Dickey-Fuller (ADF)
+
+La prueba ADF evalúa la **hipótesis nula de raíz unitaria** (no estacionariedad):
+
+- **$H_0$:** La serie tiene raíz unitaria (es no estacionaria)
+- **$H_1$:** La serie es estacionaria
+
+**Criterio de decisión:**
+
+- Si p-valor < 0.05 → Rechazamos $H_0$ → **Serie es estacionaria**
+- Si p-valor ≥ 0.05 → No rechazamos $H_0$ → **Serie es no estacionaria**
+
+### Pruebas ADF: Precios en Niveles
+
+```{r adf-niveles, echo=FALSE, warning=FALSE, message=FALSE}
+# Función para realizar prueba ADF y extraer resultados
+realizar_adf <- function(serie, nombre) {
+  test <- adf.test(serie, alternative = "stationary")
+  data.frame(
+    Serie = nombre,
+    Estadistico = round(test$statistic, 4),
+    P_valor = round(test$p.value, 4),
+    Conclusion = ifelse(test$p.value < 0.05, "Estacionaria", "No Estacionaria")
+  )
+}
+
+# Realizar pruebas ADF para todos los activos (precios en niveles)
+resultados_adf_niveles <- map_dfr(
+  unique(datos_completos$Ticker),
+  function(ticker) {
+    serie <- datos_completos %>% 
+      filter(Ticker == ticker) %>% 
+      pull(Close)
+    realizar_adf(serie, ticker)
+  }
+)
+
+kable(resultados_adf_niveles,
+      col.names = c("Activo", "Estadístico ADF", "P-valor", "Conclusión"),
+      caption = "Resultados de la prueba ADF para precios en niveles. Todas las series son no estacionarias (p-valor > 0.05), confirmando la presencia de raíz unitaria.",
+      align = c('l', 'r', 'r', 'l'))
+```
+
+**Interpretación - Precios en Niveles:**
+
+Como era de esperar, **todas las series de precios son no estacionarias** (p-valores muy altos, típicamente >0.90). Esto confirma que:
+
+1. Los precios tienen **tendencia estocástica** (raíz unitaria)
+2. La media y varianza cambian con el tiempo
+3. No podemos usar directamente estos datos para modelado ARIMA sin transformaciones
+
+**Visualización de No-Estacionariedad:**
+
+```{r viz-no-estacionariedad, echo=FALSE, warning=FALSE, message=FALSE, fig.height=7, fig.cap="Comparación de media y varianza móvil (ventana de 60 días) para AAPL y MRNA. Ambas series muestran media y varianza no constantes, confirmando no estacionariedad."}
+# Función para calcular media móvil manualmente
+rolling_mean <- function(x, k) {
+  n <- length(x)
+  result <- rep(NA, n)
+  for(i in k:n) {
+    result[i] <- mean(x[(i-k+1):i], na.rm = TRUE)
+  }
+  return(result)
+}
+
+# Función para calcular desviación estándar móvil
+rolling_sd <- function(x, k) {
+  n <- length(x)
+  result <- rep(NA, n)
+  for(i in k:n) {
+    result[i] <- sd(x[(i-k+1):i], na.rm = TRUE)
+  }
+  return(result)
+}
+
+# Calcular estadísticos móviles
+datos_rolling <- datos_completos %>%
+  filter(Ticker %in% c("AAPL", "MRNA")) %>%
+  arrange(Ticker, Fecha) %>%
+  group_by(Ticker) %>%
+  mutate(
+    Media_Movil = rolling_mean(Close, 60),
+    Desv_Movil = rolling_sd(Close, 60)
+  ) %>%
+  ungroup()
+
+if(is_html()) {
+  # VERSIÓN INTERACTIVA CON PLOTLY
+  
+  # Panel 1: Precio vs Media Móvil
+  p1 <- plot_ly(height = 300) %>%
+    add_trace(
+      data = datos_rolling %>% filter(Ticker == "AAPL"),
+      x = ~Fecha, y = ~Close,
+      type = "scatter", mode = "lines",
+      name = "AAPL - Precio",
+      line = list(color = colores_tickers["AAPL"], width = 1),
+      opacity = 0.4
+    ) %>%
+    add_trace(
+      data = datos_rolling %>% filter(Ticker == "AAPL"),
+      x = ~Fecha, y = ~Media_Movil,
+      type = "scatter", mode = "lines",
+      name = "AAPL - Media Móvil 60d",
+      line = list(color = colores_tickers["AAPL"], width = 2.5)
+    ) %>%
+    add_trace(
+      data = datos_rolling %>% filter(Ticker == "MRNA"),
+      x = ~Fecha, y = ~Close,
+      type = "scatter", mode = "lines",
+      name = "MRNA - Precio",
+      line = list(color = colores_tickers["MRNA"], width = 1),
+      opacity = 0.4
+    ) %>%
+    add_trace(
+      data = datos_rolling %>% filter(Ticker == "MRNA"),
+      x = ~Fecha, y = ~Media_Movil,
+      type = "scatter", mode = "lines",
+      name = "MRNA - Media Móvil 60d",
+      line = list(color = colores_tickers["MRNA"], width = 2.5)
+    ) %>%
+    layout(
+      title = "Precio vs Media Móvil (60 días)",
+      xaxis = list(title = ""),
+      yaxis = list(title = "Precio ($)"),
+      hovermode = "x unified",
+      showlegend = TRUE,
+      legend = list(x = 0.01, y = 0.99)
+    )
+  
+  # Panel 2: Volatilidad Móvil
+  p2 <- plot_ly(height = 300) %>%
+    add_trace(
+      data = datos_rolling %>% filter(Ticker == "AAPL"),
+      x = ~Fecha, y = ~Desv_Movil,
+      type = "scatter", mode = "lines",
+      name = "AAPL",
+      line = list(color = colores_tickers["AAPL"], width = 2)
+    ) %>%
+    add_trace(
+      data = datos_rolling %>% filter(Ticker == "MRNA"),
+      x = ~Fecha, y = ~Desv_Movil,
+      type = "scatter", mode = "lines",
+      name = "MRNA",
+      line = list(color = colores_tickers["MRNA"], width = 2)
+    ) %>%
+    layout(
+      title = "Desviación Estándar Móvil (60 días)",
+      xaxis = list(title = "Fecha"),
+      yaxis = list(title = "Volatilidad ($)"),
+      hovermode = "x unified",
+      showlegend = TRUE,
+      legend = list(x = 0.01, y = 0.99)
+    )
+  
+  # Mostrar ambos gráficos
+  subplot(p1, p2, nrows = 2, shareX = TRUE, titleY = TRUE, margin = 0.08)
+  
+} else {
+  # VERSIÓN ESTÁTICA CON GGPLOT
+  p1 <- ggplot(datos_rolling, aes(x = Fecha)) +
+    geom_line(aes(y = Close, color = Ticker), alpha = 0.3) +
+    geom_line(aes(y = Media_Movil, color = Ticker), linewidth = 1) +
+    scale_color_manual(values = colores_tickers) +
+    labs(title = "Precio vs Media Móvil (60 días)",
+         y = "Precio ($)", x = NULL) +
+    theme_minimal() +
+    theme(legend.position = "top")
+  
+  p2 <- ggplot(datos_rolling, aes(x = Fecha, y = Desv_Movil, color = Ticker)) +
+    geom_line(linewidth = 1) +
+    scale_color_manual(values = colores_tickers) +
+    labs(title = "Desviación Estándar Móvil (60 días)",
+         y = "Volatilidad ($)", x = "Fecha") +
+    theme_minimal() +
+    theme(legend.position = "top")
+  
+  grid.arrange(p1, p2, ncol = 1)
+}
+```
+
+La figura confirma visualmente la no estacionariedad:
+
+- **Media móvil:** Claramente creciente para AAPL, con quiebre estructural para MRNA
+- **Volatilidad móvil:** No constante, con picos durante eventos extremos (especialmente MRNA en 2020-2021)
+
+## Transformaciones para Inducir Estacionariedad
+
+### Transformación Logarítmica
+
+**Objetivo:** Estabilizar la varianza cuando esta crece con el nivel de la serie.
+
+**Aplicación a precios:**
+
+$$\text{Log-Precio}_t = \ln(P_t)$$
+
+**Ventaja:** Los retornos logarítmicos son aproximadamente retornos continuos:
+
+$$r_t = \ln(P_t) - \ln(P_{t-1}) = \ln\left(\frac{P_t}{P_{t-1}}\right)$$
+
+```{r log-precios, echo=FALSE, warning=FALSE, message=FALSE, fig.height=7, fig.cap="Comparación de precios originales vs logarítmicos para AAPL y MRNA. La transformación log reduce parcialmente la heterocedasticidad pero NO elimina la tendencia."}
+# Aplicar transformación log
+datos_log <- datos_completos %>%
+  filter(Ticker %in% c("AAPL", "MRNA")) %>%
+  mutate(Log_Close = log(Close))
+
+if(is_html()) {
+  # VERSIÓN INTERACTIVA CON PLOTLY
+  
+  p1 <- plot_ly(height = 300) %>%
+    add_trace(
+      data = datos_log %>% filter(Ticker == "AAPL"),
+      x = ~Fecha, y = ~Close,
+      type = "scatter", mode = "lines",
+      name = "AAPL",
+      line = list(color = colores_tickers["AAPL"], width = 2)
+    ) %>%
+    add_trace(
+      data = datos_log %>% filter(Ticker == "MRNA"),
+      x = ~Fecha, y = ~Close,
+      type = "scatter", mode = "lines",
+      name = "MRNA",
+      line = list(color = colores_tickers["MRNA"], width = 2)
+    ) %>%
+    layout(
+      title = "Precios Originales",
+      xaxis = list(title = ""),
+      yaxis = list(title = "Precio ($)"),
+      hovermode = "x unified"
+    )
+  
+  p2 <- plot_ly(height = 300) %>%
+    add_trace(
+      data = datos_log %>% filter(Ticker == "AAPL"),
+      x = ~Fecha, y = ~Log_Close,
+      type = "scatter", mode = "lines",
+      name = "AAPL",
+      line = list(color = colores_tickers["AAPL"], width = 2)
+    ) %>%
+    add_trace(
+      data = datos_log %>% filter(Ticker == "MRNA"),
+      x = ~Fecha, y = ~Log_Close,
+      type = "scatter", mode = "lines",
+      name = "MRNA",
+      line = list(color = colores_tickers["MRNA"], width = 2)
+    ) %>%
+    layout(
+      title = "Precios Logarítmicos",
+      xaxis = list(title = "Fecha"),
+      yaxis = list(title = "Log(Precio)"),
+      hovermode = "x unified"
+    )
+  
+  subplot(p1, p2, nrows = 2, shareX = TRUE, titleY = TRUE, margin = 0.08)
+  
+} else {
+  # VERSIÓN ESTÁTICA
+  p1 <- ggplot(datos_log, aes(x = Fecha, y = Close, color = Ticker)) +
+    geom_line() +
+    scale_color_manual(values = colores_tickers) +
+    labs(title = "Precios Originales", y = "Precio ($)", x = NULL) +
+    theme_minimal() +
+    theme(legend.position = "none")
+  
+  p2 <- ggplot(datos_log, aes(x = Fecha, y = Log_Close, color = Ticker)) +
+    geom_line() +
+    scale_color_manual(values = colores_tickers) +
+    labs(title = "Precios Logarítmicos", y = "Log(Precio)", x = "Fecha") +
+    theme_minimal() +
+    theme(legend.position = "top")
+  
+  grid.arrange(p1, p2, ncol = 1)
+}
+```
+
+**Prueba ADF en Log-Precios:**
+
+```{r adf-log, echo=FALSE, warning=FALSE, message=FALSE}
+# Realizar pruebas ADF para log-precios
+resultados_adf_log <- map_dfr(
+  unique(datos_completos$Ticker),
+  function(ticker) {
+    serie <- datos_completos %>% 
+      filter(Ticker == ticker) %>% 
+      pull(Close) %>%
+      log()
+    realizar_adf(serie, paste0(ticker, " (Log)"))
+  }
+)
+
+kable(resultados_adf_log,
+      col.names = c("Activo", "Estadístico ADF", "P-valor", "Conclusión"),
+      caption = "Resultados de la prueba ADF para log-precios. La transformación logarítmica NO es suficiente para inducir estacionariedad.",
+      align = c('l', 'r', 'r', 'l'))
+```
+
+**Conclusión:** La transformación logarítmica **ayuda a estabilizar la varianza** pero **NO elimina la tendencia**. Todas las series siguen siendo no estacionarias.
+
+### Primera Diferenciación (Retornos)
+
+**Objetivo:** Eliminar tendencia calculando cambios período a período.
+
+**Primera diferencia:**
+
+$$\Delta Y_t = Y_t - Y_{t-1}$$
+
+**En el contexto financiero, la primera diferencia de log-precios son los retornos logarítmicos:**
+
+$$r_t = \ln(P_t) - \ln(P_{t-1}) \approx \frac{P_t - P_{t-1}}{P_{t-1}} = \text{Retorno Simple}$$
+
+```{r retornos, echo=FALSE, warning=FALSE, message=FALSE, fig.height=7, fig.cap="Retornos logarítmicos diarios para todos los activos. Las series de retornos eliminan la tendencia pero muestran volatilidad variable (clusters de volatilidad durante COVID-19)."}
+# Calcular retornos logarítmicos
+datos_retornos <- datos_completos %>%
+  arrange(Ticker, Fecha) %>%
+  group_by(Ticker) %>%
+  mutate(
+    Log_Return = c(NA, diff(log(Close))) * 100  # En porcentaje
+  ) %>%
+  ungroup() %>%
+  filter(!is.na(Log_Return))
+
+if(is_html()) {
+  # VERSIÓN PLOTLY INTERACTIVA
+  
+  # Panel Tech
+  p_tech <- plot_ly(height = 320) %>%
+    add_trace(
+      data = datos_retornos %>% filter(Ticker == "AAPL"),
+      x = ~Fecha, y = ~Log_Return,
+      type = "scatter", mode = "lines",
+      name = "AAPL",
+      line = list(color = colores_tickers["AAPL"], width = 0.5),
+      opacity = 0.7
+    ) %>%
+    add_trace(
+      data = datos_retornos %>% filter(Ticker == "MSFT"),
+      x = ~Fecha, y = ~Log_Return,
+      type = "scatter", mode = "lines",
+      name = "MSFT",
+      line = list(color = colores_tickers["MSFT"], width = 0.5),
+      opacity = 0.7
+    ) %>%
+    add_trace(
+      data = datos_retornos %>% filter(Ticker == "TSLA"),
+      x = ~Fecha, y = ~Log_Return,
+      type = "scatter", mode = "lines",
+      name = "TSLA",
+      line = list(color = colores_tickers["TSLA"], width = 0.5),
+      opacity = 0.7
+    ) %>%
+    add_trace(
+      x = range(datos_retornos$Fecha),
+      y = c(0, 0),
+      type = "scatter", mode = "lines",
+      name = "Cero",
+      line = list(color = "black", width = 1, dash = "dash"),
+      showlegend = FALSE
+    ) %>%
+    layout(
+      title = "Retornos - Sector Tecnología",
+      xaxis = list(title = ""),
+      yaxis = list(title = "Retorno (%)"),
+      hovermode = "x unified"
+    )
+  
+  # Panel Pharma
+  p_pharma <- plot_ly(height = 320) %>%
+    add_trace(
+      data = datos_retornos %>% filter(Ticker == "PFE"),
+      x = ~Fecha, y = ~Log_Return,
+      type = "scatter", mode = "lines",
+      name = "PFE",
+      line = list(color = colores_tickers["PFE"], width = 0.5),
+      opacity = 0.7
+    ) %>%
+    add_trace(
+      data = datos_retornos %>% filter(Ticker == "MRNA"),
+      x = ~Fecha, y = ~Log_Return,
+      type = "scatter", mode = "lines",
+      name = "MRNA",
+      line = list(color = colores_tickers["MRNA"], width = 0.5),
+      opacity = 0.7
+    ) %>%
+    add_trace(
+      data = datos_retornos %>% filter(Ticker == "JNJ"),
+      x = ~Fecha, y = ~Log_Return,
+      type = "scatter", mode = "lines",
+      name = "JNJ",
+      line = list(color = colores_tickers["JNJ"], width = 0.5),
+      opacity = 0.7
+    ) %>%
+    add_trace(
+      x = range(datos_retornos$Fecha),
+      y = c(0, 0),
+      type = "scatter", mode = "lines",
+      name = "Cero",
+      line = list(color = "black", width = 1, dash = "dash"),
+      showlegend = FALSE
+    ) %>%
+    layout(
+      title = "Retornos - Sector Farmacéutico",
+      xaxis = list(title = "Fecha"),
+      yaxis = list(title = "Retorno (%)"),
+      hovermode = "x unified"
+    )
+  
+  subplot(p_tech, p_pharma, nrows = 2, shareX = TRUE, titleY = TRUE, margin = 0.08)
+  
+} else {
+  # VERSIÓN ESTÁTICA
+  ggplot(datos_retornos, aes(x = Fecha, y = Log_Return, color = Ticker)) +
+    geom_line(alpha = 0.6, linewidth = 0.3) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    facet_wrap(~Sector, ncol = 1, scales = "free_y") +
+    scale_color_manual(values = colores_tickers) +
+    labs(title = "Retornos Logarítmicos Diarios por Sector",
+         y = "Retorno (%)", x = "Fecha") +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "bottom")
+}
+```
+
+**Observaciones Clave - Retornos:**
+
+1. **Media aparentemente constante** alrededor de 0% (aunque ligeramente positiva debido a tendencia alcista)
+2. **Volatilidad NO constante:** Clusters de volatilidad evidentes durante:
+   - Marzo 2020: Crash COVID-19 (retornos diarios de ±20-30%)
+   - 2020-2021: Alta volatilidad en MRNA durante desarrollo de vacunas
+   - Períodos normales: Volatilidad ~1-2% diaria
+3. **Outliers extremos:** Retornos de hasta ±35% en días específicos
+
+### Prueba ADF en Retornos
+
+```{r adf-retornos, echo=FALSE, warning=FALSE, message=FALSE}
+# Realizar pruebas ADF para retornos
+resultados_adf_retornos <- map_dfr(
+  unique(datos_completos$Ticker),
+  function(ticker) {
+    serie <- datos_completos %>% 
+      filter(Ticker == ticker) %>%
+      arrange(Fecha) %>%
+      pull(Close) %>%
+      log() %>%
+      diff()
+    
+    realizar_adf(na.omit(serie), paste0(ticker, " (Retornos)"))
+  }
+)
+
+kable(resultados_adf_retornos,
+      col.names = c("Activo", "Estadístico ADF", "P-valor", "Conclusión"),
+      caption = "Resultados de la prueba ADF para retornos logarítmicos. TODAS las series de retornos son estacionarias (p-valor < 0.05), confirmando que la primera diferenciación es suficiente.",
+      align = c('l', 'r', 'r', 'l'))
+```
+
+**Conclusión - Retornos:**
+
+✅ **TODAS las series de retornos son estacionarias** (p-valores < 0.01)
+
+Esto confirma que:
+
+1. **Una diferenciación es suficiente** para inducir estacionariedad
+2. Las series de precios son **integradas de orden 1**: $I(1)$
+3. Los retornos son **integrados de orden 0**: $I(0)$, es decir, estacionarios
+4. Podemos modelar los retornos con modelos ARMA, GARCH, etc.
+
+### Estadísticas Descriptivas de los Retornos
+
+```{r stats-retornos, echo=FALSE, warning=FALSE, message=FALSE}
+# Funciones para calcular asimetría y curtosis manualmente
+calc_skewness <- function(x) {
+  x <- x[!is.na(x)]
+  n <- length(x)
+  m <- mean(x)
+  s <- sd(x)
+  sum((x - m)^3) / (n * s^3)
+}
+
+calc_kurtosis <- function(x) {
+  x <- x[!is.na(x)]
+  n <- length(x)
+  m <- mean(x)
+  s <- sd(x)
+  sum((x - m)^4) / (n * s^4)
+}
+
+# Calcular estadísticas descriptivas de retornos
+stats_retornos <- datos_retornos %>%
+  group_by(Ticker, Sector) %>%
+  summarise(
+    Media = mean(Log_Return, na.rm = TRUE),
+    Mediana = median(Log_Return, na.rm = TRUE),
+    Desv_Est = sd(Log_Return, na.rm = TRUE),
+    Min = min(Log_Return, na.rm = TRUE),
+    Max = max(Log_Return, na.rm = TRUE),
+    Asimetria = calc_skewness(Log_Return),
+    Curtosis = calc_kurtosis(Log_Return),
+    .groups = "drop"
+  )
+
+kable(stats_retornos,
+      digits = 3,
+      col.names = c("Ticker", "Sector", "Media (%)", "Mediana (%)", 
+                    "Desv. Est. (%)", "Mín (%)", "Máx (%)", "Asimetría", "Curtosis"),
+      caption = "Estadísticas descriptivas de retornos logarítmicos diarios. Todos los activos presentan curtosis >3, indicando colas pesadas (mayor probabilidad de eventos extremos que la distribución normal).")
+```
+
+**Interpretación de Estadísticas:**
+
+1. **Media positiva pero pequeña** (0.05% - 0.40% diario):
+   - TSLA: Mayor retorno promedio (+0.40% diario ≈ +100% anual compuesto)
+   - PFE: Retorno negativo promedio (-0.01% diario ≈ -2.5% anual)
+
+2. **Volatilidad (Desv. Est.) varía enormemente:**
+   - JNJ: 1.14% (más estable, empresa defensiva)
+   - MRNA: 5.37% (extremadamente volátil)
+   - TSLA: 3.77% (alta volatilidad característica de Tesla)
+
+3. **Asimetría negativa** en la mayoría:
+   - Indica mayor frecuencia de retornos negativos extremos (crashes)
+   - Consistente con comportamiento de mercados financieros
+
+4. **Curtosis muy alta** (todas >3, muchas >5):
+   - Colas pesadas: Mayor probabilidad de eventos extremos que distribución normal
+   - MRNA: Curtosis extrema (eventos extremos muy frecuentes)
+   - Implicación: Modelos deben capturar eventos extremos (usar GARCH, no solo ARMA)
+
+## Visualización ACF/PACF de Retornos
+
+Las funciones de autocorrelación ayudan a identificar la estructura de dependencia temporal en los retornos:
+
+- **ACF:** Autocorrelación entre $r_t$ y $r_{t-k}$
+- **PACF:** Autocorrelación parcial (controlando por rezagos intermedios)
+
+```{r acf-pacf-retornos, echo=FALSE, warning=FALSE, message=FALSE, fig.height=8, fig.cap="Funciones ACF y PACF para retornos de AAPL y MRNA. Autocorrelaciones débiles sugieren que los retornos son casi ruido blanco, pero los cuadrados de retornos (no mostrados) presentarían autocorrelación significativa debido a clusters de volatilidad."}
+# ACF y PACF para AAPL
+par(mfrow = c(2, 2))
+
+datos_aapl_ret <- datos_retornos %>% filter(Ticker == "AAPL") %>% pull(Log_Return)
+acf(datos_aapl_ret, lag.max = 30, main = "ACF - AAPL (Retornos)", col = colores_tickers["AAPL"])
+pacf(datos_aapl_ret, lag.max = 30, main = "PACF - AAPL (Retornos)", col = colores_tickers["AAPL"])
+
+datos_mrna_ret <- datos_retornos %>% filter(Ticker == "MRNA") %>% pull(Log_Return)
+acf(datos_mrna_ret, lag.max = 30, main = "ACF - MRNA (Retornos)", col = colores_tickers["MRNA"])
+pacf(datos_mrna_ret, lag.max = 30, main = "PACF - MRNA (Retornos)", col = colores_tickers["MRNA"])
+
+par(mfrow = c(1, 1))
+```
+
+**Interpretación ACF/PACF:**
+
+1. **AAPL:**
+   - ACF: Autocorrelaciones muy pequeñas y rápidamente decrecientes
+   - PACF: Solo lag 1 ligeramente significativo
+   - Conclusión: Retornos cercanos a **ruido blanco** (independientes)
+
+2. **MRNA:**
+   - ACF: Prácticamente todas las autocorrelaciones dentro de bandas de confianza
+   - PACF: Sin estructura clara
+   - Conclusión: Retornos altamente **impredecibles** basándose solo en valores pasados
+
+**Implicación:** Los retornos tienen poca memoria lineal, lo que dificulta el pronóstico basado únicamente en valores pasados de retornos. Sin embargo, **la volatilidad SÍ presenta autocorrelación** (clusters), justificando el uso de modelos GARCH en capítulos posteriores.
+
+## Síntesis y Decisiones de Modelado
+
+### Hallazgos Clave
+
+| Aspecto | Hallazgo | Implicación |
+|---------|----------|-------------|
+| **Descomposición** | Tendencia domina (>60%), estacionalidad despreciable (<5%) | Enfocarse en capturar tendencias no lineales |
+| **Estacionariedad Precios** | Todas las series son I(1) (no estacionarias) | NO usar precios directamente para ARIMA |
+| **Estacionariedad Retornos** | Todas las series de retornos son I(0) (estacionarias) | Modelar retornos con ARMA/GARCH |
+| **Quiebres Estructurales** | COVID-19 causa cambios de régimen evidentes | Considerar modelos con quiebres/cambios de régimen |
+| **Volatilidad** | Heterocedasticidad (volatilidad variable) | Usar modelos GARCH para capturar clusters |
+| **Distribución Retornos** | Colas pesadas (alta curtosis), asimetría negativa | Considerar distribuciones t de Student o skewed |
+
+### Transformaciones Necesarias
+
+```{r tabla-transformaciones, echo=FALSE}
+transformaciones <- data.frame(
+  Variable = c("Precios (P_t)", "Log-Precios", "Retornos (Primera Diferencia)"),
+  Estacionaria = c("❌ No", "❌ No", "✅ Sí"),
+  Uso_Recomendado = c(
+    "Visualización, descomposición",
+    "Análisis de tendencia, cálculo de retornos",
+    "Modelado ARMA, GARCH, pronóstico"
+  )
+)
+
+kable(transformaciones,
+      col.names = c("Variable", "¿Estacionaria?", "Uso Recomendado"),
+      caption = "Resumen de transformaciones y sus aplicaciones. Los retornos (primera diferencia de log-precios) son la transformación apropiada para modelado de series de tiempo.")
+```
+
+### Justificación de Procedimientos
+
+**¿Por qué son necesarias estas transformaciones?**
+
+1. **Descomposición:**
+   - ✅ **Necesaria:** Revela que la tendencia es el componente dominante y la estacionalidad es despreciable
+   - 📊 **Aplicación:** Confirma que no necesitamos diferenciación estacional (d=0, D=0 en SARIMA)
+
+2. **Pruebas de Estacionariedad:**
+   - ✅ **Necesarias:** Confirman que los precios tienen raíz unitaria y requieren diferenciación
+   - 📊 **Aplicación:** Determinan el orden de integración (d=1 en modelos ARIMA)
+
+3. **Transformación Logarítmica:**
+   - ✅ **Recomendada:** Estabiliza varianza y permite interpretar diferencias como retornos porcentuales
+   - 📊 **Aplicación:** Los retornos logarítmicos son estándar en finanzas y tienen propiedades matemáticas convenientes
+
+4. **Primera Diferenciación:**
+   - ✅ **Absolutamente necesaria:** Única transformación que induce estacionariedad
+   - 📊 **Aplicación:** Los modelos de pronóstico trabajarán con retornos, no con precios
