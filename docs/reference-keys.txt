@@ -58,9 +58,10 @@ estadísticas-descriptivas-de-los-retornos
 visualización-acfpacf-de-retornos
 síntesis-y-decisiones-de-modelado
 hallazgos-clave
+diagrama-del-proceso-de-análisis
 transformaciones-necesarias
 justificación-de-procedimientos
-próximos-pasos
+aplicaciones-futuras-de-los-hallazgos
 methods
 applications
 final-words

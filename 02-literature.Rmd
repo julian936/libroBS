@@ -525,7 +525,7 @@ kable(ndiffs_resultados,
 **¿Por qué d=1 y no d=2 o d=3?**
 
 - **d=0:** Serie ya estacionaria → NO aplica a precios
-- **d=1:** Elimina tendencia estocástica (raíz unitaria) → **Este es nuestro caso** ✅
+- **d=1:** Elimina tendencia estocástica (raíz unitaria) → **Este es nuestro caso** (CORRECTO)
 - **d=2:** Para series con tendencia cuadrática → Sobre-diferenciación, genera autocorrelación negativa artificial
 - **d≥3:** Casi nunca necesario en series económicas
 
@@ -690,7 +690,7 @@ kable(resultados_adf_retornos,
 
 **Conclusión - Retornos:**
 
-✅ **TODAS las series de retornos son estacionarias** (p-valores < 0.01)
+**TODAS las series de retornos son estacionarias** (p-valores < 0.01)
 
 Esto confirma que:
 
@@ -703,8 +703,8 @@ Esto confirma que:
 
 ¿Por qué NO aplicamos d=2 (diferenciar dos veces)?
 
-- Con **d=1** (retornos): Series estacionarias con p-valores < 0.01 ✅
-- Con **d=2** (diferencia de retornos): Generaríamos autocorrelación negativa artificial ❌
+- Con **d=1** (retornos): Series estacionarias con p-valores < 0.01 (CORRECTO)
+- Con **d=2** (diferencia de retornos): Generaríamos autocorrelación negativa artificial (INCORRECTO)
 - **Regla:** Usar el mínimo número de diferenciaciones necesarias
 
 En modelos ARIMA para retornos usaremos: **ARIMA(p, d=0, q)** porque ya aplicamos la diferenciación manualmente al calcular retornos.
@@ -819,12 +819,118 @@ par(mfrow = c(1, 1))
 | **Volatilidad** | Heterocedasticidad (volatilidad variable) | Usar modelos GARCH para capturar clusters |
 | **Distribución Retornos** | Colas pesadas (alta curtosis), asimetría negativa | Considerar distribuciones t de Student o skewed |
 
+### Diagrama del Proceso de Análisis
+
+El siguiente diagrama resume el flujo completo del análisis realizado en este capítulo:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  DATOS ORIGINALES                                │
+│            Precios de Acciones (2015-2025)                       │
+│        6 activos: AAPL, MSFT, TSLA, PFE, MRNA, JNJ             │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              PASO 1: DESCOMPOSICIÓN                              │
+│   ¿Qué componentes explican el comportamiento de los precios?   │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Tendencia: DOMINANTE (>90%)
+                     ├─► Estacionalidad: DESPRECIABLE (<5%)
+                     └─► Residuos: Variables por activo
+                     │
+                     ▼
+       **Conclusión:** Enfocarse en tendencia, no en estacionalidad
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│        PASO 2: PRUEBAS DE ESTACIONARIEDAD (ADF)                 │
+│           ¿Los precios son estacionarios?                        │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Precios en niveles: NO estacionarios
+                     │   (p-valores > 0.05 para todos)
+                     │
+                     ▼
+       **Conclusión:** Necesitamos transformaciones
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│     PASO 3: TRANSFORMACIÓN LOGARÍTMICA                           │
+│  ¿El logaritmo estabiliza la varianza?                           │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Log-Precios aplicado
+                     ├─► Varianza más estable ✓
+                     ├─► ADF: Aún NO estacionarios
+                     │
+                     ▼
+       **Conclusión:** Log ayuda, pero no es suficiente
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│    PASO 4: ¿CUÁNTAS DIFERENCIACIONES? (ndiffs)                  │
+│         Determinar orden de integración                          │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► ndiffs() → d = 1 para todos
+                     │   (Una diferenciación suficiente)
+                     │
+                     ▼
+       **Conclusión:** Series son I(1)
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│      PASO 5: PRIMERA DIFERENCIACIÓN (Retornos)                  │
+│     rt = ln(Pt) - ln(Pt-1) ≈ Retorno %                          │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► ADF sobre retornos
+                     ├─► TODOS estacionarios (p < 0.01) ✓
+                     ├─► Media constante (~0%)
+                     ├─► Volatilidad variable (clusters)
+                     │
+                     ▼
+       **Conclusión:** ¡Retornos listos para modelado!
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           PASO 6: ANÁLISIS ACF/PACF                              │
+│  ¿Los retornos tienen estructura temporal?                       │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Autocorrelaciones débiles
+                     ├─► Retornos ≈ ruido blanco
+                     ├─► Volatilidad SÍ autocorrelacionada
+                     │
+                     ▼
+       **Conclusión:** Necesitamos modelos GARCH
+                     │
+                     ▼
+╔═════════════════════════════════════════════════════════════════╗
+║              RESULTADO FINAL                                     ║
+║                                                                  ║
+║  Serie transformada: RETORNOS LOGARÍTMICOS                      ║
+║  Propiedades:                                                    ║
+║    • Estacionarios I(0) ✓                                       ║
+║    • Media constante ✓                                          ║
+║    • Volatilidad variable (clusters)                            ║
+║    • Colas pesadas (curtosis > 3)                               ║
+║                                                                  ║
+║  Listos para:                                                    ║
+║    → Modelos ARIMA(p,0,q)                                       ║
+║    → Modelos GARCH para volatilidad                             ║
+║    → Modelos de cambio de régimen                               ║
+╚═════════════════════════════════════════════════════════════════╝
+```
+
 ### Transformaciones Necesarias
 
 ```{r tabla-transformaciones, echo=FALSE}
 transformaciones <- data.frame(
   Variable = c("Precios (P_t)", "Log-Precios", "Retornos (Primera Diferencia)"),
-  Estacionaria = c("❌ No", "❌ No", "✅ Sí"),
+  Estacionaria = c("NO", "NO", "SÍ"),
   Uso_Recomendado = c(
     "Visualización, descomposición",
     "Análisis de tendencia, cálculo de retornos",
@@ -834,36 +940,40 @@ transformaciones <- data.frame(
 
 kable(transformaciones,
       col.names = c("Variable", "¿Estacionaria?", "Uso Recomendado"),
-      caption = "Resumen de transformaciones y sus aplicaciones. Los retornos (primera diferencia de log-precios) son la transformación apropiada para modelado de series de tiempo.")
+      caption = "Resumen de transformaciones y sus aplicaciones. Los retornos (primera diferencia de log-precios) son la transformación apropiada para modelado de series de tiempo.",
+      align = c('l', 'c', 'l'))
 ```
 
 ### Justificación de Procedimientos
 
 **¿Por qué son necesarias estas transformaciones?**
 
-1. **Descomposición:**
-   - ✅ **Necesaria:** Revela que la tendencia es el componente dominante y la estacionalidad es despreciable
-   - 📊 **Aplicación:** Confirma que no necesitamos diferenciación estacional (d=0, D=0 en SARIMA)
+**1. Descomposición de Series de Tiempo**
 
-2. **Pruebas de Estacionariedad:**
-   - ✅ **Necesarias:** Confirman que los precios tienen raíz unitaria y requieren diferenciación
-   - 📊 **Aplicación:** Determinan el orden de integración (d=1 en modelos ARIMA)
+La descomposición nos permitió identificar qué componentes (tendencia, estacionalidad, residuos) explican el comportamiento de los precios de acciones. El análisis reveló que la tendencia es el componente dominante, explicando más del 90% de la variabilidad en todas las series, mientras que la estacionalidad es prácticamente despreciable (menos del 5%). Este hallazgo es crucial porque confirma que, a diferencia de series económicas como ventas minoristas que presentan patrones estacionales predecibles, los precios accionarios no siguen ciclos mensuales o trimestrales fijos. Por lo tanto, en los modelos SARIMA que implementaremos en capítulos posteriores, no será necesario aplicar diferenciación estacional (D=0), simplificando significativamente la especificación del modelo y reduciendo el riesgo de sobre-parametrización.
 
-3. **Transformación Logarítmica:**
-   - ✅ **Recomendada:** Estabiliza varianza y permite interpretar diferencias como retornos porcentuales
-   - 📊 **Aplicación:** Los retornos logarítmicos son estándar en finanzas y tienen propiedades matemáticas convenientes
+**2. Pruebas de Estacionariedad (ADF)**
 
-4. **Primera Diferenciación:**
-   - ✅ **Absolutamente necesaria:** Única transformación que induce estacionariedad
-   - 📊 **Aplicación:** Los modelos de pronóstico trabajarán con retornos, no con precios
+Las pruebas Aumentadas de Dickey-Fuller fueron fundamentales para confirmar que todas las series de precios en niveles son no estacionarias, presentando raíz unitaria con p-valores consistentemente superiores a 0.05. Esta no estacionariedad significa que la media y varianza de los precios cambian con el tiempo, violando el supuesto básico de los modelos ARIMA estándar. Sin esta confirmación estadística formal, podríamos haber intentado modelar directamente los precios, lo que habría resultado en regresiones espurias y pronósticos poco confiables. Las pruebas ADF nos permitieron determinar que las series son integradas de orden 1, es decir I(1), lo que indica que una sola diferenciación será suficiente para inducir estacionariedad. Este conocimiento guía directamente la especificación del parámetro d=1 en los modelos ARIMA(p,d,q) que desarrollaremos.
 
-### Próximos Pasos
+**3. Transformación Logarítmica**
 
-En los capítulos siguientes aplicaremos:
+Aplicamos la transformación logarítmica porque las series de precios de acciones presentan heterocedasticidad: cuando los precios son altos, las fluctuaciones absolutas también son mayores. Por ejemplo, una acción que vale \$200 puede variar ±\$10 en un día, mientras que cuando valía \$20 solo variaba ±\$1, pero ambas representan la misma variación porcentual del 5%. El logaritmo convierte este crecimiento multiplicativo en aditivo, estabilizando la varianza a lo largo del tiempo. Además, la transformación logarítmica tiene una ventaja interpretativa crucial en finanzas: la primera diferencia de log-precios es aproximadamente igual al retorno porcentual continuo, que es el estándar en finanzas cuantitativas. Esta interpretabilidad facilita tanto el análisis como la comunicación de resultados a stakeholders. Aunque la transformación log por sí sola no elimina la tendencia (las series log-transformadas siguen siendo no estacionarias), es un paso necesario antes de la diferenciación.
 
-1. **Capítulo 3 - Modelado ARIMA:** Identificar y estimar modelos ARIMA para retornos
-2. **Capítulo 4 - Modelado GARCH:** Capturar heterocedasticidad y clusters de volatilidad
-3. **Capítulo 5 - Modelos de Cambio de Régimen:** Analizar quiebres estructurales (COVID-19)
-4. **Capítulo 6 - Integración Black-Scholes:** Usar volatilidad estimada para valoración de opciones
+**4. Primera Diferenciación (Cálculo de Retornos)**
 
-**Nota:** Todos los modelos subsecuentes trabajarán con **retornos logarítmicos estacionarios**, no con precios en niveles, garantizando validez estadística de inferencias y pronósticos.
+La diferenciación es la única transformación que logró inducir estacionariedad en nuestras series. Al calcular retornos logarítmicos como rt = ln(Pt) - ln(Pt-1), eliminamos la tendencia estocástica y obtuvimos series con media constante alrededor de 0% y propiedades estadísticas estables en el tiempo. Las pruebas ADF confirmaron que todas las series de retornos son estacionarias con p-valores < 0.01, lo que valida el uso de modelos ARMA y GARCH. Es importante destacar que aplicar una segunda diferenciación (d=2) sería contraproducente: generaría autocorrelación negativa artificial y complicaría innecesariamente el modelo. La regla fundamental en series de tiempo es usar el mínimo número de diferenciaciones necesarias para lograr estacionariedad. Por lo tanto, todos los modelos de pronóstico en capítulos posteriores trabajarán con retornos (d=0 sobre retornos ya diferenciados), no con precios en niveles, garantizando la validez estadística de nuestras inferencias y pronósticos.
+
+### Aplicaciones Futuras de los Hallazgos
+
+Con base en los resultados de este capítulo, los siguientes modelos y técnicas serán apropiados para nuestros datos:
+
+**Modelado ARIMA:** Dado que confirmamos que los retornos son estacionarios I(0) con autocorrelaciones débiles, podemos especificar modelos ARIMA(p,0,q) para capturar cualquier estructura lineal residual en la media condicional. El orden p (autorregresivo) y q (media móvil) se determinará mediante los criterios AIC/BIC, aunque anticipamos valores bajos (p,q ≤ 2) dado que los retornos se aproximan a ruido blanco.
+
+**Modelado GARCH:** El análisis reveló clusters de volatilidad evidentes, especialmente durante el periodo COVID-19 en marzo 2020, donde los retornos diarios alcanzaron ±30%. Aunque los retornos mismos tienen poca autocorrelación, los cuadrados de los retornos (proxy de volatilidad) sí presentan fuerte autocorrelación. Esto justifica el uso de modelos GARCH(p,q) o EGARCH para capturar la heterocedasticidad condicional y modelar la volatilidad variable en el tiempo, crucial para gestión de riesgo y valoración de derivados.
+
+**Modelos de Cambio de Régimen:** El análisis de descomposición identificó quiebres estructurales claros durante COVID-19 en todas las series, con cambios dramáticos en los niveles de precios y volatilidad. Además, Moderna (MRNA) experimentó un cambio de régimen extremo con el desarrollo de vacunas. Estos patrones sugieren que modelos Markov-Switching o modelos con variables dummy para eventos discretos podrían capturar mejor la dinámica que modelos lineales estándar. Estos enfoques nos permitirán identificar y modelar diferentes regímenes de mercado (alta volatilidad vs. baja volatilidad, tendencia alcista vs. bajista).
+
+**Análisis de Distribuciones No-Normales:** Las estadísticas descriptivas mostraron que todos los activos presentan curtosis >3 (colas pesadas) y asimetría negativa, indicando mayor probabilidad de caídas extremas que lo que predeciría una distribución normal. Al estimar modelos GARCH, consideraremos distribuciones alternativas para los errores, como la t de Student o distribuciones skewed, que capturan mejor estos eventos extremos y mejorarán la precisión de intervalos de confianza y medidas de riesgo como Value-at-Risk (VaR).
+
+**Integración con Black-Scholes:** La volatilidad estimada mediante modelos GARCH puede alimentar directamente el modelo de Black-Scholes para valoración de opciones, reemplazando el supuesto de volatilidad constante por una estimación dinámica más realista. Esto permitirá pricing más preciso de opciones y estrategias de cobertura más efectivas, conectando el análisis de series de tiempo con aplicaciones prácticas en mercados de derivados.
