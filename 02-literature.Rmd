@@ -1,8 +1,6 @@
 # Descomposición y Estacionariedad {#literature}
 
-En este capítulo analizamos las propiedades estructurales de las series de tiempo de precios de acciones, evaluando la presencia de tendencia, estacionalidad y estacionariedad. 
-
-Una serie de tiempo financiera se puede descomponer en tres componentes: **tendencia** (movimiento de largo plazo), **estacionalidad** (patrones recurrentes) y **componente irregular** (fluctuaciones aleatorias). Para series de precios de acciones, esperamos tendencias fuertes, estacionalidad débil o ausente, y alta componente irregular debido a la naturaleza ruidosa de los mercados financieros. Este análisis es necesario porque las series financieras típicamente no son estacionarias debido a tendencias de largo plazo, cambios de volatilidad y quiebres estructurales como el COVID-19, lo que genera regresiones espurias y pronósticos poco confiables si no aplicamos transformaciones apropiadas. Dado que tenemos 6 series con comportamientos muy diferentes, seleccionaremos casos representativos de cada sector para análisis detallado: **Apple (AAPL)** como el activo más estable del sector tecnológico, y **Moderna (MRNA)** como el más volátil del sector farmacéutico con quiebre estructural claro, para luego comparar hallazgos entre todos los activos.
+En este capítulo analizamos las propiedades estructurales de las series de tiempo de precios de acciones, evaluando la presencia de tendencia, estacionalidad y estacionariedad. Una serie de tiempo financiera se puede descomponer en tres componentes: **tendencia** (movimiento de largo plazo), **estacionalidad** (patrones recurrentes) y **componente irregular** (fluctuaciones aleatorias). Para series de precios de acciones, esperamos tendencias fuertes, estacionalidad débil o ausente, y alta componente irregular debido a la naturaleza ruidosa de los mercados financieros. Este análisis es necesario porque las series financieras típicamente no son estacionarias debido a tendencias de largo plazo, cambios de volatilidad y quiebres estructurales como el COVID-19, lo que genera regresiones espurias y pronósticos poco confiables si no aplicamos transformaciones apropiadas. Dado que tenemos 6 series con comportamientos muy diferentes, seleccionaremos casos representativos de cada sector para análisis detallado: **Apple (AAPL)** como el activo más estable del sector tecnológico, y **Moderna (MRNA)** como el más volátil del sector farmacéutico con quiebre estructural claro, para luego comparar hallazgos entre todos los activos.
 
 ```{r setup-decomp, include=FALSE}
 # Suprimir warnings
@@ -379,8 +377,8 @@ Hay **3 razones principales**:
 
 Supongamos AAPL pasa de \$100 → \$110 → \$99:
 
-- **Retornos simples:** +10%, luego -10% → Total: $100 × 1.10 × 0.90 = \$99$ ❌ (no es 0%)
-- **Retornos logarítmicos:** +9.53%, luego -10.54% → Total: 9.53% - 10.54% = -1.01% ✅ (se suman directamente)
+- **Retornos simples:** +10%, luego -10% → Total: $100 × 1.10 × 0.90 = \$99$ (INCORRECTO - no es 0%)
+- **Retornos logarítmicos:** +9.53%, luego -10.54% → Total: 9.53% - 10.54% = -1.01% (CORRECTO - se suman directamente)
 
 **Aplicación a precios:**
 
@@ -864,7 +862,7 @@ El siguiente diagrama resume el flujo completo del análisis realizado en este c
 └────────────────────┬────────────────────────────────────────────┘
                      │
                      ├─► Log-Precios aplicado
-                     ├─► Varianza más estable ✓
+                     ├─► Varianza más estable [MEJORADO]
                      ├─► ADF: Aún NO estacionarios
                      │
                      ▼
@@ -889,7 +887,7 @@ El siguiente diagrama resume el flujo completo del análisis realizado en este c
 └────────────────────┬────────────────────────────────────────────┘
                      │
                      ├─► ADF sobre retornos
-                     ├─► TODOS estacionarios (p < 0.01) ✓
+                     ├─► TODOS estacionarios (p < 0.01) [CORRECTO]
                      ├─► Media constante (~0%)
                      ├─► Volatilidad variable (clusters)
                      │
@@ -915,8 +913,8 @@ El siguiente diagrama resume el flujo completo del análisis realizado en este c
 ║                                                                  ║
 ║  Serie transformada: RETORNOS LOGARÍTMICOS                      ║
 ║  Propiedades:                                                    ║
-║    • Estacionarios I(0) ✓                                       ║
-║    • Media constante ✓                                          ║
+║    • Estacionarios I(0) [CONFIRMADO]                            ║
+║    • Media constante [CONFIRMADO]                               ║
 ║    • Volatilidad variable (clusters)                            ║
 ║    • Colas pesadas (curtosis > 3)                               ║
 ║                                                                  ║
