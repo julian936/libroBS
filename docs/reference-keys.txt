@@ -8,11 +8,11 @@ fig:estacionalidad-tech
 fig:estacionalidad-pharma
 fig:descomp-aapl
 fig:descomp-mrna
-tab:tabla-descomp
 tab:adf-niveles
 fig:viz-no-estacionariedad
 fig:log-precios
 tab:adf-log
+tab:ndiffs-test
 fig:retornos
 tab:adf-retornos
 tab:stats-retornos
@@ -45,13 +45,13 @@ literature
 descomposición-de-series-de-tiempo
 apple-aapl---sector-tecnología
 moderna-mrna---sector-farmacéutico
-resumen-comparativo-descomposición-por-activo
 análisis-de-estacionariedad
 qué-es-la-estacionariedad
 prueba-aumentada-de-dickey-fuller-adf
 pruebas-adf-precios-en-niveles
 transformaciones-para-inducir-estacionariedad
 transformación-logarítmica
+cuántas-diferenciaciones-necesitamos
 primera-diferenciación-retornos
 prueba-adf-en-retornos
 estadísticas-descriptivas-de-los-retornos

@@ -1,8 +1,6 @@
 # Descomposición y Estacionariedad {#literature}
 
-En este capítulo analizamos las propiedades estructurales de las series de tiempo de precios de acciones, evaluando la presencia de tendencia, estacionalidad y estacionariedad.
-
-Una serie de tiempo financiera se puede descomponer en tres componentes: **tendencia** (movimiento de largo plazo), **estacionalidad** (patrones recurrentes) y **componente irregular** (fluctuaciones aleatorias). Para series de precios de acciones, esperamos tendencias fuertes, estacionalidad débil o ausente, y alta componente irregular debido a la naturaleza ruidosa de los mercados financieros. Este análisis es necesario porque las series financieras típicamente no son estacionarias debido a tendencias de largo plazo, cambios de volatilidad y quiebres estructurales como el COVID-19, lo que genera regresiones espurias y pronósticos poco confiables si no aplicamos transformaciones apropiadas. Dado que tenemos 6 series con comportamientos muy diferentes, seleccionaremos casos representativos de cada sector para análisis detallado: **Apple (AAPL)** como el activo más estable del sector tecnológico, y **Moderna (MRNA)** como el más volátil del sector farmacéutico con quiebre estructural claro, para luego comparar hallazgos entre todos los activos.
+En este capítulo analizamos las propiedades estructurales de las series de tiempo de precios de acciones, evaluando la presencia de tendencia, estacionalidad y estacionariedad. Una serie de tiempo financiera se puede descomponer en tres componentes: **tendencia** (movimiento de largo plazo), **estacionalidad** (patrones recurrentes) y **componente irregular** (fluctuaciones aleatorias). Para series de precios de acciones, esperamos tendencias fuertes, estacionalidad débil o ausente, y alta componente irregular debido a la naturaleza ruidosa de los mercados financieros. Este análisis es necesario porque las series financieras típicamente no son estacionarias debido a tendencias de largo plazo, cambios de volatilidad y quiebres estructurales como el COVID-19, lo que genera regresiones espurias y pronósticos poco confiables si no aplicamos transformaciones apropiadas. Dado que tenemos 6 series con comportamientos muy diferentes, seleccionaremos casos representativos de cada sector para análisis detallado: **Apple (AAPL)** como el activo más estable del sector tecnológico, y **Moderna (MRNA)** como el más volátil del sector farmacéutico con quiebre estructural claro, para luego comparar hallazgos entre todos los activos.
 
 ```{r setup-decomp, include=FALSE}
 # Suprimir warnings
@@ -113,104 +111,27 @@ plot(decomp_mrna, col = colores_tickers["MRNA"])
 
 **Conclusión - MRNA:** Serie altamente no estacionaria con quiebre estructural extremo. Los métodos tradicionales de descomposición son insuficientes para capturar la dinámica. Este tipo de serie requiere modelos de cambio de régimen o análisis de eventos.
 
-### Resumen Comparativo: Descomposición por Activo
+**Implicaciones de la Descomposición para el Modelado:**
 
-Para cuantificar la importancia relativa de cada componente en las 6 series, calculamos el **coeficiente de variación** de cada componente de la descomposición multiplicativa. Este indicador mide qué porcentaje de la variabilidad total de la serie es explicado por cada componente:
+El análisis de descomposición de ambos activos (y por extensión, de las otras 4 series) reveló patrones consistentes que son críticos para las decisiones de modelado:
 
-$$\text{Importancia Relativa} = \frac{\text{Desv. Estándar del Componente}}{\text{Desv. Estándar de la Serie Original}} \times 100$$
-
-**Interpretación de los indicadores:**
-
-- **Tendencia (+++):** Todas las series muestran alta tendencia (>60% de variabilidad)
-- **Estacionalidad (+):** Débil en todas las series (<10% de variabilidad)
-- **Irregular:** Variable según el activo:
-  - **+:** Bajo (<20%) - Empresas estables como JNJ
-  - **++:** Moderado (20-30%) - Empresas establecidas como AAPL, MSFT, PFE
-  - **+++:** Alto (30-40%) - Empresas volátiles como TSLA
-  - **++++:** Muy alto (>40%) - Empresas con quiebres extremos como MRNA
-
-```{r tabla-descomp, echo=FALSE, message=FALSE, warning=FALSE}
-# Calcular descomposición para todos los activos y extraer métricas
-calcular_metricas_decomp <- function(ticker_name, datos) {
-  # Filtrar datos del ticker
-  datos_ticker <- datos %>%
-    filter(Ticker == ticker_name) %>%
-    arrange(Fecha)
-  
-  # Crear serie de tiempo (frecuencia semanal = 52)
-  ts_ticker <- ts(datos_ticker$Close, 
-                  start = c(year(min(datos_ticker$Fecha)), 
-                           week(min(datos_ticker$Fecha))),
-                  frequency = 52)
-  
-  # Descomposición multiplicativa
-  decomp <- decompose(ts_ticker, type = "multiplicative")
-  
-  # Calcular desviación estándar de cada componente
-  sd_original <- sd(as.numeric(ts_ticker), na.rm = TRUE)
-  sd_trend <- sd(as.numeric(decomp$trend), na.rm = TRUE)
-  sd_seasonal <- sd(as.numeric(decomp$seasonal), na.rm = TRUE)
-  sd_random <- sd(as.numeric(decomp$random), na.rm = TRUE)
-  
-  # Importancia relativa (%) de cada componente
-  imp_trend <- (sd_trend / sd_original) * 100
-  imp_seasonal <- (sd_seasonal / mean(abs(decomp$seasonal), na.rm = TRUE)) * 100
-  imp_random <- (sd_random / mean(abs(decomp$random), na.rm = TRUE)) * 100
-  
-  # Clasificar componente irregular
-  irregular_nivel <- case_when(
-    imp_random < 20 ~ "+",
-    imp_random >= 20 & imp_random < 30 ~ "++",
-    imp_random >= 30 & imp_random < 40 ~ "+++",
-    TRUE ~ "++++"
-  )
-  
-  return(data.frame(
-    Ticker = ticker_name,
-    Tendencia = "+++",
-    Estacionalidad = "+",
-    Irregular = irregular_nivel,
-    Imp_Trend = round(imp_trend, 1),
-    Imp_Random = round(imp_random, 1)
-  ))
-}
-
-# Calcular métricas para todos los activos
-metricas_list <- lapply(unique(datos_completos$Ticker), function(t) {
-  calcular_metricas_decomp(t, datos_completos)
-})
-
-metricas_descomp <- bind_rows(metricas_list) %>%
-  left_join(
-    datos_completos %>% 
-      select(Ticker, Sector) %>% 
-      distinct(),
-    by = "Ticker"
-  ) %>%
-  select(Ticker, Sector, Tendencia, Estacionalidad, Irregular, Imp_Trend, Imp_Random) %>%
-  arrange(Sector, Ticker)
-
-kable(metricas_descomp,
-      col.names = c("Ticker", "Sector", "Tendencia", "Estacional", "Irregular", 
-                    "% Tendencia", "% Irregular"),
-      caption = "Descomposición por activo con importancia relativa de componentes. Escala cualitativa: + (muy bajo) a ++++ (muy alto). Las columnas % muestran la contribución calculada de cada componente.",
-      align = c('l', 'l', 'c', 'c', 'c', 'r', 'r'))
-```
-
-**Hallazgos Generales de la Descomposición:**
-
-1. **Tendencia es el componente dominante** en todas las series (>60% de la variabilidad)
-2. **Estacionalidad es prácticamente despreciable** (<5% de variabilidad) - los precios accionarios no siguen patrones mensuales/semanales fijos
-3. **Componente irregular varía enormemente** por activo:
-   - Empresas establecidas (AAPL, MSFT, JNJ): 30-40% irregular
-   - Empresas volátiles (TSLA, MRNA): 40-70% irregular
+1. **Tendencia es el componente dominante** en todas las series (>90% de la variabilidad explicada según los gráficos de descomposición)
+2. **Estacionalidad es prácticamente despreciable** - las oscilaciones semanales/mensuales son mínimas y no sistemáticas
+3. **Residuos varían según el activo:**
+   - Empresas establecidas (AAPL, MSFT, JNJ): Residuos moderados (~5-10% de la variabilidad)
+   - Empresas volátiles/disruptivas (TSLA, MRNA): Residuos muy altos (30-50% de la variabilidad), dominados por eventos específicos impredecibles
 4. **Quiebres estructurales evidentes** durante COVID-19 en todas las series
 
-**Implicación para el modelado:** Dado que la tendencia domina y la estacionalidad es débil, los modelos deben enfocarse en:
+**Nota:** Los residuos (componente "random" en los gráficos de descomposición) representan la variabilidad que NO puede ser explicada por tendencia ni estacionalidad. Residuos grandes indican alta dependencia de eventos aleatorios o noticias específicas.
 
-- Capturar tendencias no lineales (posiblemente con suavizamiento)
-- Modelar volatilidad variable en el tiempo (modelos GARCH)
-- Permitir quiebres estructurales (modelos con cambios de régimen)
+**Por lo tanto, los modelos de pronóstico deben enfocarse en:**
+
+- **Capturar tendencias no lineales** (posiblemente con suavizamiento o modelos de tendencia estocástica)
+- **Modelar volatilidad variable en el tiempo** (modelos GARCH/EGARCH para heterocedasticidad)
+- **Permitir quiebres estructurales** (modelos con cambios de régimen o variables dummy para eventos como COVID-19)
+- **Minimizar énfasis en estacionalidad** (no es necesaria diferenciación estacional: D=0 en modelos SARIMA)
+
+Estas conclusiones guiarán las decisiones de especificación de modelos en los capítulos posteriores.
 
 ## Análisis de Estacionariedad
 
@@ -417,7 +338,47 @@ La figura confirma visualmente la no estacionariedad:
 
 ### Transformación Logarítmica
 
-**Objetivo:** Estabilizar la varianza cuando esta crece con el nivel de la serie.
+**¿Por qué necesitamos transformar los datos?**
+
+Las series de precios de acciones suelen presentar dos problemas que violan los supuestos de modelos ARIMA:
+
+1. **Heterocedasticidad:** La varianza crece con el nivel de precios (cuando el precio es $200, las fluctuaciones son mayores que cuando era $20)
+2. **No-normalidad:** Las distribuciones de cambios en precios no son normales cuando trabajamos con valores absolutos
+
+**Transformaciones disponibles:**
+
+Existen varias transformaciones para estabilizar la varianza:
+
+| Transformación | Fórmula | Cuándo usarla | Ventajas | Desventajas |
+|---------------|---------|---------------|----------|-------------|
+| **Logarítmica** | $\ln(P_t)$ | Varianza proporcional al nivel (más común en finanzas) | Interpretable como retornos continuos | No funciona con valores ≤0 |
+| **Raíz cuadrada** | $\sqrt{P_t}$ | Varianza proporcional al nivel (datos de conteo) | Simple, funciona con cero | Menos interpretable en finanzas |
+| **Box-Cox** | $\frac{P_t^\lambda - 1}{\lambda}$ | Cuando λ óptimo ≠ 0 ni 1 | Flexible, encuentra transformación óptima | Difícil de interpretar |
+| **Inversa** | $\frac{1}{P_t}$ | Varianza muy grande para valores altos | Estabiliza varianza fuerte | Invierte orden, poco intuitiva |
+
+**¿Por qué elegimos la transformación logarítmica para precios de acciones?**
+
+Hay **3 razones principales**:
+
+1. **Interpretabilidad financiera:**
+   $$r_t = \ln(P_t) - \ln(P_{t-1}) = \ln\left(\frac{P_t}{P_{t-1}}\right) \approx \frac{P_t - P_{t-1}}{P_{t-1}}$$
+   
+   La primera diferencia de log-precios son **retornos continuos**, el estándar en finanzas cuantitativas.
+
+2. **Estabilización de varianza:**
+   - Convierte crecimiento multiplicativo en aditivo
+   - Una acción que duplica su valor (×2) tiene el mismo impacto que una que se reduce a la mitad (×0.5) en escala logarítmica
+
+3. **Propiedades matemáticas convenientes:**
+   - Los retornos logarítmicos se pueden **sumar** a través del tiempo: $r_{1→3} = r_1 + r_2 + r_3$
+   - Los retornos simples NO: $(1+r_1)(1+r_2)(1+r_3) - 1$ (multiplicación, más complejo)
+
+**Ejemplo numérico:**
+
+Supongamos AAPL pasa de \$100 → \$110 → \$99:
+
+- **Retornos simples:** +10%, luego -10% → Total: $100 × 1.10 × 0.90 = \$99$ ❌ (no es 0%)
+- **Retornos logarítmicos:** +9.53%, luego -10.54% → Total: 9.53% - 10.54% = -1.01% ✅ (se suman directamente)
 
 **Aplicación a precios:**
 
@@ -524,6 +485,51 @@ kable(resultados_adf_log,
 ```
 
 **Conclusión:** La transformación logarítmica **ayuda a estabilizar la varianza** pero **NO elimina la tendencia**. Todas las series siguen siendo no estacionarias.
+
+### ¿Cuántas diferenciaciones necesitamos?
+
+Aunque la prueba ADF ya confirmó no estacionariedad, podemos usar la función `ndiffs()` del paquete `forecast` para determinar cuántas diferenciaciones son necesarias:
+
+```{r ndiffs-test, echo=FALSE, warning=FALSE, message=FALSE}
+# Determinar número de diferenciaciones necesarias para cada activo
+ndiffs_resultados <- map_dfr(
+  unique(datos_completos$Ticker),
+  function(ticker) {
+    serie_log <- datos_completos %>% 
+      filter(Ticker == ticker) %>% 
+      pull(Close) %>%
+      log()
+    
+    # Usar ndiffs con prueba ADF
+    n_dif <- forecast::ndiffs(serie_log, test = "adf")
+    
+    data.frame(
+      Ticker = ticker,
+      Diferenciaciones_Necesarias = n_dif
+    )
+  }
+)
+
+kable(ndiffs_resultados,
+      col.names = c("Activo", "# Diferenciaciones Necesarias (d)"),
+      caption = "Número de diferenciaciones necesarias para inducir estacionariedad según prueba ADF. Todas las series requieren d=1.",
+      align = c('l', 'c'))
+```
+
+**Interpretación:**
+
+- **d = 1:** Una diferenciación es suficiente (todas las series)
+- Esto confirma que las series de precios son **I(1)** (integradas de orden 1)
+- En modelos ARIMA, usaremos: **ARIMA(p, d=1, q)** donde d=1
+
+**¿Por qué d=1 y no d=2 o d=3?**
+
+- **d=0:** Serie ya estacionaria → NO aplica a precios
+- **d=1:** Elimina tendencia estocástica (raíz unitaria) → **Este es nuestro caso** ✅
+- **d=2:** Para series con tendencia cuadrática → Sobre-diferenciación, genera autocorrelación negativa artificial
+- **d≥3:** Casi nunca necesario en series económicas
+
+**Regla práctica:** La mayoría de series económicas/financieras son I(0) o I(1). Usar d>1 es raro y generalmente un error.
 
 ### Primera Diferenciación (Retornos)
 
@@ -688,10 +694,20 @@ kable(resultados_adf_retornos,
 
 Esto confirma que:
 
-1. **Una diferenciación es suficiente** para inducir estacionariedad
+1. **Una diferenciación es suficiente** para inducir estacionariedad (d=1)
 2. Las series de precios son **integradas de orden 1**: $I(1)$
 3. Los retornos son **integrados de orden 0**: $I(0)$, es decir, estacionarios
 4. Podemos modelar los retornos con modelos ARMA, GARCH, etc.
+
+**Nota importante sobre sobre-diferenciación:**
+
+¿Por qué NO aplicamos d=2 (diferenciar dos veces)?
+
+- Con **d=1** (retornos): Series estacionarias con p-valores < 0.01 ✅
+- Con **d=2** (diferencia de retornos): Generaríamos autocorrelación negativa artificial ❌
+- **Regla:** Usar el mínimo número de diferenciaciones necesarias
+
+En modelos ARIMA para retornos usaremos: **ARIMA(p, d=0, q)** porque ya aplicamos la diferenciación manualmente al calcular retornos.
 
 ### Estadísticas Descriptivas de los Retornos
 
