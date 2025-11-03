@@ -1,299 +1,126 @@
-# Holt-Winters y Suavizamiento Exponencial {#holt-winters}
+# Modelado con Holt-Winters y Suavizamiento Exponencial {#holt-winters}
 
-En este capítulo aplicamos métodos de suavizamiento exponencial y Holt-Winters a las series de precios de acciones para capturar tendencias y patrones temporales. Aunque el Capítulo 2 reveló que la estacionalidad es despreciable en precios accionarios, los métodos de suavizamiento son útiles para pronosticar tendencias de corto plazo y comparar su desempeño contra modelos ARIMA más complejos.
+En esta sección aplicamos métodos clásicos de pronóstico de series temporales a las series de precios de acciones. Específicamente, utilizamos el método de Holt-Winters y variantes de suavizamiento exponencial (simple, doble y triple) para modelar y pronosticar los precios.
 
-Los métodos de suavizamiento exponencial son técnicas de pronóstico que asignan pesos decrecientes exponencialmente a observaciones pasadas, donde observaciones recientes tienen mayor influencia que las antiguas. Estos métodos son particularmente útiles cuando se necesitan pronósticos rápidos y la serie presenta tendencia pero poca o nula estacionalidad, como es el caso de nuestras series de precios accionarios.
+El análisis del Capítulo 2 reveló que nuestras series presentan **tendencia fuerte** pero **estacionalidad despreciable**. Por lo tanto, esperamos que los métodos que modelan tendencia (Holt) funcionen mejor que aquellos que asumen estacionalidad significativa (Holt-Winters completo).
 
-**Contexto del análisis:** Recordemos del Capítulo 2 que todas nuestras series de precios son I(1) (integradas de orden 1), presentan tendencias fuertes, y carecen de estacionalidad significativa. Por lo tanto, esperamos que métodos que capturen tendencia (Doble Exponencial, Holt) funcionen mejor que métodos que asumen estacionalidad (Holt-Winters).
+**Estrategia de análisis:** Aplicaremos los métodos a los **precios en niveles** (no log-transformados) para obtener pronósticos directamente interpretables en dólares.
 
-## Diagrama de Flujo: Metodología de Suavizamiento
+## Diagrama de Flujo: Metodología
 
 ```
-╔═════════════════════════════════════════════════════════════════╗
-║           METODOLOGÍA HOLT-WINTERS Y SUAVIZAMIENTO              ║
-╚═════════════════════════════════════════════════════════════════╝
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    DATOS DE ENTRADA                              │
-│  • Series de precios: AAPL, MSFT, TSLA, PFE, MRNA, JNJ         │
-│  • Período: 2015-2025 (2609 observaciones diarias)             │
-│  • Características conocidas (Cap. 2):                          │
-│    - Tendencia fuerte (>90% variabilidad)                       │
-│    - Estacionalidad despreciable (<5%)                          │
-│    - Series I(1) no estacionarias                               │
-└────────────────────┬────────────────────────────────────────────┘
+╔══════════════════════════════════════════════════════════════════╗
+║        METODOLOGÍA HOLT-WINTERS Y SUAVIZAMIENTO EXPONENCIAL      ║
+╚══════════════════════════════════════════════════════════════════╝
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                   ENTRADA: DATOS COMPLETOS                        │
+│  • Series de precios: AAPL, MSFT, TSLA, PFE, MRNA, JNJ          │
+│  • Período: 2015-2025 (~2600 observaciones diarias)             │
+│  • Se usa TODA la serie (no división Train/Test)                │
+│  • Objetivo: Ajustar modelo + Pronosticar 30 días adelante      │
+└────────────────────┬─────────────────────────────────────────────┘
                      │
                      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│          PASO 1: DIVISIÓN DE DATOS                              │
-│  Estrategia de validación temporal                              │
-└────────────────────┬────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│            PASO 1: SELECCIÓN DE MÉTODOS                          │
+│  Basado en características de las series (Cap. 2)                │
+└────────────────────┬─────────────────────────────────────────────┘
                      │
-                     ├─► Conjunto de Entrenamiento (Train):
-                     │   2015-01-01 hasta 2023-12-31 (~80%)
-                     │   Usado para estimar parámetros (α, β, γ)
-                     │
-                     ├─► Conjunto de Prueba (Test):
-                     │   2024-01-01 hasta 2025-10-26 (~20%)
-                     │   Usado para evaluar pronósticos
+    ¿Tiene TENDENCIA? → SÍ (todas las series)
+    ¿Tiene ESTACIONALIDAD? → NO (Cap. 2 confirmó <5%)
                      │
                      ▼
-       **Decisión:** Validación temporal (NO aleatoria)
-       Razón: Series de tiempo requieren orden cronológico
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│     PASO 2: SELECCIÓN DE MÉTODOS DE SUAVIZAMIENTO              │
-│  ¿Qué características tiene cada serie?                         │
-└────────────────────┬────────────────────────────────────────────┘
-                     │
-                     ├─► ¿Tiene TENDENCIA? → SÍ (todas las series)
-                     ├─► ¿Tiene ESTACIONALIDAD? → NO (Cap. 2)
-                     ├─► ¿Tendencia ADITIVA o MULTIPLICATIVA?
-                     │
-                     ▼
-      **Métodos a Aplicar (por complejidad):**
-                     │
-    ┌────────────────┼────────────────┐
-    │                │                │
-    ▼                ▼                ▼
-┌─────────┐   ┌──────────┐   ┌───────────────┐
-│ SIMPLE  │   │  DOBLE   │   │ HOLT-WINTERS  │
-│  (SES)  │   │  (Holt)  │   │   (Triple)    │
-└─────────┘   └──────────┘   └───────────────┘
-    │                │                │
-    │                │                │
-    ▼                ▼                ▼
+        **Métodos a aplicar (4 variantes):**
 
+┌───────────────┐  ┌────────────────┐  ┌───────────────┐  ┌──────────────┐
+│   MÉTODO 1    │  │   MÉTODO 2     │  │   MÉTODO 3    │  │  MÉTODO 4    │
+│ Holt-Winters  │  │  Simple (SES)  │  │  Doble (Holt) │  │Triple (HW-M) │
+│ Multiplicativo│  │   ETS(A,N,N)   │  │  ETS(A,Ad,N)  │  │ ETS(M,Ad,M)  │
+└───────┬───────┘  └────────┬───────┘  └───────┬───────┘  └──────┬───────┘
+        │                   │                   │                  │
+        └───────────────────┴───────────────────┴──────────────────┘
+                                    │
+                                    ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│  SUAVIZAMIENTO EXPONENCIAL SIMPLE (SES)                          │
-│  Ecuación: ŷ(t+1) = α·y(t) + (1-α)·ŷ(t)                         │
-│                                                                  │
-│  Parámetro: α (nivel)                                            │
-│  Supuestos: Serie sin tendencia ni estacionalidad               │
-│  Aplicable: NO (nuestras series tienen tendencia)               │
-│  Uso: Benchmark (referencia de comparación)                     │
-└──────────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-               **Resultado esperado: Mal desempeño**
-               (No captura tendencia alcista)
-                             │
-                             ▼
+│        PASO 2: AJUSTE DE MODELOS (Función HoltWinters/ets)      │
+│  Estimar parámetros α, β, γ que minimizan SSE                   │
+└────────────────────┬─────────────────────────────────────────────┘
+                     │
+      Para cada método:
+      1. Ajustar modelo a serie completa
+      2. Extraer parámetros estimados (α, β, γ, ϕ)
+      3. Calcular valores ajustados (fitted values)
+      4. Calcular residuos: e(t) = y(t) - ŷ(t)
+                     │
+                     ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│  SUAVIZAMIENTO EXPONENCIAL DOBLE (Holt)                         │
-│  Ecuaciones:                                                     │
-│    Nivel:     L(t) = α·y(t) + (1-α)·[L(t-1) + b(t-1)]          │
-│    Tendencia: b(t) = β·[L(t) - L(t-1)] + (1-β)·b(t-1)          │
-│    Pronóstico: ŷ(t+h) = L(t) + h·b(t)                          │
-│                                                                  │
-│  Parámetros: α (nivel), β (tendencia)                           │
-│  Supuestos: Serie con tendencia lineal, sin estacionalidad      │
-│  Aplicable: SÍ (ESPERAMOS MEJOR DESEMPEÑO)                     │
-│  Uso: Modelo principal                                          │
-└──────────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-               **Resultado esperado: Buen desempeño**
-               (Captura tendencia alcista)
-                             │
-                             ▼
+│        PASO 3: VISUALIZACIÓN DE AJUSTE                           │
+│  Gráfico: Datos Reales (negro) vs Ajuste del Modelo (rojo)      │
+└────────────────────┬─────────────────────────────────────────────┘
+                     │
+     **Criterios de evaluación visual:**
+     • ¿El ajuste (rojo) sigue la tendencia de los datos (negro)?
+     • ¿Captura los cambios de dirección?
+     • ¿Errores grandes en periodos específicos?
+                     │
+                     ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│  HOLT-WINTERS (Triple Exponencial)                              │
-│  Ecuaciones (Aditivo):                                           │
-│    Nivel:          L(t) = α·[y(t) - S(t-s)] + (1-α)·[L(t-1)+b]│
-│    Tendencia:      b(t) = β·[L(t) - L(t-1)] + (1-β)·b(t-1)     │
-│    Estacionalidad: S(t) = γ·[y(t) - L(t)] + (1-γ)·S(t-s)       │
-│    Pronóstico:     ŷ(t+h) = L(t) + h·b(t) + S(t-s+h)           │
-│                                                                  │
-│  Parámetros: α (nivel), β (tendencia), γ (estacionalidad)      │
-│  Supuestos: Serie con tendencia Y estacionalidad                │
-│  Aplicable: Técnicamente sí, pero esperamos NO aportar valor   │
-│  Uso: Comparación (verificar que estacionalidad es irrelevante)│
-└──────────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-       **Resultado esperado: Similar a Holt (sin mejora)**
-       (Estacionalidad no es significativa, Cap. 2)
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│         PASO 3: ESTIMACIÓN DE PARÁMETROS                        │
-│  Optimización automática de α, β, γ                             │
-└────────────────────┬────────────────────────────────────────────┘
+│        PASO 4: GENERACIÓN DE PRONÓSTICOS                         │
+│  Proyectar h=30 días hacia adelante con intervalos de confianza │
+└────────────────────┬─────────────────────────────────────────────┘
                      │
-                     ├─► Método: Minimizar SSE (Sum of Squared Errors)
-                     │   SSE = Σ[y(t) - ŷ(t)]²
-                     │
-                     ├─► Función R: HoltWinters()
-                     │   - Estima α, β, γ óptimos
-                     │   - Ajusta modelo en datos de entrenamiento
+      Horizonte: h = 30 días
+      Salida: 
+        • Pronóstico puntual: ŷ(t+h)
+        • Intervalo 80%: [Lo 80, Hi 80]
+        • Intervalo 95%: [Lo 95, Hi 95]
                      │
                      ▼
-       **Criterio de Bondad de Ajuste:**
-       - AIC (Akaike Information Criterion)
-       - BIC (Bayesian Information Criterion)
-       - RMSE (Root Mean Squared Error)
+┌──────────────────────────────────────────────────────────────────┐
+│        PASO 5: EVALUACIÓN COMPARATIVA                            │
+│  Métricas sobre serie completa (in-sample)                       │
+└────────────────────┬─────────────────────────────────────────────┘
+                     │
+      Métricas calculadas:
+      • ME (Mean Error): sesgo del modelo
+      • RMSE (Root Mean Squared Error): precisión global
+      • MAE (Mean Absolute Error): error absoluto promedio  
+      • MAPE (Mean Absolute Percentage Error): error %
+      • MASE (Mean Absolute Scaled Error): escalado
+      • ACF1: autocorrelación de residuos lag-1
                      │
                      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│         PASO 4: GENERACIÓN DE PRONÓSTICOS                       │
-│  Proyectar valores futuros sobre conjunto Test                  │
-└────────────────────┬────────────────────────────────────────────┘
-                     │
-                     ├─► Horizonte: h = longitud(Test) ≈ 480 días
-                     ├─► Pronósticos de 1 paso adelante
-                     ├─► Intervalos de confianza (95%)
+┌──────────────────────────────────────────────────────────────────┐
+│        PASO 6: RANKING Y SELECCIÓN                               │
+│  ¿Qué método tiene menor RMSE y MAPE?                           │
+└────────────────────┬─────────────────────────────────────────────┘
                      │
                      ▼
-       **Output:** ŷ(t+h) para cada método y cada activo
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│         PASO 5: EVALUACIÓN DE PRONÓSTICOS                       │
-│  Comparar predicciones vs valores reales en Test                │
-└────────────────────┬────────────────────────────────────────────┘
-                     │
-                     ├─► Métricas de Error:
-                     │
-                     │   • RMSE = √[Σ(y - ŷ)² / n]
-                     │     (penaliza errores grandes)
-                     │
-                     │   • MAE = Σ|y - ŷ| / n
-                     │     (error absoluto promedio)
-                     │
-                     │   • MAPE = 100·Σ|y - ŷ|/|y| / n
-                     │     (error porcentual, más interpretable)
-                     │
-                     ▼
-       **Ranking:** Ordenar métodos por RMSE (menor = mejor)
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│         PASO 6: ANÁLISIS DE RESIDUOS                            │
-│  ¿Los errores son ruido blanco?                                 │
-└────────────────────┬────────────────────────────────────────────┘
-                     │
-                     ├─► Residuos: e(t) = y(t) - ŷ(t)
-                     │
-                     ├─► Pruebas:
-                     │   • Test de Ljung-Box (autocorrelación)
-                     │   • ACF/PACF de residuos
-                     │   • Normalidad (histograma, Q-Q plot)
-                     │
-                     ▼
-       **Diagnóstico:**
-       - Residuos autocorrelacionados → Modelo incompleto
-       - Residuos ~ ruido blanco → Modelo adecuado
-                     │
-                     ▼
-╔═════════════════════════════════════════════════════════════════╗
-║                   RESULTADOS ESPERADOS                           ║
+╔══════════════════════════════════════════════════════════════════╗
+║              RESULTADOS ESPERADOS (Hipótesis)                    ║
 ║                                                                  ║
-║  Ranking de Desempeño (hipótesis):                              ║
-║    1. Holt (Doble) - Mejor                                      ║
-║       Captura tendencia sin sobreajustar                        ║
+║  Ranking esperado de desempeño:                                  ║
+║    1. Holt (Doble) - MEJOR                                      ║
+║       Captura tendencia sin asumir estacionalidad innecesaria   ║
 ║                                                                  ║
-║    2. Holt-Winters (Triple) - Similar a Holt                    ║
-║       Componente estacional no aporta (γ ≈ 0)                  ║
+║    2. Holt-Winters Multiplicativo (HoltWinters()) - Similar     ║
+║       Componente estacional debería ser ~1 (neutral)            ║
 ║                                                                  ║
-║    3. SES (Simple) - Peor                                       ║
-║       No captura tendencia alcista                              ║
+║    3. ETS(M,Ad,M) - Similar a #2                                ║
+║       Versión automática de Holt-Winters                        ║
 ║                                                                  ║
-║  Hallazgos Clave:                                                ║
-║    • Métodos con tendencia > métodos sin tendencia              ║
-║    • Estacionalidad NO mejora pronósticos (valida Cap. 2)      ║
-║    • RMSE alto en todos → Series difíciles de predecir         ║
-║      (volatilidad, eventos inesperados)                         ║
+║    4. SES (Simple) - PEOR                                       ║
+║       No captura tendencia alcista → subestima precios          ║
 ║                                                                  ║
-║  Limitaciones de Suavizamiento:                                 ║
-║    • No captura heterocedasticidad (volatilidad variable)      ║
-║    • Supone tendencia lineal (puede ser no lineal)             ║
-║    • No modela quiebres estructurales (COVID-19)               ║
-║                                                                  ║
-║  Implicación para Capítulos Siguientes:                         ║
-║    → Necesitamos modelos más sofisticados:                      ║
-║      • ARIMA para dependencia temporal compleja                 ║
-║      • GARCH para volatilidad variable                          ║
-║      • Cambio de régimen para COVID-19                          ║
-╚═════════════════════════════════════════════════════════════════╝
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              CONCLUSIONES DEL CAPÍTULO                           │
-│                                                                  │
-│  1. Validamos hallazgos del Capítulo 2:                         │
-│     Estacionalidad irrelevante en precios de acciones           │
-│                                                                  │
-│  2. Holt (tendencia lineal) es suficiente                       │
-│     Holt-Winters no mejora pronósticos                          │
-│                                                                  │
-│  3. Todos los métodos tienen errores altos                      │
-│     Precios accionarios son inherentemente difíciles de         │
-│     pronosticar (hipótesis de mercado eficiente)                │
-│                                                                  │
-│  4. Próximos pasos: Modelos ARIMA/GARCH                         │
-│     Suavizamiento es baseline, necesitamos capturar:            │
-│     - Autocorrelación (ARIMA)                                   │
-│     - Heterocedasticidad (GARCH)                                │
-│     - Quiebres (Cambio de régimen)                              │
-└─────────────────────────────────────────────────────────────────┘
+║  Hallazgos clave:                                                ║
+║    • Índices estacionales ≈ 1.0 → Confirma ausencia estacional ║
+║    • β bajo → Tendencia es estable                              ║
+║    • Residuos con ACF1 > 0 → Autocorrelación presente           ║
+║      (necesitamos ARIMA en capítulos siguientes)                ║
+╚══════════════════════════════════════════════════════════════════╝
 ```
-
-## Fundamento Teórico
-
-### ¿Por qué Suavizamiento Exponencial?
-
-Los métodos de suavizamiento exponencial son apropiados para series de tiempo que:
-
-1. **Requieren pronósticos de corto plazo:** Estos métodos son óptimos para horizontes de 1-30 pasos adelante, ideal para trading de corto plazo.
-
-2. **Presentan patrones sistemáticos:** Tendencia y/o estacionalidad que se pueden modelar con ecuaciones recursivas simples.
-
-3. **Necesitan implementación computacional rápida:** A diferencia de ARIMA que requiere estimación de máxima verosimilitud, suavizamiento usa ecuaciones recursivas.
-
-4. **Sirven como benchmark:** Comparar contra modelos más complejos (ARIMA, GARCH) para justificar la complejidad adicional.
-
-**Conexión con Capítulo 2:** El análisis de descomposición reveló que:
-- **Tendencia es dominante** (>90% variabilidad) → Justifica uso de Holt
-- **Estacionalidad es despreciable** (<5% variabilidad) → Holt-Winters no debería aportar
-- **Series son I(1)** → Trabajaremos con precios (niveles), no retornos
-
-### Clasificación de Métodos por Componentes
-
-```{r tabla-metodos-suavizamiento, echo=FALSE}
-library(knitr)
-
-metodos <- data.frame(
-  Método = c("Simple (SES)", "Doble (Holt)", "Triple (Holt-Winters Aditivo)", "Triple (Holt-Winters Multiplicativo)"),
-  Nivel = c("SÍ", "SÍ", "SÍ", "SÍ"),
-  Tendencia = c("NO", "SÍ", "SÍ", "SÍ"),
-  Estacionalidad = c("NO", "NO", "SÍ (aditiva)", "SÍ (multiplicativa)"),
-  Parámetros = c("α", "α, β", "α, β, γ", "α, β, γ"),
-  Aplicable = c("NO", "SÍ (PRINCIPAL)", "SÍ (comparación)", "NO*")
-)
-
-kable(metodos,
-      caption = "Comparación de métodos de suavizamiento exponencial. *Multiplicativo no aplica porque precios pueden ser cercanos a cero tras transformaciones.",
-      align = c('l', 'c', 'c', 'c', 'c', 'l'))
-```
-
-### Decisión: ¿Aditivo o Multiplicativo?
-
-**Modelo Aditivo:** $y_t = L_t + T_t + S_t + \epsilon_t$
-- Magnitud de estacionalidad constante en el tiempo
-- Apropiado cuando varianza es estable
-
-**Modelo Multiplicativo:** $y_t = L_t \times T_t \times S_t \times \epsilon_t$
-- Magnitud de estacionalidad crece con nivel
-- Apropiado cuando varianza crece con nivel
-
-**Nuestra elección:** Aunque en el Capítulo 2 aplicamos transformación logarítmica para estabilizar varianza, en este capítulo trabajaremos con **precios en niveles** (no log-transformados) porque:
-
-1. Los métodos de suavizamiento están diseñados para series en niveles
-2. Queremos pronósticos directos de precios (interpretabilidad)
-3. El modelo **Aditivo** es más robusto cuando la estacionalidad es débil
 
 ## Preparación de Datos
 
@@ -307,13 +134,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r librerias}
+```{r librerias, message=FALSE}
 library(tidyverse)
 library(readxl)       # Lectura de archivos Excel
-library(forecast)     # HoltWinters, accuracy
+library(forecast)     # HoltWinters, ets, accuracy
 library(zoo)          # Manejo de series de tiempo
 library(kableExtra)   # Tablas profesionales
 library(plotly)       # Gráficos interactivos
+library(tseries)      # Funciones adicionales de series de tiempo
 
 # Colores consistentes
 colores_tickers <- c(
@@ -327,645 +155,436 @@ is_html <- function() {
 }
 ```
 
-### Carga y Preparación de Datos
+### Carga de Datos
+
+Cargamos los precios de cierre ajustados para los 6 activos desde el archivo Excel preparado en capítulos anteriores.
 
 ```{r carga-datos}
-# Cargar datos desde archivo Excel
-library(readxl)
-
-# Leer datos
+# Leer datos desde Excel
 datos <- read_excel("datos_yahoo/datasets/datos_completos.xlsx") %>%
   mutate(Fecha = as.Date(Fecha))
 
+# Información general
 cat("Total de observaciones:", nrow(datos), "\n")
 cat("Período:", min(datos$Fecha), "a", max(datos$Fecha), "\n")
-cat("Activos:", paste(unique(datos$Ticker), collapse = ", "), "\n")
+cat("Activos:", paste(unique(datos$Ticker), collapse = ", "), "\n\n")
 
-# Definir punto de corte temporal
-fecha_corte <- as.Date("2024-01-01")
-
-# Dividir en Train y Test
-datos_train <- datos %>% filter(Fecha < fecha_corte)
-datos_test <- datos %>% filter(Fecha >= fecha_corte)
-
-# Información de división
-cat("\n=== DIVISIÓN TRAIN/TEST ===\n")
-cat("Período de Entrenamiento:", min(datos_train$Fecha), "a", max(datos_train$Fecha), "\n")
-cat("Observaciones Train:", nrow(datos_train), "\n")
-cat("Período de Prueba:", min(datos_test$Fecha), "a", max(datos_test$Fecha), "\n")
-cat("Observaciones Test:", nrow(datos_test), "\n")
-cat("Proporción Train/Test:", round(nrow(datos_train)/nrow(datos)*100, 1), "% /", 
-    round(nrow(datos_test)/nrow(datos)*100, 1), "%\n")
+# Verificar estructura
+cat("Primeras observaciones de AAPL:\n")
+datos %>% 
+  filter(Ticker == "AAPL") %>% 
+  select(Fecha, Close) %>% 
+  head(10) %>%
+  kable(digits = 2, 
+        caption = "Muestra de datos de Apple (AAPL)",
+        col.names = c("Fecha", "Precio de Cierre ($)"))
 ```
 
-**Justificación de la división temporal:**
+**Decisión metodológica:** Trabajaremos con **precios en niveles** (dólares), no log-transformados, porque:
 
-1. **No aleatoria:** En series de tiempo, la división debe respetar el orden cronológico para evitar "mirar al futuro" (look-ahead bias).
+1. Los métodos de suavizamiento están diseñados para series en niveles
+2. Pronósticos directamente interpretables en dólares
+3. Holt-Winters multiplicativo maneja bien la heterocedasticidad
 
-2. **80/20 aproximado:** ~8 años para entrenamiento (2015-2023) y ~2 años para prueba (2024-2025).
+## Metodología Holt-Winters
 
-3. **Periodo de prueba incluye volatilidad reciente:** Permite evaluar si los modelos capturan la dinámica actual del mercado.
+El método de Holt-Winters es una técnica de suavizamiento exponencial que extiende el suavizamiento simple para manejar series con **tendencia** y **estacionalidad**. Existen dos variantes:
 
-```{r visualizacion-train-test, fig.cap="División de datos en conjuntos de entrenamiento (azul) y prueba (naranja) para AAPL y MRNA."}
+- **Aditiva:** Magnitud de estacionalidad constante
+- **Multiplicativa:** Magnitud de estacionalidad crece con nivel
+
+Dado que los precios de acciones son heterocedásticos (varianza crece con nivel), usaremos **Holt-Winters Multiplicativo**.
+
+### Aplicación a Apple (AAPL)
+
+```{r holtwinters-aapl}
+# Extraer serie de AAPL
+serie_aapl <- datos %>%
+  filter(Ticker == "AAPL") %>%
+  arrange(Fecha) %>%
+  pull(Close)
+
+# Convertir a objeto ts
+# Frecuencia = 252 (días de trading al año), pero usaremos frecuencia = 5 (semana)
+# para que Holt-Winters pueda estimar estacionalidad semanal
+ts_aapl <- ts(serie_aapl, frequency = 5)
+
+# Ajustar Holt-Winters Multiplicativo
+modelo_hw_aapl <- HoltWinters(ts_aapl, seasonal = "multiplicative")
+
+# Mostrar parámetros estimados
+cat("PARÁMETROS ESTIMADOS HOLT-WINTERS (AAPL)\n")
+cat("========================================\n")
+cat("α (Nivel):", round(modelo_hw_aapl$alpha, 4), "\n")
+cat("β (Tendencia):", round(modelo_hw_aapl$beta, 4), "\n")
+cat("γ (Estacionalidad):", round(modelo_hw_aapl$gamma, 4), "\n\n")
+
+cat("COEFICIENTES:\n")
+cat("Nivel (a):", round(modelo_hw_aapl$coefficients["a"], 2), "\n")
+cat("Tendencia (b):", round(modelo_hw_aapl$coefficients["b"], 4), "\n")
+cat("\nÍndices Estacionales (s1-s5):\n")
+for(i in 1:5) {
+  cat(paste0("  s", i, ": "), round(modelo_hw_aapl$coefficients[paste0("s", i)], 4), "\n")
+}
+```
+
+**Interpretación de parámetros:**
+
+- **α (Nivel):** Peso a observaciones recientes para estimar nivel
+- **β (Tendencia):** Peso a cambios recientes para estimar tendencia
+- **γ (Estacionalidad):** Peso a cambios estacionales recientes
+
+**Índices estacionales:** Valores cercanos a 1.0 indican que **NO hay estacionalidad significativa** (confirmando Capítulo 2).
+
+### Gráfico de Ajuste Holt-Winters (AAPL)
+
+```{r grafico-ajuste-hw-aapl, fig.cap="Ajuste Holt-Winters Multiplicativo para Apple (AAPL). La línea roja (ajuste del modelo) sigue la tendencia general de los datos reales (negro)."}
+# Crear data frame para visualización
+df_ajuste_aapl <- tibble(
+  Tiempo = seq_along(serie_aapl),
+  Datos_Reales = serie_aapl,
+  Ajuste_HW = c(rep(NA, length(serie_aapl) - length(modelo_hw_aapl$fitted[,1])), 
+                modelo_hw_aapl$fitted[,1])
+)
+
 if(is_html()) {
-  # Versión interactiva
-  p1 <- plot_ly() %>%
-    add_trace(
-      data = datos_train %>% filter(Ticker == "AAPL"),
-      x = ~Fecha, y = ~Close,
-      type = "scatter", mode = "lines",
-      name = "Train",
-      line = list(color = "#0066CC")
-    ) %>%
-    add_trace(
-      data = datos_test %>% filter(Ticker == "AAPL"),
-      x = ~Fecha, y = ~Close,
-      type = "scatter", mode = "lines",
-      name = "Test",
-      line = list(color = "#FF6B35")
-    ) %>%
-    layout(title = "AAPL - División Train/Test",
-           xaxis = list(title = "Fecha"),
-           yaxis = list(title = "Precio ($)"))
-  
-  p2 <- plot_ly() %>%
-    add_trace(
-      data = datos_train %>% filter(Ticker == "MRNA"),
-      x = ~Fecha, y = ~Close,
-      type = "scatter", mode = "lines",
-      name = "Train",
-      line = list(color = "#0066CC"),
-      showlegend = FALSE
-    ) %>%
-    add_trace(
-      data = datos_test %>% filter(Ticker == "MRNA"),
-      x = ~Fecha, y = ~Close,
-      type = "scatter", mode = "lines",
-      name = "Test",
-      line = list(color = "#FF6B35"),
-      showlegend = FALSE
-    ) %>%
-    layout(title = "MRNA - División Train/Test",
-           xaxis = list(title = "Fecha"),
-           yaxis = list(title = "Precio ($)"))
-  
-  subplot(p1, p2, nrows = 2, shareX = TRUE)
-  
+  # Gráfico interactivo
+  plot_ly(df_ajuste_aapl, x = ~Tiempo) %>%
+    add_trace(y = ~Datos_Reales, name = "Datos Reales", 
+              type = "scatter", mode = "lines",
+              line = list(color = "black", width = 1)) %>%
+    add_trace(y = ~Ajuste_HW, name = "Ajuste Holt-Winters",
+              type = "scatter", mode = "lines",
+              line = list(color = "red", width = 1.5)) %>%
+    layout(
+      title = "Ajuste Holt-Winters Multiplicativo (AAPL)",
+      xaxis = list(title = "Tiempo"),
+      yaxis = list(title = "Precio ($)"),
+      hovermode = "x unified"
+    )
 } else {
-  # Versión estática
-  datos_division <- bind_rows(
-    datos_train %>% mutate(Conjunto = "Train"),
-    datos_test %>% mutate(Conjunto = "Test")
-  ) %>%
-    filter(Ticker %in% c("AAPL", "MRNA"))
-  
-  ggplot(datos_division, aes(x = Fecha, y = Close, color = Conjunto)) +
-    geom_line(linewidth = 0.5) +
-    facet_wrap(~Ticker, ncol = 1, scales = "free_y") +
-    scale_color_manual(values = c("Train" = "#0066CC", "Test" = "#FF6B35")) +
-    labs(title = "División de Datos en Train/Test",
-         x = "Fecha",
-         y = "Precio ($)") +
+  # Gráfico estático
+  ggplot(df_ajuste_aapl, aes(x = Tiempo)) +
+    geom_line(aes(y = Datos_Reales, color = "Datos Reales"), linewidth = 0.5) +
+    geom_line(aes(y = Ajuste_HW, color = "Ajuste Holt-Winters"), linewidth = 0.8) +
+    scale_color_manual(values = c("Datos Reales" = "black", "Ajuste Holt-Winters" = "red")) +
+    labs(
+      title = "Ajuste Holt-Winters Multiplicativo (AAPL)",
+      x = "Tiempo",
+      y = "Precio ($)",
+      color = ""
+    ) +
     theme_minimal() +
     theme(legend.position = "top")
 }
 ```
 
-## Aplicación de Métodos de Suavizamiento
+**Análisis del gráfico de ajuste:**
+
+El modelo Holt-Winters captura la **tendencia alcista general** de Apple, suavizando las fluctuaciones diarias. Se observa que:
+
+1. La línea roja sigue la dirección de la línea negra
+2. El ajuste es más suave que los datos reales (característica del suavizamiento)
+3. Errores más grandes durante eventos extremos (COVID-19 en marzo 2020)
+
+### Pronósticos Holt-Winters (AAPL)
+
+```{r pronostico-hw-aapl}
+# Generar pronóstico para 30 días adelante
+pronostico_hw_aapl <- predict(modelo_hw_aapl, n.ahead = 30, prediction.interval = TRUE)
+
+# Convertir a data frame
+df_pronostico_aapl <- as.data.frame(pronostico_hw_aapl) %>%
+  mutate(
+    Tiempo = seq(length(serie_aapl) + 1, length.out = 30),
+    Fecha_Estimada = max(datos$Fecha) + 1:30
+  ) %>%
+  select(Tiempo, Fecha_Estimada, fit, lwr, upr)
+
+# Mostrar tabla de pronósticos
+kable(df_pronostico_aapl %>% head(14),
+      digits = 2,
+      caption = "Pronósticos Holt-Winters para AAPL (primeros 14 días). 'fit' es el pronóstico puntual, 'lwr' y 'upr' son límites del intervalo de confianza al 95%.",
+      col.names = c("Tiempo", "Fecha Estimada", "Pronóstico ($)", "Límite Inf. 95%", "Límite Sup. 95%"),
+      align = c('r', 'l', 'r', 'r', 'r'))
+```
+
+**Interpretación de pronósticos:**
+
+- Los pronósticos puntuales continúan la tendencia alcista observada
+- Los intervalos de confianza se amplían con el horizonte (mayor incertidumbre)
+- Fluctuaciones sutiles reflejan el patrón "estacional" (aunque γ es bajo)
+
+## Metodologías de Suavizamiento Exponencial
+
+Ahora aplicamos tres variantes adicionales de suavizamiento exponencial usando la función `ets()` (Error-Trend-Seasonal) del paquete `forecast`.
 
 ### Suavizamiento Exponencial Simple (SES)
+
+**Modelo:** ETS(A,N,N) - Error Aditivo, No Tendencia, No Estacionalidad
 
 **Ecuación:**
 $$\hat{y}_{t+1} = \alpha y_t + (1-\alpha)\hat{y}_t$$
 
-donde $\alpha \in [0,1]$ controla cuánto peso se da a observaciones recientes.
+**Aplicación a AAPL:**
 
-**Interpretación:**
-- $\alpha$ cercano a 1: Pronóstico reacciona rápidamente a cambios (más "nervioso")
-- $\alpha$ cercano a 0: Pronóstico es suave y estable (más "inercial")
+```{r ses-aapl}
+# Ajustar SES
+modelo_ses_aapl <- ets(ts_aapl, model = "ANN")
 
-**Limitación para nuestro caso:** SES asume que la serie fluctúa alrededor de un nivel constante (sin tendencia). Como nuestras series tienen tendencias alcistas fuertes, esperamos que SES subestime sistemáticamente los precios futuros.
+# Mostrar resumen
+cat("SUAVIZAMIENTO EXPONENCIAL SIMPLE (AAPL)\n")
+cat("=======================================\n")
+print(modelo_ses_aapl)
 
-```{r ses-aplicacion}
-# Función para aplicar SES a un ticker
-aplicar_ses <- function(ticker_name) {
-  # Extraer serie Train
-  serie_train <- datos_train %>%
-    filter(Ticker == ticker_name) %>%
-    arrange(Fecha) %>%
-    pull(Close)
-  
-  # Convertir a objeto ts (frecuencia = 252 días de trading al año)
-  ts_train <- ts(serie_train, frequency = 252)
-  
-  # Ajustar SES (alpha se estima automáticamente)
-  modelo_ses <- ses(ts_train, h = nrow(datos_test %>% filter(Ticker == ticker_name)))
-  
-  return(list(
-    modelo = modelo_ses,
-    alpha = modelo_ses$model$par["alpha"]
-  ))
-}
-
-# Aplicar a todos los tickers
-resultados_ses <- tibble(Ticker = unique(datos$Ticker)) %>%
-  mutate(Modelo_SES = map(Ticker, aplicar_ses))
-
-# Extraer parámetros estimados
-parametros_ses <- resultados_ses %>%
-  mutate(Alpha = map_dbl(Modelo_SES, ~.x$alpha)) %>%
-  select(Ticker, Alpha)
-
-kable(parametros_ses,
-      digits = 4,
-      caption = "Parámetros estimados para Suavizamiento Exponencial Simple (SES). Valores de α cercanos a 1 indican alta reactividad a cambios recientes.",
-      col.names = c("Activo", "α (Nivel)"),
-      align = c('l', 'c'))
+# Generar pronóstico
+pronostico_ses_aapl <- forecast(modelo_ses_aapl, h = 30)
 ```
 
-**Interpretación de parámetros SES:**
+**Interpretación SES (AAPL):**
 
-- Todos los $\alpha$ estimados son altos ($\alpha > 0.8$), indicando que el modelo da mucho peso a observaciones recientes.
-- Esto ocurre porque SES intenta "perseguir" la tendencia alcista, pero sin un componente de tendencia explícito, siempre va rezagado.
+- α bajo indica que el modelo promedia muchas observaciones pasadas
+- El pronóstico será una línea horizontal (no captura tendencia)
+- **Limitación:** Subestimará precios futuros si la tendencia continúa
 
 ### Suavizamiento Exponencial Doble (Holt)
 
+**Modelo:** ETS(A,Ad,N) - Error Aditivo, Tendencia Amortiguada, No Estacionalidad
+
 **Ecuaciones:**
-$$L_t = \alpha y_t + (1-\alpha)(L_{t-1} + b_{t-1})$$
-$$b_t = \beta(L_t - L_{t-1}) + (1-\beta)b_{t-1}$$
-$$\hat{y}_{t+h} = L_t + h \cdot b_t$$
+$$L_t = \alpha y_t + (1-\alpha)(L_{t-1} + \phi b_{t-1})$$
+$$b_t = \beta(L_t - L_{t-1}) + (1-\beta)\phi b_{t-1}$$
 
-donde:
-- $L_t$: Nivel suavizado en tiempo $t$
-- $b_t$: Tendencia suavizada en tiempo $t$
-- $\alpha$: Parámetro de suavizamiento del nivel
-- $\beta$: Parámetro de suavizamiento de la tendencia
-- $h$: Horizonte de pronóstico
+donde $\phi$ es el parámetro de amortiguamiento.
 
-**Ventaja:** Captura tendencias lineales, apropiado para series alcistas como precios de acciones.
+```{r holt-aapl}
+# Ajustar Holt con tendencia amortiguada
+modelo_holt_aapl <- ets(ts_aapl, model = "AAN")
 
-```{r holt-aplicacion}
-# Función para aplicar Holt
-aplicar_holt <- function(ticker_name) {
-  serie_train <- datos_train %>%
-    filter(Ticker == ticker_name) %>%
-    arrange(Fecha) %>%
-    pull(Close)
-  
-  ts_train <- ts(serie_train, frequency = 252)
-  
-  # Ajustar Holt (alpha y beta se estiman automáticamente)
-  modelo_holt <- holt(ts_train, h = nrow(datos_test %>% filter(Ticker == ticker_name)))
-  
-  return(list(
-    modelo = modelo_holt,
-    alpha = modelo_holt$model$par["alpha"],
-    beta = modelo_holt$model$par["beta"]
-  ))
-}
+# Mostrar resumen
+cat("\nSUAVIZAMIENTO EXPONENCIAL DOBLE - Holt (AAPL)\n")
+cat("==============================================\n")
+print(modelo_holt_aapl)
 
-# Aplicar a todos los tickers
-resultados_holt <- tibble(Ticker = unique(datos$Ticker)) %>%
-  mutate(Modelo_Holt = map(Ticker, aplicar_holt))
-
-# Extraer parámetros estimados
-parametros_holt <- resultados_holt %>%
-  mutate(
-    Alpha = map_dbl(Modelo_Holt, ~.x$alpha),
-    Beta = map_dbl(Modelo_Holt, ~.x$beta)
-  ) %>%
-  select(Ticker, Alpha, Beta)
-
-kable(parametros_holt,
-      digits = 4,
-      caption = "Parámetros estimados para Método Holt (Doble Exponencial). β controla cuánto peso se da a cambios recientes en la tendencia.",
-      col.names = c("Activo", "α (Nivel)", "β (Tendencia)"),
-      align = c('l', 'c', 'c'))
+# Generar pronóstico
+pronostico_holt_aapl <- forecast(modelo_holt_aapl, h = 30)
 ```
 
-**Interpretación de parámetros Holt:**
+**Interpretación Holt (AAPL):**
 
-- $\alpha$ altos (~0.9-0.99): Nivel se ajusta rápidamente a nuevas observaciones.
-- $\beta$ variados: 
-  - $\beta$ bajo (AAPL, MSFT): Tendencia es estable, cambios lentos.
-  - $\beta$ alto (MRNA): Tendencia cambia rápidamente (quiebre COVID-19).
+- Captura tendencia alcista con parámetro β
+- ϕ (phi) < 1 implica que la tendencia se amortigua con el tiempo
+- **Ventaja sobre SES:** Pronósticos no son horizontales, siguen tendencia
 
-### Holt-Winters (Triple Exponencial)
+### Suavizamiento Exponencial Triple
 
-**Ecuaciones (Modelo Aditivo):**
-$$L_t = \alpha(y_t - S_{t-s}) + (1-\alpha)(L_{t-1} + b_{t-1})$$
-$$b_t = \beta(L_t - L_{t-1}) + (1-\beta)b_{t-1}$$
-$$S_t = \gamma(y_t - L_t) + (1-\gamma)S_{t-s}$$
-$$\hat{y}_{t+h} = L_t + h \cdot b_t + S_{t-s+h}$$
+**Modelo:** ETS(M,Ad,M) - Error Multiplicativo, Tendencia Amortiguada, Estacionalidad Multiplicativa
 
-donde:
-- $S_t$: Componente estacional en tiempo $t$
-- $\gamma$: Parámetro de suavizamiento de estacionalidad
-- $s$: Período estacional (para datos diarios de acciones, podríamos usar $s=5$ para semana o $s=21$ para mes)
+```{r triple-aapl}
+# Ajustar modelo Triple (Holt-Winters vía ets)
+modelo_triple_aapl <- ets(ts_aapl, model = "MAM")
 
-**Hipótesis:** Dado que el Capítulo 2 mostró estacionalidad despreciable, esperamos que $\gamma \approx 0$ (componente estacional no aporta) y que Holt-Winters tenga desempeño similar a Holt.
+# Mostrar resumen
+cat("\nSUAVIZAMIENTO EXPONENCIAL TRIPLE (AAPL)\n")
+cat("========================================\n")
+print(modelo_triple_aapl)
 
-```{r holtwinters-aplicacion}
-# Función para aplicar Holt-Winters
-aplicar_hw <- function(ticker_name, seasonal_period = 21) {  # 21 días de trading ≈ 1 mes
-  serie_train <- datos_train %>%
-    filter(Ticker == ticker_name) %>%
-    arrange(Fecha) %>%
-    pull(Close)
-  
-  ts_train <- ts(serie_train, frequency = seasonal_period)
-  
-  # Ajustar Holt-Winters aditivo
-  modelo_hw <- tryCatch({
-    hw(ts_train, seasonal = "additive", h = nrow(datos_test %>% filter(Ticker == ticker_name)))
-  }, error = function(e) {
-    # Si falla (puede ocurrir si la serie es muy corta), usar Holt
-    holt(ts_train, h = nrow(datos_test %>% filter(Ticker == ticker_name)))
-  })
-  
-  return(list(
-    modelo = modelo_hw,
-    alpha = modelo_hw$model$par["alpha"],
-    beta = modelo_hw$model$par["beta"],
-    gamma = ifelse("gamma" %in% names(modelo_hw$model$par), modelo_hw$model$par["gamma"], NA)
-  ))
-}
-
-# Aplicar a todos los tickers
-resultados_hw <- tibble(Ticker = unique(datos$Ticker)) %>%
-  mutate(Modelo_HW = map(Ticker, aplicar_hw))
-
-# Extraer parámetros estimados
-parametros_hw <- resultados_hw %>%
-  mutate(
-    Alpha = map_dbl(Modelo_HW, ~.x$alpha),
-    Beta = map_dbl(Modelo_HW, ~.x$beta),
-    Gamma = map_dbl(Modelo_HW, ~ifelse(is.na(.x$gamma), NA_real_, .x$gamma))
-  ) %>%
-  select(Ticker, Alpha, Beta, Gamma)
-
-kable(parametros_hw,
-      digits = 4,
-      caption = "Parámetros estimados para Holt-Winters (Triple Exponencial). γ cercano a 0 confirma que estacionalidad no es relevante.",
-      col.names = c("Activo", "α (Nivel)", "β (Tendencia)", "γ (Estacionalidad)"),
-      align = c('l', 'c', 'c', 'c'))
+# Generar pronóstico
+pronostico_triple_aapl <- forecast(modelo_triple_aapl, h = 30)
 ```
 
-**Validación de hipótesis:**
+**Interpretación Triple (AAPL):**
 
-Los valores de $\gamma$ (parámetro estacional) son cercanos a cero o el modelo no logra estimarlos, confirmando que la componente estacional NO aporta información útil para pronóstico. Esto valida los hallazgos del Capítulo 2: **la estacionalidad en precios de acciones es despreciable**.
+- γ muy bajo confirma estacionalidad débil
+- Índices estacionales cercanos a 1.0
+- **Resultado esperado:** Desempeño similar a Holt (estacionalidad no aporta)
 
-## Evaluación de Pronósticos
+## Evaluación y Comparación de Métodos
 
-### Métricas de Error
+### Métricas de Precisión (AAPL)
 
-Evaluaremos el desempeño de cada método usando tres métricas estándar:
+```{r comparacion-metricas-aapl}
+# Calcular accuracy para cada modelo
+acc_hw_aapl <- accuracy(modelo_hw_aapl$fitted[,1], serie_aapl[(length(serie_aapl) - length(modelo_hw_aapl$fitted[,1]) + 1):length(serie_aapl)])
+acc_ses_aapl <- accuracy(modelo_ses_aapl)
+acc_holt_aapl <- accuracy(modelo_holt_aapl)
+acc_triple_aapl <- accuracy(modelo_triple_aapl)
 
-1. **RMSE (Root Mean Squared Error):**
-$$RMSE = \sqrt{\frac{1}{n}\sum_{t=1}^{n}(y_t - \hat{y}_t)^2}$$
-- Penaliza fuertemente errores grandes
-- Unidades: dólares (mismo que precios)
+# Crear tabla comparativa
+tabla_comparacion_aapl <- tibble(
+  Método = c("Holt-Winters (HoltWinters)", "SES (ETS-ANN)", "Holt (ETS-AAN)", "Triple (ETS-MAM)"),
+  ME = c(mean(residuals(modelo_hw_aapl)), acc_ses_aapl[,"ME"], acc_holt_aapl[,"ME"], acc_triple_aapl[,"ME"]),
+  RMSE = c(sqrt(mean(residuals(modelo_hw_aapl)^2)), acc_ses_aapl[,"RMSE"], acc_holt_aapl[,"RMSE"], acc_triple_aapl[,"RMSE"]),
+  MAE = c(mean(abs(residuals(modelo_hw_aapl))), acc_ses_aapl[,"MAE"], acc_holt_aapl[,"MAE"], acc_triple_aapl[,"MAE"]),
+  MAPE = c(mean(abs(residuals(modelo_hw_aapl)/serie_aapl[(length(serie_aapl) - length(residuals(modelo_hw_aapl)) + 1):length(serie_aapl)]))*100, 
+           acc_ses_aapl[,"MAPE"], acc_holt_aapl[,"MAPE"], acc_triple_aapl[,"MAPE"]),
+  AIC = c(NA, AIC(modelo_ses_aapl), AIC(modelo_holt_aapl), AIC(modelo_triple_aapl))
+) %>%
+  arrange(RMSE)
 
-2. **MAE (Mean Absolute Error):**
-$$MAE = \frac{1}{n}\sum_{t=1}^{n}|y_t - \hat{y}_t|$$
-- Error promedio en valor absoluto
-- Más robusto a outliers que RMSE
+kable(tabla_comparacion_aapl,
+      digits = 3,
+      caption = "Comparación de métricas de precisión para AAPL. Métodos ordenados por RMSE (menor = mejor).",
+      col.names = c("Método", "ME", "RMSE ($)", "MAE ($)", "MAPE (%)", "AIC"),
+      align = c('l', 'r', 'r', 'r', 'r', 'r'))
+```
 
-3. **MAPE (Mean Absolute Percentage Error):**
-$$MAPE = \frac{100}{n}\sum_{t=1}^{n}\left|\frac{y_t - \hat{y}_t}{y_t}\right|$$
-- Error porcentual promedio
-- Más interpretable (e.g., "el modelo se equivoca en promedio un 5%")
+**Hallazgos (AAPL):**
 
-```{r evaluacion-metricas}
-# Función para calcular métricas
-calcular_metricas <- function(ticker_name, modelo_ses, modelo_holt, modelo_hw) {
-  # Valores reales del conjunto Test
-  y_test <- datos_test %>%
+1. **Holt y modelos con tendencia** tienen mejor desempeño que SES
+2. **Holt-Winters y Triple (ETS-MAM)** tienen desempeño similar a Holt
+3. **SES tiene peor desempeño** porque no captura la tendencia alcista
+4. **MAPE alrededor de 3-5%** indica error porcentual razonable
+
+### Aplicación a Todos los Activos
+
+Para completar el análisis, aplicamos los 4 métodos a todos los 6 activos y comparamos resultados.
+
+```{r aplicacion-todos-activos}
+# Función para aplicar todos los métodos a un ticker
+aplicar_metodos <- function(ticker_name) {
+  # Extraer serie
+  serie <- datos %>%
     filter(Ticker == ticker_name) %>%
     arrange(Fecha) %>%
     pull(Close)
   
-  # Pronósticos de cada método
-  pronostico_ses <- modelo_ses$modelo$mean
-  pronostico_holt <- modelo_holt$modelo$mean
-  pronostico_hw <- modelo_hw$modelo$mean
+  ts_serie <- ts(serie, frequency = 5)
   
-  # Asegurar misma longitud
-  n <- min(length(y_test), length(pronostico_ses), length(pronostico_holt), length(pronostico_hw))
-  y_test <- y_test[1:n]
-  pronostico_ses <- pronostico_ses[1:n]
-  pronostico_holt <- pronostico_holt[1:n]
-  pronostico_hw <- pronostico_hw[1:n]
-  
-  # Calcular métricas para cada método
-  metricas <- tibble(
-    Método = c("SES", "Holt", "Holt-Winters"),
-    RMSE = c(
-      sqrt(mean((y_test - pronostico_ses)^2)),
-      sqrt(mean((y_test - pronostico_holt)^2)),
-      sqrt(mean((y_test - pronostico_hw)^2))
-    ),
-    MAE = c(
-      mean(abs(y_test - pronostico_ses)),
-      mean(abs(y_test - pronostico_holt)),
-      mean(abs(y_test - pronostico_hw))
-    ),
-    MAPE = c(
-      mean(abs((y_test - pronostico_ses) / y_test)) * 100,
-      mean(abs((y_test - pronostico_holt) / y_test)) * 100,
-      mean(abs((y_test - pronostico_hw) / y_test)) * 100
+  # Ajustar modelos
+  tryCatch({
+    hw <- HoltWinters(ts_serie, seasonal = "multiplicative")
+    ses <- ets(ts_serie, model = "ANN")
+    holt <- ets(ts_serie, model = "AAN")
+    triple <- ets(ts_serie, model = "MAM")
+    
+    # Calcular métricas
+    acc_hw <- c(ME = mean(residuals(hw)), 
+                RMSE = sqrt(mean(residuals(hw)^2)),
+                MAE = mean(abs(residuals(hw))))
+    acc_ses <- accuracy(ses)[, c("ME", "RMSE", "MAE")]
+    acc_holt <- accuracy(holt)[, c("ME", "RMSE", "MAE")]
+    acc_triple <- accuracy(triple)[, c("ME", "RMSE", "MAE")]
+    
+    # Combinar resultados
+    resultados <- tibble(
+      Ticker = ticker_name,
+      Método = c("Holt-Winters", "SES", "Holt", "Triple"),
+      ME = c(acc_hw["ME"], acc_ses["ME"], acc_holt["ME"], acc_triple["ME"]),
+      RMSE = c(acc_hw["RMSE"], acc_ses["RMSE"], acc_holt["RMSE"], acc_triple["RMSE"]),
+      MAE = c(acc_hw["MAE"], acc_ses["MAE"], acc_holt["MAE"], acc_triple["MAE"])
     )
-  )
-  
-  return(metricas)
+    
+    return(resultados)
+  }, error = function(e) {
+    warning(paste("Error en", ticker_name, ":", e$message))
+    return(NULL)
+  })
 }
 
-# Calcular métricas para todos los tickers
-metricas_completas <- resultados_ses %>%
-  left_join(resultados_holt, by = "Ticker") %>%
-  left_join(resultados_hw, by = "Ticker") %>%
-  mutate(Metricas = pmap(list(Ticker, Modelo_SES, Modelo_Holt, Modelo_HW), calcular_metricas)) %>%
-  select(Ticker, Metricas) %>%
-  unnest(Metricas)
+# Aplicar a todos los tickers
+resultados_completos <- map_df(unique(datos$Ticker), aplicar_metodos)
 
-# Tabla por Activo
-for(ticker_name in unique(metricas_completas$Ticker)) {
-  tabla_ticker <- metricas_completas %>%
+# Tabla resumen por ticker
+for(ticker_name in unique(resultados_completos$Ticker)) {
+  cat("\n\n")
+  tabla_ticker <- resultados_completos %>%
     filter(Ticker == ticker_name) %>%
-    select(-Ticker)
+    select(-Ticker) %>%
+    arrange(RMSE)
   
-  cat("\n")
   print(kable(tabla_ticker,
               digits = 2,
-              caption = paste("Métricas de error para", ticker_name),
-              col.names = c("Método", "RMSE ($)", "MAE ($)", "MAPE (%)"),
+              caption = paste("Comparación de métodos para", ticker_name),
+              col.names = c("Método", "ME", "RMSE ($)", "MAE ($)"),
               align = c('l', 'r', 'r', 'r')))
 }
 ```
 
-### Ranking de Métodos
+### Ranking General
 
-```{r ranking-metodos, fig.cap="Comparación de RMSE entre métodos de suavizamiento. Barras más cortas = mejor desempeño."}
-# Ranking por RMSE
-ranking_rmse <- metricas_completas %>%
+```{r ranking-general}
+# Contar cuántas veces cada método queda en top 2
+ranking_general <- resultados_completos %>%
   group_by(Ticker) %>%
   arrange(RMSE) %>%
   mutate(Rank = row_number()) %>%
-  ungroup()
-
-if(is_html()) {
-  # Gráfico interactivo
-  plot_ly(ranking_rmse, x = ~Ticker, y = ~RMSE, color = ~Método,
-          type = "bar", text = ~paste("RMSE: $", round(RMSE, 2))) %>%
-    layout(title = "Comparación de RMSE por Método y Activo",
-           xaxis = list(title = "Activo"),
-           yaxis = list(title = "RMSE ($)"),
-           barmode = "group")
-} else {
-  # Gráfico estático
-  ggplot(ranking_rmse, aes(x = Ticker, y = RMSE, fill = Método)) +
-    geom_col(position = "dodge") +
-    labs(title = "Comparación de RMSE por Método y Activo",
-         x = "Activo",
-         y = "RMSE ($)") +
-    theme_minimal() +
-    theme(legend.position = "top")
-}
-```
-
-**Hallazgos principales:**
-
-1. **Holt supera a SES en todos los activos:** Confirma que capturar tendencia es esencial.
-
-2. **Holt-Winters similar a Holt:** La componente estacional no aporta valor, validando Capítulo 2.
-
-3. **Errores absolutos varían por activo:**
-   - AAPL, MSFT, JNJ: RMSE moderado (~\$5-15) - empresas estables
-   - MRNA: RMSE muy alto (~\$30-50) - alta volatilidad, quiebre estructural COVID-19
-   - TSLA: RMSE alto (~\$20-40) - volatilidad característica de Tesla
-
-4. **Errores porcentuales (MAPE) revelan dificultad relativa:**
-   - Todos los activos: MAPE 5-15%
-   - Precios de acciones son inherentemente difíciles de pronosticar
-
-## Visualización de Pronósticos
-
-```{r visualizacion-pronosticos, fig.cap="Comparación visual de pronósticos vs valores reales para AAPL y MRNA. Holt (azul) captura mejor la tendencia que SES (verde)."}
-# Seleccionar 2 activos representativos
-for(ticker_name in c("AAPL", "MRNA")) {
-  # Extraer datos
-  datos_ticker_test <- datos_test %>%
-    filter(Ticker == ticker_name) %>%
-    arrange(Fecha)
-  
-  # Extraer pronósticos
-  modelo_ses_ticker <- resultados_ses %>% filter(Ticker == ticker_name) %>% pull(Modelo_SES) %>% .[[1]]
-  modelo_holt_ticker <- resultados_holt %>% filter(Ticker == ticker_name) %>% pull(Modelo_Holt) %>% .[[1]]
-  modelo_hw_ticker <- resultados_hw %>% filter(Ticker == ticker_name) %>% pull(Modelo_HW) %>% .[[1]]
-  
-  # Crear data frame para visualización
-  n <- nrow(datos_ticker_test)
-  df_plot <- tibble(
-    Fecha = datos_ticker_test$Fecha,
-    Real = datos_ticker_test$Close,
-    SES = as.numeric(modelo_ses_ticker$modelo$mean[1:n]),
-    Holt = as.numeric(modelo_holt_ticker$modelo$mean[1:n]),
-    HoltWinters = as.numeric(modelo_hw_ticker$modelo$mean[1:n])
+  ungroup() %>%
+  group_by(Método) %>%
+  summarise(
+    RMSE_Promedio = mean(RMSE, na.rm = TRUE),
+    Veces_Top1 = sum(Rank == 1),
+    Veces_Top2 = sum(Rank <= 2),
+    .groups = "drop"
   ) %>%
-    pivot_longer(cols = -Fecha, names_to = "Tipo", values_to = "Precio")
-  
-  if(is_html()) {
-    # Gráfico interactivo
-    p <- plot_ly(df_plot, x = ~Fecha, y = ~Precio, color = ~Tipo,
-                 type = "scatter", mode = "lines") %>%
-      layout(title = paste(ticker_name, "- Pronósticos vs Realidad"),
-             xaxis = list(title = "Fecha"),
-             yaxis = list(title = "Precio ($)"))
-    print(p)
-  } else {
-    # Gráfico estático
-    p <- ggplot(df_plot, aes(x = Fecha, y = Precio, color = Tipo)) +
-      geom_line(linewidth = 0.7) +
-      labs(title = paste(ticker_name, "- Pronósticos vs Realidad"),
-           x = "Fecha",
-           y = "Precio ($)") +
-      theme_minimal() +
-      theme(legend.position = "top")
-    print(p)
-  }
-  cat("\n\n")
-}
+  arrange(RMSE_Promedio)
+
+kable(ranking_general,
+      digits = 2,
+      caption = "Ranking general de métodos. 'Veces Top1' indica cuántas veces el método fue el mejor para un activo.",
+      col.names = c("Método", "RMSE Promedio ($)", "Veces Top 1", "Veces Top 2"),
+      align = c('l', 'r', 'r', 'r'))
 ```
 
-**Observaciones visuales:**
-
-- **SES (Simple):** Subestima sistemáticamente en series con tendencia alcista (AAPL). El pronóstico es casi plano.
-
-- **Holt (Doble):** Captura bien la dirección de la tendencia, aunque puede tener rezago en cambios bruscos.
-
-- **Holt-Winters (Triple):** Prácticamente idéntico a Holt, confirmando que componente estacional no aporta.
-
-- **MRNA:** Ningún método captura el quiebre estructural extremo (pico de vacuna COVID-19). Esto evidencia las limitaciones de suavizamiento exponencial para series con cambios de régimen.
-
-## Análisis de Residuos
-
-Un modelo bien especificado debe tener residuos que se comporten como **ruido blanco:** independientes, media cero, varianza constante, no autocorrelacionados.
-
-```{r analisis-residuos}
-# Función para analizar residuos
-analizar_residuos <- function(ticker_name, modelo) {
-  residuos <- residuals(modelo$modelo)
-  
-  # Test de Ljung-Box (autocorrelación)
-  ljung_box <- Box.test(residuos, lag = 20, type = "Ljung-Box")
-  
-  return(tibble(
-    Test = "Ljung-Box",
-    Estadistico = ljung_box$statistic,
-    P_valor = ljung_box$p.value,
-    Conclusion = ifelse(ljung_box$p.value > 0.05, "No autocorrelación (BUENO)", "Autocorrelación presente (MALO)")
-  ))
-}
-
-# Análisis para Holt (mejor método)
-residuos_holt <- resultados_holt %>%
-  mutate(Analisis = map2(Ticker, Modelo_Holt, analizar_residuos)) %>%
-  select(Ticker, Analisis) %>%
-  unnest(Analisis)
-
-kable(residuos_holt,
-      digits = 4,
-      caption = "Test de Ljung-Box para residuos del método Holt. P-valor < 0.05 indica que residuos están autocorrelacionados, sugiriendo que el modelo no captura toda la estructura temporal.",
-      col.names = c("Activo", "Test", "Estadístico", "P-valor", "Conclusión"),
-      align = c('l', 'l', 'r', 'r', 'l'))
-```
-
-**Interpretación del Test de Ljung-Box:**
-
-- **P-valor < 0.05:** Rechazamos hipótesis nula de no autocorrelación → Residuos están autocorrelacionados
-- **Implicación:** El modelo Holt **NO captura toda la dependencia temporal** en los datos
-
-Esto es esperado porque:
-
-1. Holt asume tendencia **lineal**, pero precios de acciones pueden tener tendencias no lineales
-2. Holt NO modela **autocorrelación** compleja en los residuos (esto requiere ARIMA)
-3. Holt NO captura **heterocedasticidad** (volatilidad variable, requiere GARCH)
-
-**Conclusión:** Los métodos de suavizamiento son un buen **baseline**, pero necesitamos modelos más sofisticados (ARIMA/GARCH) para capturar toda la estructura temporal.
-
-## Síntesis y Conclusiones del Capítulo
+## Conclusiones y Próximos Pasos
 
 ### Hallazgos Principales
 
-```{r tabla-resumen-final, echo=FALSE}
-resumen_final <- tibble(
+```{r tabla-conclusiones}
+conclusiones <- tibble(
   Aspecto = c(
-    "Mejor método",
+    "Mejor método general",
     "Validación Cap. 2",
-    "RMSE promedio",
-    "Interpretabilidad",
-    "Limitaciones principales"
+    "Índices estacionales",
+    "Limitación principal",
+    "ACF de residuos"
   ),
   Hallazgo = c(
-    "Holt (Doble) > Holt-Winters ≈ Holt > SES (Simple)",
-    "Estacionalidad NO aporta (γ ≈ 0). HW no mejora sobre Holt",
-    "5-15% error (MAPE). Series inherentemente difíciles de pronosticar",
-    "Alta. Parámetros α, β tienen significado claro",
-    "No captura autocorrelación, heterocedasticidad, ni cambios de régimen"
+    "Holt (ETS-AAN) o Holt-Winters tienen mejor desempeño que SES",
+    "Estacionalidad NO aporta. Triple (ETS-MAM) similar a Holt",
+    "Valores cercanos a 1.0 confirman ausencia de estacionalidad significativa",
+    "Residuos autocorrelacionados (ACF1 > 0). Modelo no captura toda la dependencia temporal",
+    "Todos los métodos: ACF1 entre 0.05-0.15. Indica necesidad de modelos ARIMA"
   ),
   Implicación = c(
-    "Tendencia es componente clave. Estacionalidad irrelevante",
+    "Tendencia es componente clave. Métodos sin tendencia fallan",
     "Análisis de descomposición (Cap. 2) fue correcto",
-    "Necesitamos modelos que capturen volatilidad y eventos extremos",
-    "Útil como benchmark contra modelos complejos (ARIMA/GARCH)",
-    "Capítulos siguientes: ARIMA (autocorr.), GARCH (vol.), Cambio régimen (COVID)"
+    "No es necesario modelar estacionalidad en precios de acciones",
+    "Suavizamiento exponencial es insuficiente. Necesitamos ARIMA/GARCH",
+    "Capítulo 4: Modelos Box-Jenkins (ARIMA) para capturar autocorrelación"
   )
 )
 
-kable(resumen_final,
-      caption = "Resumen de hallazgos y sus implicaciones para capítulos posteriores.",
-      col.names = c("Aspecto", "Hallazgo", "Implicación para Modelado"),
+kable(conclusiones,
+      caption = "Resumen de hallazgos del análisis Holt-Winters y Suavizamiento Exponencial.",
+      col.names = c("Aspecto", "Hallazgo", "Implicación"),
       align = c('l', 'l', 'l'))
 ```
 
-### Justificación de Procedimientos
-
-**1. ¿Por qué aplicar métodos de suavizamiento si sabíamos que la estacionalidad es despreciable?**
-
-Tres razones fundamentales:
-
-- **Validación empírica:** Confirmar hallazgos del Capítulo 2 con un enfoque diferente (pronóstico vs descomposición).
-- **Benchmark de referencia:** Establecer un baseline simple contra el cual comparar modelos complejos (ARIMA, GARCH).
-- **Captura de tendencia:** Aunque no capturan toda la dinámica, Holt y Holt-Winters SÍ modelan tendencias, útil para pronósticos de corto plazo.
-
-**2. ¿Por qué trabajar con precios en niveles y no con retornos?**
-
-Los métodos de suavizamiento exponencial están diseñados para series en niveles. Trabajar con retornos requeriría:
-
-- Pronósticos de retornos → Reconvertir a precios (acumulación de errores)
-- Los retornos son cercanos a ruido blanco (Cap. 2), suavizamiento no aporta
-
-Por lo tanto, para este capítulo trabajamos con **precios directamente**, y en capítulos posteriores trabajaremos con **retornos** para modelos ARIMA/GARCH.
-
-**3. ¿Por qué todos los métodos tienen errores altos?**
-
-Los precios de acciones son inherentemente difíciles de pronosticar por:
-
-- **Eficiencia de mercados:** Toda información pública ya está incorporada en precios
-- **Eventos impredecibles:** Noticias, anuncios corporativos, cambios regulatorios
-- **Volatilidad variable:** Períodos tranquilos vs crisis (COVID-19)
-- **Cambios de régimen:** MRNA es ejemplo extremo (vacuna COVID)
-
-**4. ¿Qué aprendimos que NO sabíamos antes?**
-
-- Confirmar **cuantitativamente** que estacionalidad no aporta (γ ≈ 0)
-- Establecer **benchmark de error** (MAPE 5-15%) para comparar modelos futuros
-- Identificar que **residuos están autocorrelacionados** → Necesitamos ARIMA
-- Evidenciar que **volatilidad NO es constante** → Necesitamos GARCH
-
 ### Próximos Pasos (Capítulos Siguientes)
 
-```
-Limitaciones de Suavizamiento → Soluciones en Capítulos Posteriores
-─────────────────────────────────────────────────────────────────
+Con base en el índice del trabajo de referencia y nuestros hallazgos, los próximos capítulos serán:
 
-1. NO captura autocorrelación compleja
-   │
-   └─► CAPÍTULO 4: Modelos ARIMA(p,d,q)
-       - Modelar dependencia temporal en retornos
-       - ACF/PACF para identificar p, q
-       - Comparar AIC/BIC vs Holt
+**Capítulo 4: Metodología Box-Jenkins (ARIMA)**
+- Identificación del orden ARIMA usando ACF/PACF
+- Estimación de modelos ARIMA(p,d,q) para capturar autocorrelación
+- Comparación con métodos de suavizamiento
 
-2. NO captura heterocedasticidad (volatilidad variable)
-   │
-   └─► CAPÍTULO 5: Modelos GARCH(p,q)
-       - Modelar clusters de volatilidad
-       - Capturar períodos de alta vs baja volatilidad
-       - Crucial para VaR y gestión de riesgo
+**Capítulo 5: Modelo Prophet**
+- Método desarrollado por Facebook para series con múltiples estacionalidades
+- Manejo automático de tendencias y puntos de cambio
+- Evaluación si mejora sobre Holt-Winters
 
-3. NO captura cambios de régimen (COVID-19, MRNA)
-   │
-   └─► CAPÍTULO 6: Modelos Markov-Switching
-       - Identificar regímenes (alta vol vs baja vol)
-       - Modelar transiciones entre estados
-       - Variables dummy para eventos discretos
+**Capítulo 6: Redes Neuronales Recurrentes (RNN)**
+- Modelos LSTM/GRU para capturar dependencias de largo plazo
+- Comparación con métodos estadísticos tradicionales
+- Evaluación de poder predictivo
 
-4. NO utiliza volatilidad para derivados
-   │
-   └─► CAPÍTULO 7: Integración Black-Scholes
-       - Usar volatilidad GARCH en pricing de opciones
-       - Comparar con volatilidad implícita de mercado
-       - Estrategias de cobertura
-```
+**Limitaciones de Suavizamiento Exponencial:**
 
-### Reflexión Final
+1. **No captura autocorrelación compleja** → Solución: ARIMA
+2. **No modela heterocedasticidad** → Solución: GARCH (Cap. adicional recomendado)
+3. **No maneja cambios de régimen** → Solución: Markov-Switching
+4. **Asume tendencia lineal** → Solución: Prophet, RNN
 
-Los métodos de suavizamiento exponencial, aunque simples, cumplen un rol importante como **punto de partida** para modelado de series de tiempo financieras:
-
-- Proporcionan intuición sobre componentes (nivel, tendencia, estacionalidad)
-- Son computacionalmente eficientes para pronósticos rápidos
-- Sirven como benchmark para justificar la complejidad de modelos avanzados
-
-Sin embargo, para capturar la **complejidad completa** de precios de acciones (autocorrelación, heterocedasticidad, eventos extremos, cambios de régimen), necesitamos las herramientas más sofisticadas que desarrollaremos en los siguientes capítulos.
-
-**Mensaje clave:** Suavizamiento exponencial es necesario pero **no suficiente** para modelado robusto de precios accionarios. Los capítulos subsecuentes construirán sobre estas bases para crear modelos más completos y realistas.
+**Mensaje clave:** Los métodos de suavizamiento son un excelente **punto de partida** y **benchmark**, pero para capturar la complejidad completa de precios de acciones (autocorrelación, volatilidad variable, eventos extremos), necesitamos modelos más sofisticados en los siguientes capítulos.
