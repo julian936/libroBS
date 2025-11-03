@@ -20,7 +20,7 @@ fig:acf-pacf-retornos
 tab:tabla-transformaciones
 tab:carga-datos
 fig:grafico-ajuste-hw-aapl
-tab:pronostico-hw-aapl
+fig:grafico-ajuste-hw-mrna
 tab:comparacion-metricas-aapl
 tab:ranking-general
 tab:tabla-conclusiones
@@ -73,9 +73,11 @@ diagrama-de-flujo-metodología
 preparación-de-datos
 carga-de-datos
 metodología-holt-winters
-aplicación-a-apple-aapl
+aplicación-a-apple-aapl---sector-tecnología
 gráfico-de-ajuste-holt-winters-aapl
-pronósticos-holt-winters-aapl
+aplicación-a-moderna-mrna---sector-farmacéutico
+gráfico-de-ajuste-holt-winters-mrna
+pronósticos-holt-winters-aapl-y-mrna
 metodologías-de-suavizamiento-exponencial
 suavizamiento-exponencial-simple-ses
 suavizamiento-exponencial-doble-holt

@@ -195,7 +195,11 @@ El método de Holt-Winters es una técnica de suavizamiento exponencial que exti
 
 Dado que los precios de acciones son heterocedásticos (varianza crece con nivel), usaremos **Holt-Winters Multiplicativo**.
 
-### Aplicación a Apple (AAPL)
+**Estrategia de análisis:** Al igual que en el Capítulo 2, presentaremos análisis detallado para **2 activos representativos** (AAPL como el más estable, MRNA como el más volátil), y luego aplicaremos los métodos a los 6 activos para comparación general.
+
+### Aplicación a Apple (AAPL) - Sector Tecnología
+
+Apple representa un activo **relativamente estable** con tendencia alcista consistente.
 
 ```{r holtwinters-aapl}
 # Extraer serie de AAPL
@@ -205,8 +209,7 @@ serie_aapl <- datos %>%
   pull(Close)
 
 # Convertir a objeto ts
-# Frecuencia = 252 (días de trading al año), pero usaremos frecuencia = 5 (semana)
-# para que Holt-Winters pueda estimar estacionalidad semanal
+# Frecuencia = 5 (días de trading en semana) para capturar posible patrón semanal
 ts_aapl <- ts(serie_aapl, frequency = 5)
 
 # Ajustar Holt-Winters Multiplicativo
@@ -220,28 +223,30 @@ cat("β (Tendencia):", round(modelo_hw_aapl$beta, 4), "\n")
 cat("γ (Estacionalidad):", round(modelo_hw_aapl$gamma, 4), "\n\n")
 
 cat("COEFICIENTES:\n")
-cat("Nivel (a):", round(modelo_hw_aapl$coefficients["a"], 2), "\n")
-cat("Tendencia (b):", round(modelo_hw_aapl$coefficients["b"], 4), "\n")
-cat("\nÍndices Estacionales (s1-s5):\n")
+cat("Nivel (a):", round(modelo_hw_aapl$coefficients["a"], 2), "$\n")
+cat("Tendencia (b):", round(modelo_hw_aapl$coefficients["b"], 4), "$/día\n")
+cat("\nÍndices Estacionales (s1-s5, semana de trading):\n")
 for(i in 1:5) {
-  cat(paste0("  s", i, ": "), round(modelo_hw_aapl$coefficients[paste0("s", i)], 4), "\n")
+  cat(paste0("  Día ", i, ": "), round(modelo_hw_aapl$coefficients[paste0("s", i)], 4), "\n")
 }
 ```
 
-**Interpretación de parámetros:**
+**Interpretación de parámetros (AAPL):**
 
-- **α (Nivel):** Peso a observaciones recientes para estimar nivel
-- **β (Tendencia):** Peso a cambios recientes para estimar tendencia
-- **γ (Estacionalidad):** Peso a cambios estacionales recientes
+- **α (Nivel):** Valor cercano a 1 indica adaptación rápida a nuevos precios. Valor cercano a 0 indica mayor peso a historia.
+- **β (Tendencia):** Controla cuánto peso se da a cambios recientes en la tendencia. β bajo = tendencia estable.
+- **γ (Estacionalidad):** Peso a cambios estacionales recientes. **Esperamos γ bajo** dado el Capítulo 2.
 
-**Índices estacionales:** Valores cercanos a 1.0 indican que **NO hay estacionalidad significativa** (confirmando Capítulo 2).
+**Índices estacionales:** Valores cercanos a 1.0 confirmarían que **NO hay estacionalidad semanal significativa** (validando Capítulo 2).
 
 ### Gráfico de Ajuste Holt-Winters (AAPL)
 
-```{r grafico-ajuste-hw-aapl, fig.cap="Ajuste Holt-Winters Multiplicativo para Apple (AAPL). La línea roja (ajuste del modelo) sigue la tendencia general de los datos reales (negro)."}
+```{r grafico-ajuste-hw-aapl, fig.cap="Ajuste Holt-Winters Multiplicativo para Apple (AAPL). La línea roja (ajuste del modelo) captura la tendencia general de los datos reales (negro), suavizando fluctuaciones diarias."}
 # Crear data frame para visualización
+fechas_aapl <- datos %>% filter(Ticker == "AAPL") %>% pull(Fecha)
+
 df_ajuste_aapl <- tibble(
-  Tiempo = seq_along(serie_aapl),
+  Fecha = fechas_aapl,
   Datos_Reales = serie_aapl,
   Ajuste_HW = c(rep(NA, length(serie_aapl) - length(modelo_hw_aapl$fitted[,1])), 
                 modelo_hw_aapl$fitted[,1])
@@ -249,7 +254,7 @@ df_ajuste_aapl <- tibble(
 
 if(is_html()) {
   # Gráfico interactivo
-  plot_ly(df_ajuste_aapl, x = ~Tiempo) %>%
+  plot_ly(df_ajuste_aapl, x = ~Fecha) %>%
     add_trace(y = ~Datos_Reales, name = "Datos Reales", 
               type = "scatter", mode = "lines",
               line = list(color = "black", width = 1)) %>%
@@ -258,19 +263,19 @@ if(is_html()) {
               line = list(color = "red", width = 1.5)) %>%
     layout(
       title = "Ajuste Holt-Winters Multiplicativo (AAPL)",
-      xaxis = list(title = "Tiempo"),
+      xaxis = list(title = "Fecha"),
       yaxis = list(title = "Precio ($)"),
       hovermode = "x unified"
     )
 } else {
   # Gráfico estático
-  ggplot(df_ajuste_aapl, aes(x = Tiempo)) +
+  ggplot(df_ajuste_aapl, aes(x = Fecha)) +
     geom_line(aes(y = Datos_Reales, color = "Datos Reales"), linewidth = 0.5) +
-    geom_line(aes(y = Ajuste_HW, color = "Ajuste Holt-Winters"), linewidth = 0.8) +
+    geom_line(aes(y = Ajuste_HW, color = "Ajuste Holt-Winters"), linewidth = 0.8, na.rm = TRUE) +
     scale_color_manual(values = c("Datos Reales" = "black", "Ajuste Holt-Winters" = "red")) +
     labs(
       title = "Ajuste Holt-Winters Multiplicativo (AAPL)",
-      x = "Tiempo",
+      x = "Fecha",
       y = "Precio ($)",
       color = ""
     ) +
@@ -279,45 +284,144 @@ if(is_html()) {
 }
 ```
 
-**Análisis del gráfico de ajuste:**
+**Análisis del gráfico de ajuste (AAPL):**
 
-El modelo Holt-Winters captura la **tendencia alcista general** de Apple, suavizando las fluctuaciones diarias. Se observa que:
+El modelo Holt-Winters captura la **tendencia alcista general** de Apple, suavizando las fluctuaciones diarias. Se observa:
 
-1. La línea roja sigue la dirección de la línea negra
-2. El ajuste es más suave que los datos reales (característica del suavizamiento)
-3. Errores más grandes durante eventos extremos (COVID-19 en marzo 2020)
+1. **Seguimiento de tendencia:** La línea roja sigue la dirección de la línea negra
+2. **Suavizamiento:** El ajuste es más suave que los datos reales (característica del método)
+3. **Errores en eventos extremos:** Discrepancias más grandes durante COVID-19 (marzo 2020)
+4. **Recuperación post-COVID:** El modelo se adapta gradualmente a la nueva tendencia
 
-### Pronósticos Holt-Winters (AAPL)
+### Aplicación a Moderna (MRNA) - Sector Farmacéutico
 
-```{r pronostico-hw-aapl}
-# Generar pronóstico para 30 días adelante
-pronostico_hw_aapl <- predict(modelo_hw_aapl, n.ahead = 30, prediction.interval = TRUE)
+Moderna representa un caso **extremadamente volátil** con quiebre estructural (vacuna COVID-19).
 
-# Convertir a data frame
-df_pronostico_aapl <- as.data.frame(pronostico_hw_aapl) %>%
-  mutate(
-    Tiempo = seq(length(serie_aapl) + 1, length.out = 30),
-    Fecha_Estimada = max(datos$Fecha) + 1:30
-  ) %>%
-  select(Tiempo, Fecha_Estimada, fit, lwr, upr)
+```{r holtwinters-mrna}
+# Extraer serie de MRNA
+serie_mrna <- datos %>%
+  filter(Ticker == "MRNA") %>%
+  arrange(Fecha) %>%
+  pull(Close)
 
-# Mostrar tabla de pronósticos
-kable(df_pronostico_aapl %>% head(14),
-      digits = 2,
-      caption = "Pronósticos Holt-Winters para AAPL (primeros 14 días). 'fit' es el pronóstico puntual, 'lwr' y 'upr' son límites del intervalo de confianza al 95%.",
-      col.names = c("Tiempo", "Fecha Estimada", "Pronóstico ($)", "Límite Inf. 95%", "Límite Sup. 95%"),
-      align = c('r', 'l', 'r', 'r', 'r'))
+ts_mrna <- ts(serie_mrna, frequency = 5)
+
+# Ajustar Holt-Winters Multiplicativo
+modelo_hw_mrna <- HoltWinters(ts_mrna, seasonal = "multiplicative")
+
+# Mostrar parámetros estimados
+cat("PARÁMETROS ESTIMADOS HOLT-WINTERS (MRNA)\n")
+cat("========================================\n")
+cat("α (Nivel):", round(modelo_hw_mrna$alpha, 4), "\n")
+cat("β (Tendencia):", round(modelo_hw_mrna$beta, 4), "\n")
+cat("γ (Estacionalidad):", round(modelo_hw_mrna$gamma, 4), "\n\n")
+
+cat("COEFICIENTES:\n")
+cat("Nivel (a):", round(modelo_hw_mrna$coefficients["a"], 2), "$\n")
+cat("Tendencia (b):", round(modelo_hw_mrna$coefficients["b"], 4), "$/día\n")
+cat("\nÍndices Estacionales (s1-s5):\n")
+for(i in 1:5) {
+  cat(paste0("  Día ", i, ": "), round(modelo_hw_mrna$coefficients[paste0("s", i)], 4), "\n")
+}
 ```
 
-**Interpretación de pronósticos:**
+**Comparación AAPL vs MRNA:**
 
-- Los pronósticos puntuales continúan la tendencia alcista observada
-- Los intervalos de confianza se amplían con el horizonte (mayor incertidumbre)
-- Fluctuaciones sutiles reflejan el patrón "estacional" (aunque γ es bajo)
+Si β(MRNA) > β(AAPL), indica que la tendencia de Moderna cambia más rápidamente (esperado dado el quiebre estructural del COVID-19).
+
+### Gráfico de Ajuste Holt-Winters (MRNA)
+
+```{r grafico-ajuste-hw-mrna, fig.cap="Ajuste Holt-Winters Multiplicativo para Moderna (MRNA). El modelo intenta seguir el cambio de régimen extremo durante el periodo de vacunas COVID-19, pero presenta limitaciones en capturar la magnitud del quiebre estructural."}
+fechas_mrna <- datos %>% filter(Ticker == "MRNA") %>% pull(Fecha)
+
+df_ajuste_mrna <- tibble(
+  Fecha = fechas_mrna,
+  Datos_Reales = serie_mrna,
+  Ajuste_HW = c(rep(NA, length(serie_mrna) - length(modelo_hw_mrna$fitted[,1])), 
+                modelo_hw_mrna$fitted[,1])
+)
+
+if(is_html()) {
+  plot_ly(df_ajuste_mrna, x = ~Fecha) %>%
+    add_trace(y = ~Datos_Reales, name = "Datos Reales", 
+              type = "scatter", mode = "lines",
+              line = list(color = "black", width = 1)) %>%
+    add_trace(y = ~Ajuste_HW, name = "Ajuste Holt-Winters",
+              type = "scatter", mode = "lines",
+              line = list(color = "red", width = 1.5)) %>%
+    layout(
+      title = "Ajuste Holt-Winters Multiplicativo (MRNA)",
+      xaxis = list(title = "Fecha"),
+      yaxis = list(title = "Precio ($)"),
+      hovermode = "x unified"
+    )
+} else {
+  ggplot(df_ajuste_mrna, aes(x = Fecha)) +
+    geom_line(aes(y = Datos_Reales, color = "Datos Reales"), linewidth = 0.5) +
+    geom_line(aes(y = Ajuste_HW, color = "Ajuste Holt-Winters"), linewidth = 0.8, na.rm = TRUE) +
+    scale_color_manual(values = c("Datos Reales" = "black", "Ajuste Holt-Winters" = "red")) +
+    labs(
+      title = "Ajuste Holt-Winters Multiplicativo (MRNA)",
+      x = "Fecha",
+      y = "Precio ($)",
+      color = ""
+    ) +
+    theme_minimal() +
+    theme(legend.position = "top")
+}
+```
+
+**Análisis del gráfico de ajuste (MRNA):**
+
+El comportamiento de Moderna presenta un desafío extremo para Holt-Winters:
+
+1. **Quiebre estructural:** Pico dramático en 2020-2021 (vacuna COVID-19)
+2. **Limitación del método:** Holt-Winters asume tendencia suave, NO cambios de régimen abruptos
+3. **Errores grandes:** Durante el pico, el modelo subestima; durante la caída, sobrestima
+4. **Lección clave:** Para series con cambios de régimen, se necesitan modelos más sofisticados (Markov-Switching, variables dummy)
+
+### Pronósticos Holt-Winters (AAPL y MRNA)
+
+```{r pronosticos-hw-comparacion}
+# Generar pronósticos
+pronostico_hw_aapl <- predict(modelo_hw_aapl, n.ahead = 30, prediction.interval = TRUE)
+pronostico_hw_mrna <- predict(modelo_hw_mrna, n.ahead = 30, prediction.interval = TRUE)
+
+# AAPL
+df_pronostico_aapl <- as.data.frame(pronostico_hw_aapl) %>%
+  mutate(Día = 1:30) %>%
+  select(Día, fit, lwr, upr)
+
+cat("PRONÓSTICOS HOLT-WINTERS: AAPL (primeros 14 días)\n")
+cat("==================================================\n")
+kable(df_pronostico_aapl %>% head(14),
+      digits = 2,
+      col.names = c("Día", "Pronóstico ($)", "Límite Inf. 95%", "Límite Sup. 95%"),
+      align = c('r', 'r', 'r', 'r'))
+
+cat("\n\n")
+
+# MRNA
+df_pronostico_mrna <- as.data.frame(pronostico_hw_mrna) %>%
+  mutate(Día = 1:30) %>%
+  select(Día, fit, lwr, upr)
+
+cat("PRONÓSTICOS HOLT-WINTERS: MRNA (primeros 14 días)\n")
+cat("==================================================\n")
+kable(df_pronostico_mrna %>% head(14),
+      digits = 2,
+      col.names = c("Día", "Pronóstico ($)", "Límite Inf. 95%", "Límite Sup. 95%"),
+      align = c('r', 'r', 'r', 'r'))
+```
+
+**Comparación de pronósticos:**
+
+- **AAPL:** Intervalos de confianza más estrechos (menor incertidumbre)
+- **MRNA:** Intervalos mucho más amplios (mayor volatilidad histórica → mayor incertidumbre)
 
 ## Metodologías de Suavizamiento Exponencial
 
-Ahora aplicamos tres variantes adicionales de suavizamiento exponencial usando la función `ets()` (Error-Trend-Seasonal) del paquete `forecast`.
+Ahora aplicamos tres variantes adicionales de suavizamiento exponencial a **ambos activos representativos** usando la función `ets()`.
 
 ### Suavizamiento Exponencial Simple (SES)
 
@@ -326,78 +430,77 @@ Ahora aplicamos tres variantes adicionales de suavizamiento exponencial usando l
 **Ecuación:**
 $$\hat{y}_{t+1} = \alpha y_t + (1-\alpha)\hat{y}_t$$
 
-**Aplicación a AAPL:**
+**Limitación esperada:** No captura tendencia → Subestimará precios futuros en series alcistas.
 
-```{r ses-aapl}
-# Ajustar SES
+```{r ses-comparacion}
+# SES para AAPL
 modelo_ses_aapl <- ets(ts_aapl, model = "ANN")
-
-# Mostrar resumen
 cat("SUAVIZAMIENTO EXPONENCIAL SIMPLE (AAPL)\n")
 cat("=======================================\n")
-print(modelo_ses_aapl)
+cat("α:", modelo_ses_aapl$par["alpha"], "\n")
+cat("AIC:", modelo_ses_aapl$aic, "\n\n")
 
-# Generar pronóstico
-pronostico_ses_aapl <- forecast(modelo_ses_aapl, h = 30)
+# SES para MRNA
+modelo_ses_mrna <- ets(ts_mrna, model = "ANN")
+cat("SUAVIZAMIENTO EXPONENCIAL SIMPLE (MRNA)\n")
+cat("=======================================\n")
+cat("α:", modelo_ses_mrna$par["alpha"], "\n")
+cat("AIC:", modelo_ses_mrna$aic, "\n")
 ```
 
-**Interpretación SES (AAPL):**
-
-- α bajo indica que el modelo promedia muchas observaciones pasadas
-- El pronóstico será una línea horizontal (no captura tendencia)
-- **Limitación:** Subestimará precios futuros si la tendencia continúa
+**Observación:** α altos indican que el modelo intenta "perseguir" los cambios, pero sin componente de tendencia explícito, siempre va rezagado.
 
 ### Suavizamiento Exponencial Doble (Holt)
 
 **Modelo:** ETS(A,Ad,N) - Error Aditivo, Tendencia Amortiguada, No Estacionalidad
 
-**Ecuaciones:**
-$$L_t = \alpha y_t + (1-\alpha)(L_{t-1} + \phi b_{t-1})$$
-$$b_t = \beta(L_t - L_{t-1}) + (1-\beta)\phi b_{t-1}$$
-
-donde $\phi$ es el parámetro de amortiguamiento.
-
-```{r holt-aapl}
-# Ajustar Holt con tendencia amortiguada
+```{r holt-comparacion}
+# Holt para AAPL
 modelo_holt_aapl <- ets(ts_aapl, model = "AAN")
-
-# Mostrar resumen
-cat("\nSUAVIZAMIENTO EXPONENCIAL DOBLE - Holt (AAPL)\n")
+cat("SUAVIZAMIENTO EXPONENCIAL DOBLE - Holt (AAPL)\n")
 cat("==============================================\n")
-print(modelo_holt_aapl)
+cat("α:", modelo_holt_aapl$par["alpha"], "\n")
+cat("β:", modelo_holt_aapl$par["beta"], "\n")
+cat("ϕ (phi):", modelo_holt_aapl$par["phi"], "\n")
+cat("AIC:", modelo_holt_aapl$aic, "\n\n")
 
-# Generar pronóstico
-pronostico_holt_aapl <- forecast(modelo_holt_aapl, h = 30)
+# Holt para MRNA
+modelo_holt_mrna <- ets(ts_mrna, model = "AAN")
+cat("SUAVIZAMIENTO EXPONENCIAL DOBLE - Holt (MRNA)\n")
+cat("==============================================\n")
+cat("α:", modelo_holt_mrna$par["alpha"], "\n")
+cat("β:", modelo_holt_mrna$par["beta"], "\n")
+cat("ϕ (phi):", modelo_holt_mrna$par["phi"], "\n")
+cat("AIC:", modelo_holt_mrna$aic, "\n")
 ```
 
-**Interpretación Holt (AAPL):**
-
-- Captura tendencia alcista con parámetro β
-- ϕ (phi) < 1 implica que la tendencia se amortigua con el tiempo
-- **Ventaja sobre SES:** Pronósticos no son horizontales, siguen tendencia
+**Ventaja sobre SES:** Captura tendencia → Pronósticos no horizontales.
 
 ### Suavizamiento Exponencial Triple
 
 **Modelo:** ETS(M,Ad,M) - Error Multiplicativo, Tendencia Amortiguada, Estacionalidad Multiplicativa
 
-```{r triple-aapl}
-# Ajustar modelo Triple (Holt-Winters vía ets)
+```{r triple-comparacion}
+# Triple para AAPL
 modelo_triple_aapl <- ets(ts_aapl, model = "MAM")
-
-# Mostrar resumen
-cat("\nSUAVIZAMIENTO EXPONENCIAL TRIPLE (AAPL)\n")
+cat("SUAVIZAMIENTO EXPONENCIAL TRIPLE (AAPL)\n")
 cat("========================================\n")
-print(modelo_triple_aapl)
+cat("α:", modelo_triple_aapl$par["alpha"], "\n")
+cat("β:", modelo_triple_aapl$par["beta"], "\n")
+cat("γ:", modelo_triple_aapl$par["gamma"], "\n")
+cat("AIC:", modelo_triple_aapl$aic, "\n\n")
 
-# Generar pronóstico
-pronostico_triple_aapl <- forecast(modelo_triple_aapl, h = 30)
+# Triple para MRNA
+modelo_triple_mrna <- ets(ts_mrna, model = "MAM")
+cat("SUAVIZAMIENTO EXPONENCIAL TRIPLE (MRNA)\n")
+cat("========================================\n")
+cat("α:", modelo_triple_mrna$par["alpha"], "\n")
+cat("β:", modelo_triple_mrna$par["beta"], "\n")
+cat("γ:", modelo_triple_mrna$par["gamma"], "\n")
+cat("AIC:", modelo_triple_mrna$aic, "\n")
 ```
 
-**Interpretación Triple (AAPL):**
-
-- γ muy bajo confirma estacionalidad débil
-- Índices estacionales cercanos a 1.0
-- **Resultado esperado:** Desempeño similar a Holt (estacionalidad no aporta)
+**Hipótesis a verificar:** γ bajo confirma estacionalidad débil → Desempeño similar a Holt.
 
 ## Evaluación y Comparación de Métodos
 
