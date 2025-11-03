@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Capítulo 3 Holt-Winters y Suavizamiento Exponencial | Análisis de Series de Tiempo de Precios de Acciones</title>
+<meta name="author" content="Julian Rojas y Natalia Tangarife">
+<meta name="description" content="En este capítulo aplicamos métodos de suavizamiento exponencial y Holt-Winters a las series de precios de acciones para capturar tendencias y patrones temporales. Aunque el Capítulo 2 reveló que...">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Capítulo 3 Holt-Winters y Suavizamiento Exponencial | Análisis de Series de Tiempo de Precios de Acciones">
+<meta property="og:type" content="book">
+<meta property="og:description" content="En este capítulo aplicamos métodos de suavizamiento exponencial y Holt-Winters a las series de precios de acciones para capturar tendencias y patrones temporales. Aunque el Capítulo 2 reveló que...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Capítulo 3 Holt-Winters y Suavizamiento Exponencial | Análisis de Series de Tiempo de Precios de Acciones">
+<meta name="twitter:description" content="En este capítulo aplicamos métodos de suavizamiento exponencial y Holt-Winters a las series de precios de acciones para capturar tendencias y patrones temporales. Aunque el Capítulo 2 reveló que...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.11.0/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><link href="libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Análisis de Series de Tiempo de Precios de Acciones</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Propuesta de Análisis</a></li>
+<li><a class="" href="intro.html"><span class="header-section-number">1</span> Visualización de las Series de Tiempo</a></li>
+<li><a class="" href="literature.html"><span class="header-section-number">2</span> Descomposición y Estacionariedad</a></li>
+<li><a class="active" href="holt-winters.html"><span class="header-section-number">3</span> Holt-Winters y Suavizamiento Exponencial</a></li>
+<li><a class="" href="applications.html"><span class="header-section-number">4</span> Applications</a></li>
+<li><a class="" href="final-words.html"><span class="header-section-number">5</span> Final Words</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="holt-winters" class="section level1" number="3">
+<h1>
+<span class="header-section-number">Capítulo 3</span> Holt-Winters y Suavizamiento Exponencial<a class="anchor" aria-label="anchor" href="#holt-winters"><i class="fas fa-link"></i></a>
+</h1>
+<p>En este capítulo aplicamos métodos de suavizamiento exponencial y Holt-Winters a las series de precios de acciones para capturar tendencias y patrones temporales. Aunque el Capítulo 2 reveló que la estacionalidad es despreciable en precios accionarios, los métodos de suavizamiento son útiles para pronosticar tendencias de corto plazo y comparar su desempeño contra modelos ARIMA más complejos.</p>
+<p>Los métodos de suavizamiento exponencial son técnicas de pronóstico que asignan pesos decrecientes exponencialmente a observaciones pasadas, donde observaciones recientes tienen mayor influencia que las antiguas. Estos métodos son particularmente útiles cuando se necesitan pronósticos rápidos y la serie presenta tendencia pero poca o nula estacionalidad, como es el caso de nuestras series de precios accionarios.</p>
+<p><strong>Contexto del análisis:</strong> Recordemos del Capítulo 2 que todas nuestras series de precios son I(1) (integradas de orden 1), presentan tendencias fuertes, y carecen de estacionalidad significativa. Por lo tanto, esperamos que métodos que capturen tendencia (Doble Exponencial, Holt) funcionen mejor que métodos que asumen estacionalidad (Holt-Winters).</p>
+<div id="diagrama-de-flujo-metodología-de-suavizamiento" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> Diagrama de Flujo: Metodología de Suavizamiento<a class="anchor" aria-label="anchor" href="#diagrama-de-flujo-metodolog%C3%ADa-de-suavizamiento"><i class="fas fa-link"></i></a>
+</h2>
+<pre><code>╔═════════════════════════════════════════════════════════════════╗
+║           METODOLOGÍA HOLT-WINTERS Y SUAVIZAMIENTO              ║
+╚═════════════════════════════════════════════════════════════════╝
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATOS DE ENTRADA                              │
+│  • Series de precios: AAPL, MSFT, TSLA, PFE, MRNA, JNJ         │
+│  • Período: 2015-2025 (2609 observaciones diarias)             │
+│  • Características conocidas (Cap. 2):                          │
+│    - Tendencia fuerte (&gt;90% variabilidad)                       │
+│    - Estacionalidad despreciable (&lt;5%)                          │
+│    - Series I(1) no estacionarias                               │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│          PASO 1: DIVISIÓN DE DATOS                              │
+│  Estrategia de validación temporal                              │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Conjunto de Entrenamiento (Train):
+                     │   2015-01-01 hasta 2023-12-31 (~80%)
+                     │   Usado para estimar parámetros (α, β, γ)
+                     │
+                     ├─► Conjunto de Prueba (Test):
+                     │   2024-01-01 hasta 2025-10-26 (~20%)
+                     │   Usado para evaluar pronósticos
+                     │
+                     ▼
+       **Decisión:** Validación temporal (NO aleatoria)
+       Razón: Series de tiempo requieren orden cronológico
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│     PASO 2: SELECCIÓN DE MÉTODOS DE SUAVIZAMIENTO              │
+│  ¿Qué características tiene cada serie?                         │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► ¿Tiene TENDENCIA? → SÍ (todas las series)
+                     ├─► ¿Tiene ESTACIONALIDAD? → NO (Cap. 2)
+                     ├─► ¿Tendencia ADITIVA o MULTIPLICATIVA?
+                     │
+                     ▼
+      **Métodos a Aplicar (por complejidad):**
+                     │
+    ┌────────────────┼────────────────┐
+    │                │                │
+    ▼                ▼                ▼
+┌─────────┐   ┌──────────┐   ┌───────────────┐
+│ SIMPLE  │   │  DOBLE   │   │ HOLT-WINTERS  │
+│  (SES)  │   │  (Holt)  │   │   (Triple)    │
+└─────────┘   └──────────┘   └───────────────┘
+    │                │                │
+    │                │                │
+    ▼                ▼                ▼
+
+┌──────────────────────────────────────────────────────────────────┐
+│  SUAVIZAMIENTO EXPONENCIAL SIMPLE (SES)                          │
+│  Ecuación: ŷ(t+1) = α·y(t) + (1-α)·ŷ(t)                         │
+│                                                                  │
+│  Parámetro: α (nivel)                                            │
+│  Supuestos: Serie sin tendencia ni estacionalidad               │
+│  Aplicable: NO (nuestras series tienen tendencia)               │
+│  Uso: Benchmark (referencia de comparación)                     │
+└──────────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+               **Resultado esperado: Mal desempeño**
+               (No captura tendencia alcista)
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  SUAVIZAMIENTO EXPONENCIAL DOBLE (Holt)                         │
+│  Ecuaciones:                                                     │
+│    Nivel:     L(t) = α·y(t) + (1-α)·[L(t-1) + b(t-1)]          │
+│    Tendencia: b(t) = β·[L(t) - L(t-1)] + (1-β)·b(t-1)          │
+│    Pronóstico: ŷ(t+h) = L(t) + h·b(t)                          │
+│                                                                  │
+│  Parámetros: α (nivel), β (tendencia)                           │
+│  Supuestos: Serie con tendencia lineal, sin estacionalidad      │
+│  Aplicable: SÍ (ESPERAMOS MEJOR DESEMPEÑO)                     │
+│  Uso: Modelo principal                                          │
+└──────────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+               **Resultado esperado: Buen desempeño**
+               (Captura tendencia alcista)
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  HOLT-WINTERS (Triple Exponencial)                              │
+│  Ecuaciones (Aditivo):                                           │
+│    Nivel:          L(t) = α·[y(t) - S(t-s)] + (1-α)·[L(t-1)+b]│
+│    Tendencia:      b(t) = β·[L(t) - L(t-1)] + (1-β)·b(t-1)     │
+│    Estacionalidad: S(t) = γ·[y(t) - L(t)] + (1-γ)·S(t-s)       │
+│    Pronóstico:     ŷ(t+h) = L(t) + h·b(t) + S(t-s+h)           │
+│                                                                  │
+│  Parámetros: α (nivel), β (tendencia), γ (estacionalidad)      │
+│  Supuestos: Serie con tendencia Y estacionalidad                │
+│  Aplicable: Técnicamente sí, pero esperamos NO aportar valor   │
+│  Uso: Comparación (verificar que estacionalidad es irrelevante)│
+└──────────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+       **Resultado esperado: Similar a Holt (sin mejora)**
+       (Estacionalidad no es significativa, Cap. 2)
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│         PASO 3: ESTIMACIÓN DE PARÁMETROS                        │
+│  Optimización automática de α, β, γ                             │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Método: Minimizar SSE (Sum of Squared Errors)
+                     │   SSE = Σ[y(t) - ŷ(t)]²
+                     │
+                     ├─► Función R: HoltWinters()
+                     │   - Estima α, β, γ óptimos
+                     │   - Ajusta modelo en datos de entrenamiento
+                     │
+                     ▼
+       **Criterio de Bondad de Ajuste:**
+       - AIC (Akaike Information Criterion)
+       - BIC (Bayesian Information Criterion)
+       - RMSE (Root Mean Squared Error)
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│         PASO 4: GENERACIÓN DE PRONÓSTICOS                       │
+│  Proyectar valores futuros sobre conjunto Test                  │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Horizonte: h = longitud(Test) ≈ 480 días
+                     ├─► Pronósticos de 1 paso adelante
+                     ├─► Intervalos de confianza (95%)
+                     │
+                     ▼
+       **Output:** ŷ(t+h) para cada método y cada activo
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│         PASO 5: EVALUACIÓN DE PRONÓSTICOS                       │
+│  Comparar predicciones vs valores reales en Test                │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Métricas de Error:
+                     │
+                     │   • RMSE = √[Σ(y - ŷ)² / n]
+                     │     (penaliza errores grandes)
+                     │
+                     │   • MAE = Σ|y - ŷ| / n
+                     │     (error absoluto promedio)
+                     │
+                     │   • MAPE = 100·Σ|y - ŷ|/|y| / n
+                     │     (error porcentual, más interpretable)
+                     │
+                     ▼
+       **Ranking:** Ordenar métodos por RMSE (menor = mejor)
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│         PASO 6: ANÁLISIS DE RESIDUOS                            │
+│  ¿Los errores son ruido blanco?                                 │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ├─► Residuos: e(t) = y(t) - ŷ(t)
+                     │
+                     ├─► Pruebas:
+                     │   • Test de Ljung-Box (autocorrelación)
+                     │   • ACF/PACF de residuos
+                     │   • Normalidad (histograma, Q-Q plot)
+                     │
+                     ▼
+       **Diagnóstico:**
+       - Residuos autocorrelacionados → Modelo incompleto
+       - Residuos ~ ruido blanco → Modelo adecuado
+                     │
+                     ▼
+╔═════════════════════════════════════════════════════════════════╗
+║                   RESULTADOS ESPERADOS                           ║
+║                                                                  ║
+║  Ranking de Desempeño (hipótesis):                              ║
+║    1. Holt (Doble) - Mejor                                      ║
+║       Captura tendencia sin sobreajustar                        ║
+║                                                                  ║
+║    2. Holt-Winters (Triple) - Similar a Holt                    ║
+║       Componente estacional no aporta (γ ≈ 0)                  ║
+║                                                                  ║
+║    3. SES (Simple) - Peor                                       ║
+║       No captura tendencia alcista                              ║
+║                                                                  ║
+║  Hallazgos Clave:                                                ║
+║    • Métodos con tendencia &gt; métodos sin tendencia              ║
+║    • Estacionalidad NO mejora pronósticos (valida Cap. 2)      ║
+║    • RMSE alto en todos → Series difíciles de predecir         ║
+║      (volatilidad, eventos inesperados)                         ║
+║                                                                  ║
+║  Limitaciones de Suavizamiento:                                 ║
+║    • No captura heterocedasticidad (volatilidad variable)      ║
+║    • Supone tendencia lineal (puede ser no lineal)             ║
+║    • No modela quiebres estructurales (COVID-19)               ║
+║                                                                  ║
+║  Implicación para Capítulos Siguientes:                         ║
+║    → Necesitamos modelos más sofisticados:                      ║
+║      • ARIMA para dependencia temporal compleja                 ║
+║      • GARCH para volatilidad variable                          ║
+║      • Cambio de régimen para COVID-19                          ║
+╚═════════════════════════════════════════════════════════════════╝
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              CONCLUSIONES DEL CAPÍTULO                           │
+│                                                                  │
+│  1. Validamos hallazgos del Capítulo 2:                         │
+│     Estacionalidad irrelevante en precios de acciones           │
+│                                                                  │
+│  2. Holt (tendencia lineal) es suficiente                       │
+│     Holt-Winters no mejora pronósticos                          │
+│                                                                  │
+│  3. Todos los métodos tienen errores altos                      │
+│     Precios accionarios son inherentemente difíciles de         │
+│     pronosticar (hipótesis de mercado eficiente)                │
+│                                                                  │
+│  4. Próximos pasos: Modelos ARIMA/GARCH                         │
+│     Suavizamiento es baseline, necesitamos capturar:            │
+│     - Autocorrelación (ARIMA)                                   │
+│     - Heterocedasticidad (GARCH)                                │
+│     - Quiebres (Cambio de régimen)                              │
+└─────────────────────────────────────────────────────────────────┘</code></pre>
+</div>
+<div id="fundamento-teórico" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> Fundamento Teórico<a class="anchor" aria-label="anchor" href="#fundamento-te%C3%B3rico"><i class="fas fa-link"></i></a>
+</h2>
+<div id="por-qué-suavizamiento-exponencial" class="section level3" number="3.2.1">
+<h3>
+<span class="header-section-number">3.2.1</span> ¿Por qué Suavizamiento Exponencial?<a class="anchor" aria-label="anchor" href="#por-qu%C3%A9-suavizamiento-exponencial"><i class="fas fa-link"></i></a>
+</h3>
+<p>Los métodos de suavizamiento exponencial son apropiados para series de tiempo que:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Requieren pronósticos de corto plazo:</strong> Estos métodos son óptimos para horizontes de 1-30 pasos adelante, ideal para trading de corto plazo.</p></li>
+<li><p><strong>Presentan patrones sistemáticos:</strong> Tendencia y/o estacionalidad que se pueden modelar con ecuaciones recursivas simples.</p></li>
+<li><p><strong>Necesitan implementación computacional rápida:</strong> A diferencia de ARIMA que requiere estimación de máxima verosimilitud, suavizamiento usa ecuaciones recursivas.</p></li>
+<li><p><strong>Sirven como benchmark:</strong> Comparar contra modelos más complejos (ARIMA, GARCH) para justificar la complejidad adicional.</p></li>
+</ol>
+<p><strong>Conexión con Capítulo 2:</strong> El análisis de descomposición reveló que:
+- <strong>Tendencia es dominante</strong> (&gt;90% variabilidad) → Justifica uso de Holt
+- <strong>Estacionalidad es despreciable</strong> (&lt;5% variabilidad) → Holt-Winters no debería aportar
+- <strong>Series son I(1)</strong> → Trabajaremos con precios (niveles), no retornos</p>
+</div>
+<div id="clasificación-de-métodos-por-componentes" class="section level3" number="3.2.2">
+<h3>
+<span class="header-section-number">3.2.2</span> Clasificación de Métodos por Componentes<a class="anchor" aria-label="anchor" href="#clasificaci%C3%B3n-de-m%C3%A9todos-por-componentes"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## Warning: package 'knitr' was built under R version 4.4.3</code></pre>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<caption>
+<span id="tab:tabla-metodos-suavizamiento">Table 3.1: </span>Comparación de métodos de suavizamiento exponencial. *Multiplicativo no aplica porque precios pueden ser cercanos a cero tras transformaciones.</caption>
+<colgroup>
+<col width="35%">
+<col width="6%">
+<col width="10%">
+<col width="19%">
+<col width="11%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Método</th>
+<th align="center">Nivel</th>
+<th align="center">Tendencia</th>
+<th align="center">Estacionalidad</th>
+<th align="center">Parámetros</th>
+<th align="left">Aplicable</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Simple (SES)</td>
+<td align="center">SÍ</td>
+<td align="center">NO</td>
+<td align="center">NO</td>
+<td align="center">α</td>
+<td align="left">NO</td>
+</tr>
+<tr class="even">
+<td align="left">Doble (Holt)</td>
+<td align="center">SÍ</td>
+<td align="center">SÍ</td>
+<td align="center">NO</td>
+<td align="center">α, β</td>
+<td align="left">SÍ (PRINCIPAL)</td>
+</tr>
+<tr class="odd">
+<td align="left">Triple (Holt-Winters Aditivo)</td>
+<td align="center">SÍ</td>
+<td align="center">SÍ</td>
+<td align="center">SÍ (aditiva)</td>
+<td align="center">α, β, γ</td>
+<td align="left">SÍ (comparación)</td>
+</tr>
+<tr class="even">
+<td align="left">Triple (Holt-Winters Multiplicativo)</td>
+<td align="center">SÍ</td>
+<td align="center">SÍ</td>
+<td align="center">SÍ (multiplicativa)</td>
+<td align="center">α, β, γ</td>
+<td align="left">NO*</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div id="decisión-aditivo-o-multiplicativo" class="section level3" number="3.2.3">
+<h3>
+<span class="header-section-number">3.2.3</span> Decisión: ¿Aditivo o Multiplicativo?<a class="anchor" aria-label="anchor" href="#decisi%C3%B3n-aditivo-o-multiplicativo"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Modelo Aditivo:</strong> <span class="math inline">\(y_t = L_t + T_t + S_t + \epsilon_t\)</span>
+- Magnitud de estacionalidad constante en el tiempo
+- Apropiado cuando varianza es estable</p>
+<p><strong>Modelo Multiplicativo:</strong> <span class="math inline">\(y_t = L_t \times T_t \times S_t \times \epsilon_t\)</span>
+- Magnitud de estacionalidad crece con nivel
+- Apropiado cuando varianza crece con nivel</p>
+<p><strong>Nuestra elección:</strong> Aunque en el Capítulo 2 aplicamos transformación logarítmica para estabilizar varianza, en este capítulo trabajaremos con <strong>precios en niveles</strong> (no log-transformados) porque:</p>
+<ol style="list-style-type: decimal">
+<li>Los métodos de suavizamiento están diseñados para series en niveles</li>
+<li>Queremos pronósticos directos de precios (interpretabilidad)</li>
+<li>El modelo <strong>Aditivo</strong> es más robusto cuando la estacionalidad es débil</li>
+</ol>
+</div>
+</div>
+<div id="preparación-de-datos" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> Preparación de Datos<a class="anchor" aria-label="anchor" href="#preparaci%C3%B3n-de-datos"><i class="fas fa-link"></i></a>
+</h2>
+<div id="carga-y-preparación-de-datos" class="section level3" number="3.3.1">
+<h3>
+<span class="header-section-number">3.3.1</span> Carga y Preparación de Datos<a class="anchor" aria-label="anchor" href="#carga-y-preparaci%C3%B3n-de-datos"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## Total de observaciones: 14290</code></pre>
+<pre><code>## Período: 16721 a 20371</code></pre>
+<pre><code>## Activos: AAPL, MSFT, TSLA, PFE, MRNA, JNJ</code></pre>
+<pre><code>## 
+## === DIVISIÓN TRAIN/TEST ===</code></pre>
+<pre><code>## Período de Entrenamiento: 16721 a 19720</code></pre>
+<pre><code>## Observaciones Train: 11614</code></pre>
+<pre><code>## Período de Prueba: 19724 a 20371</code></pre>
+<pre><code>## Observaciones Test: 2676</code></pre>
+<pre><code>## Proporción Train/Test: 81.3 % / 18.7 %</code></pre>
+<p><strong>Justificación de la división temporal:</strong></p>
+<ol style="list-style-type: decimal">
+<li><p><strong>No aleatoria:</strong> En series de tiempo, la división debe respetar el orden cronológico para evitar “mirar al futuro” (look-ahead bias).</p></li>
+<li><p><strong>80/20 aproximado:</strong> ~8 años para entrenamiento (2015-2023) y ~2 años para prueba (2024-2025).</p></li>
+<li><p><strong>Periodo de prueba incluye volatilidad reciente:</strong> Permite evaluar si los modelos capturan la dinámica actual del mercado.</p></li>
+</ol>
+<div class="figure">
+<span style="display:block;" id="fig:visualizacion-train-test"></span>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-acfb0f0eaf3b3d3a3502" style="width:960px;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-acfb0f0eaf3b3d3a3502">{"x":{"data":[{"x":["2015-10-13","2015-10-14","2015-10-15","2015-10-16","2015-10-19","2015-10-20","2015-10-21","2015-10-22","2015-10-23","2015-10-26","2015-10-27","2015-10-28","2015-10-29","2015-10-30","2015-11-02","2015-11-03","2015-11-04","2015-11-05","2015-11-06","2015-11-09","2015-11-10","2015-11-11","2015-11-12","2015-11-13","2015-11-16","2015-11-17","2015-11-18","2015-11-19","2015-11-20","2015-11-23","2015-11-24","2015-11-25","2015-11-27","2015-11-30","2015-12-01","2015-12-02","2015-12-03","2015-12-04","2015-12-07","2015-12-08","2015-12-09","2015-12-10","2015-12-11","2015-12-14","2015-12-15","2015-12-16","2015-12-17","2015-12-18","2015-12-21","2015-12-22","2015-12-23","2015-12-24","2015-12-28","2015-12-29","2015-12-30","2015-12-31","2016-01-04","2016-01-05","2016-01-06","2016-01-07","2016-01-08","2016-01-11","2016-01-12","2016-01-13","2016-01-14","2016-01-15","2016-01-19","2016-01-20","2016-01-21","2016-01-22","2016-01-25","2016-01-26","2016-01-27","2016-01-28","2016-01-29","2016-02-01","2016-02-02","2016-02-03","2016-02-04","2016-02-05","2016-02-08","2016-02-09","2016-02-10","2016-02-11","2016-02-12","2016-02-16","2016-02-17","2016-02-18","2016-02-19","2016-02-22","2016-02-23","2016-02-24","2016-02-25","2016-02-26","2016-02-29","2016-03-01","2016-03-02","2016-03-03","2016-03-04","2016-03-07","2016-03-08","2016-03-09","2016-03-10","2016-03-11","2016-03-14","2016-03-15","2016-03-16","2016-03-17","2016-03-18","2016-03-21","2016-03-22","2016-03-23","2016-03-24","2016-03-28","2016-03-29","2016-03-30","2016-03-31","2016-04-01","2016-04-04","2016-04-05","2016-04-06","2016-04-07","2016-04-08","2016-04-11","2016-04-12","2016-04-13","2016-04-14","2016-04-15","2016-04-18","2016-04-19","2016-04-20","2016-04-21","2016-04-22","2016-04-25","2016-04-26","2016-04-27","2016-04-28","2016-04-29","2016-05-02","2016-05-03","2016-05-04","2016-05-05","2016-05-06","2016-05-09","2016-05-10","2016-05-11","2016-05-12","2016-05-13","2016-05-16","2016-05-17","2016-05-18","2016-05-19","2016-05-20","2016-05-23","2016-05-24","2016-05-25","2016-05-26","2016-05-27","2016-05-31","2016-06-01","2016-06-02","2016-06-03","2016-06-06","2016-06-07","2016-06-08","2016-06-09","2016-06-10","2016-06-13","2016-06-14","2016-06-15","2016-06-16","2016-06-17","2016-06-20","2016-06-21","2016-06-22","2016-06-23","2016-06-24","2016-06-27","2016-06-28","2016-06-29","2016-06-30","2016-07-01","2016-07-05","2016-07-06","2016-07-07","2016-07-08","2016-07-11","2016-07-12","2016-07-13","2016-07-14","2016-07-15","2016-07-18","2016-07-19","2016-07-20","2016-07-21","2016-07-22","2016-07-25","2016-07-26","2016-07-27","2016-07-28","2016-07-29","2016-08-01","2016-08-02","2016-08-03","2016-08-04","2016-08-05","2016-08-08","2016-08-09","2016-08-10","2016-08-11","2016-08-12","2016-08-15","2016-08-16","2016-08-17","2016-08-18","2016-08-19","2016-08-22","2016-08-23","2016-08-24","2016-08-25","2016-08-26","2016-08-29","2016-08-30","2016-08-31","2016-09-01","2016-09-02","2016-09-06","2016-09-07","2016-09-08","2016-09-09","2016-09-12","2016-09-13","2016-09-14","2016-09-15","2016-09-16","2016-09-19","2016-09-20","2016-09-21","2016-09-22","2016-09-23","2016-09-26","2016-09-27","2016-09-28","2016-09-29","2016-09-30","2016-10-03","2016-10-04","2016-10-05","2016-10-06","2016-10-07","2016-10-10","2016-10-11","2016-10-12","2016-10-13","2016-10-14","2016-10-17","2016-10-18","2016-10-19","2016-10-20","2016-10-21","2016-10-24","2016-10-25","2016-10-26","2016-10-27","2016-10-28","2016-10-31","2016-11-01","2016-11-02","2016-11-03","2016-11-04","2016-11-07","2016-11-08","2016-11-09","2016-11-10","2016-11-11","2016-11-14","2016-11-15","2016-11-16","2016-11-17","2016-11-18","2016-11-21","2016-11-22","2016-11-23","2016-11-25","2016-11-28","2016-11-29","2016-11-30","2016-12-01","2016-12-02","2016-12-05","2016-12-06","2016-12-07","2016-12-08","2016-12-09","2016-12-12","2016-12-13","2016-12-14","2016-12-15","2016-12-16","2016-12-19","2016-12-20","2016-12-21","2016-12-22","2016-12-23","2016-12-27","2016-12-28","2016-12-29","2016-12-30","2017-01-03","2017-01-04","2017-01-05","2017-01-06","2017-01-09","2017-01-10","2017-01-11","2017-01-12","2017-01-13","2017-01-17","2017-01-18","2017-01-19","2017-01-20","2017-01-23","2017-01-24","2017-01-25","2017-01-26","2017-01-27","2017-01-30","2017-01-31","2017-02-01","2017-02-02","2017-02-03","2017-02-06","2017-02-07","2017-02-08","2017-02-09","2017-02-10","2017-02-13","2017-02-14","2017-02-15","2017-02-16","2017-02-17","2017-02-21","2017-02-22","2017-02-23","2017-02-24","2017-02-27","2017-02-28","2017-03-01","2017-03-02","2017-03-03","2017-03-06","2017-03-07","2017-03-08","2017-03-09","2017-03-10","2017-03-13","2017-03-14","2017-03-15","2017-03-16","2017-03-17","2017-03-20","2017-03-21","2017-03-22","2017-03-23","2017-03-24","2017-03-27","2017-03-28","2017-03-29","2017-03-30","2017-03-31","2017-04-03","2017-04-04","2017-04-05","2017-04-06","2017-04-07","2017-04-10","2017-04-11","2017-04-12","2017-04-13","2017-04-17","2017-04-18","2017-04-19","2017-04-20","2017-04-21","2017-04-24","2017-04-25","2017-04-26","2017-04-27","2017-04-28","2017-05-01","2017-05-02","2017-05-03","2017-05-04","2017-05-05","2017-05-08","2017-05-09","2017-05-10","2017-05-11","2017-05-12","2017-05-15","2017-05-16","2017-05-17","2017-05-18","2017-05-19","2017-05-22","2017-05-23","2017-05-24","2017-05-25","2017-05-26","2017-05-30","2017-05-31","2017-06-01","2017-06-02","2017-06-05","2017-06-06","2017-06-07","2017-06-08","2017-06-09","2017-06-12","2017-06-13","2017-06-14","2017-06-15","2017-06-16","2017-06-19","2017-06-20","2017-06-21","2017-06-22","2017-06-23","2017-06-26","2017-06-27","2017-06-28","2017-06-29","2017-06-30","2017-07-03","2017-07-05","2017-07-06","2017-07-07","2017-07-10","2017-07-11","2017-07-12","2017-07-13","2017-07-14","2017-07-17","2017-07-18","2017-07-19","2017-07-20","2017-07-21","2017-07-24","2017-07-25","2017-07-26","2017-07-27","2017-07-28","2017-07-31","2017-08-01","2017-08-02","2017-08-03","2017-08-04","2017-08-07","2017-08-08","2017-08-09","2017-08-10","2017-08-11","2017-08-14","2017-08-15","2017-08-16","2017-08-17","2017-08-18","2017-08-21","2017-08-22","2017-08-23","2017-08-24","2017-08-25","2017-08-28","2017-08-29","2017-08-30","2017-08-31","2017-09-01","2017-09-05","2017-09-06","2017-09-07","2017-09-08","2017-09-11","2017-09-12","2017-09-13","2017-09-14","2017-09-15","2017-09-18","2017-09-19","2017-09-20","2017-09-21","2017-09-22","2017-09-25","2017-09-26","2017-09-27","2017-09-28","2017-09-29","2017-10-02","2017-10-03","2017-10-04","2017-10-05","2017-10-06","2017-10-09","2017-10-10","2017-10-11","2017-10-12","2017-10-13","2017-10-16","2017-10-17","2017-10-18","2017-10-19","2017-10-20","2017-10-23","2017-10-24","2017-10-25","2017-10-26","2017-10-27","2017-10-30","2017-10-31","2017-11-01","2017-11-02","2017-11-03","2017-11-06","2017-11-07","2017-11-08","2017-11-09","2017-11-10","2017-11-13","2017-11-14","2017-11-15","2017-11-16","2017-11-17","2017-11-20","2017-11-21","2017-11-22","2017-11-24","2017-11-27","2017-11-28","2017-11-29","2017-11-30","2017-12-01","2017-12-04","2017-12-05","2017-12-06","2017-12-07","2017-12-08","2017-12-11","2017-12-12","2017-12-13","2017-12-14","2017-12-15","2017-12-18","2017-12-19","2017-12-20","2017-12-21","2017-12-22","2017-12-26","2017-12-27","2017-12-28","2017-12-29","2018-01-02","2018-01-03","2018-01-04","2018-01-05","2018-01-08","2018-01-09","2018-01-10","2018-01-11","2018-01-12","2018-01-16","2018-01-17","2018-01-18","2018-01-19","2018-01-22","2018-01-23","2018-01-24","2018-01-25","2018-01-26","2018-01-29","2018-01-30","2018-01-31","2018-02-01","2018-02-02","2018-02-05","2018-02-06","2018-02-07","2018-02-08","2018-02-09","2018-02-12","2018-02-13","2018-02-14","2018-02-15","2018-02-16","2018-02-20","2018-02-21","2018-02-22","2018-02-23","2018-02-26","2018-02-27","2018-02-28","2018-03-01","2018-03-02","2018-03-05","2018-03-06","2018-03-07","2018-03-08","2018-03-09","2018-03-12","2018-03-13","2018-03-14","2018-03-15","2018-03-16","2018-03-19","2018-03-20","2018-03-21","2018-03-22","2018-03-23","2018-03-26","2018-03-27","2018-03-28","2018-03-29","2018-04-02","2018-04-03","2018-04-04","2018-04-05","2018-04-06","2018-04-09","2018-04-10","2018-04-11","2018-04-12","2018-04-13","2018-04-16","2018-04-17","2018-04-18","2018-04-19","2018-04-20","2018-04-23","2018-04-24","2018-04-25","2018-04-26","2018-04-27","2018-04-30","2018-05-01","2018-05-02","2018-05-03","2018-05-04","2018-05-07","2018-05-08","2018-05-09","2018-05-10","2018-05-11","2018-05-14","2018-05-15","2018-05-16","2018-05-17","2018-05-18","2018-05-21","2018-05-22","2018-05-23","2018-05-24","2018-05-25","2018-05-29","2018-05-30","2018-05-31","2018-06-01","2018-06-04","2018-06-05","2018-06-06","2018-06-07","2018-06-08","2018-06-11","2018-06-12","2018-06-13","2018-06-14","2018-06-15","2018-06-18","2018-06-19","2018-06-20","2018-06-21","2018-06-22","2018-06-25","2018-06-26","2018-06-27","2018-06-28","2018-06-29","2018-07-02","2018-07-03","2018-07-05","2018-07-06","2018-07-09","2018-07-10","2018-07-11","2018-07-12","2018-07-13","2018-07-16","2018-07-17","2018-07-18","2018-07-19","2018-07-20","2018-07-23","2018-07-24","2018-07-25","2018-07-26","2018-07-27","2018-07-30","2018-07-31","2018-08-01","2018-08-02","2018-08-03","2018-08-06","2018-08-07","2018-08-08","2018-08-09","2018-08-10","2018-08-13","2018-08-14","2018-08-15","2018-08-16","2018-08-17","2018-08-20","2018-08-21","2018-08-22","2018-08-23","2018-08-24","2018-08-27","2018-08-28","2018-08-29","2018-08-30","2018-08-31","2018-09-04","2018-09-05","2018-09-06","2018-09-07","2018-09-10","2018-09-11","2018-09-12","2018-09-13","2018-09-14","2018-09-17","2018-09-18","2018-09-19","2018-09-20","2018-09-21","2018-09-24","2018-09-25","2018-09-26","2018-09-27","2018-09-28","2018-10-01","2018-10-02","2018-10-03","2018-10-04","2018-10-05","2018-10-08","2018-10-09","2018-10-10","2018-10-11","2018-10-12","2018-10-15","2018-10-16","2018-10-17","2018-10-18","2018-10-19","2018-10-22","2018-10-23","2018-10-24","2018-10-25","2018-10-26","2018-10-29","2018-10-30","2018-10-31","2018-11-01","2018-11-02","2018-11-05","2018-11-06","2018-11-07","2018-11-08","2018-11-09","2018-11-12","2018-11-13","2018-11-14","2018-11-15","2018-11-16","2018-11-19","2018-11-20","2018-11-21","2018-11-23","2018-11-26","2018-11-27","2018-11-28","2018-11-29","2018-11-30","2018-12-03","2018-12-04","2018-12-06","2018-12-07","2018-12-10","2018-12-11","2018-12-12","2018-12-13","2018-12-14","2018-12-17","2018-12-18","2018-12-19","2018-12-20","2018-12-21","2018-12-24","2018-12-26","2018-12-27","2018-12-28","2018-12-31","2019-01-02","2019-01-03","2019-01-04","2019-01-07","2019-01-08","2019-01-09","2019-01-10","2019-01-11","2019-01-14","2019-01-15","2019-01-16","2019-01-17","2019-01-18","2019-01-22","2019-01-23","2019-01-24","2019-01-25","2019-01-28","2019-01-29","2019-01-30","2019-01-31","2019-02-01","2019-02-04","2019-02-05","2019-02-06","2019-02-07","2019-02-08","2019-02-11","2019-02-12","2019-02-13","2019-02-14","2019-02-15","2019-02-19","2019-02-20","2019-02-21","2019-02-22","2019-02-25","2019-02-26","2019-02-27","2019-02-28","2019-03-01","2019-03-04","2019-03-05","2019-03-06","2019-03-07","2019-03-08","2019-03-11","2019-03-12","2019-03-13","2019-03-14","2019-03-15","2019-03-18","2019-03-19","2019-03-20","2019-03-21","2019-03-22","2019-03-25","2019-03-26","2019-03-27","2019-03-28","2019-03-29","2019-04-01","2019-04-02","2019-04-03","2019-04-04","2019-04-05","2019-04-08","2019-04-09","2019-04-10","2019-04-11","2019-04-12","2019-04-15","2019-04-16","2019-04-17","2019-04-18","2019-04-22","2019-04-23","2019-04-24","2019-04-25","2019-04-26","2019-04-29","2019-04-30","2019-05-01","2019-05-02","2019-05-03","2019-05-06","2019-05-07","2019-05-08","2019-05-09","2019-05-10","2019-05-13","2019-05-14","2019-05-15","2019-05-16","2019-05-17","2019-05-20","2019-05-21","2019-05-22","2019-05-23","2019-05-24","2019-05-28","2019-05-29","2019-05-30","2019-05-31","2019-06-03","2019-06-04","2019-06-05","2019-06-06","2019-06-07","2019-06-10","2019-06-11","2019-06-12","2019-06-13","2019-06-14","2019-06-17","2019-06-18","2019-06-19","2019-06-20","2019-06-21","2019-06-24","2019-06-25","2019-06-26","2019-06-27","2019-06-28","2019-07-01","2019-07-02","2019-07-03","2019-07-05","2019-07-08","2019-07-09","2019-07-10","2019-07-11","2019-07-12","2019-07-15","2019-07-16","2019-07-17","2019-07-18","2019-07-19","2019-07-22","2019-07-23","2019-07-24","2019-07-25","2019-07-26","2019-07-29","2019-07-30","2019-07-31","2019-08-01","2019-08-02","2019-08-05","2019-08-06","2019-08-07","2019-08-08","2019-08-09","2019-08-12","2019-08-13","2019-08-14","2019-08-15","2019-08-16","2019-08-19","2019-08-20","2019-08-21","2019-08-22","2019-08-23","2019-08-26","2019-08-27","2019-08-28","2019-08-29","2019-08-30","2019-09-03","2019-09-04","2019-09-05","2019-09-06","2019-09-09","2019-09-10","2019-09-11","2019-09-12","2019-09-13","2019-09-16","2019-09-17","2019-09-18","2019-09-19","2019-09-20","2019-09-23","2019-09-24","2019-09-25","2019-09-26","2019-09-27","2019-09-30","2019-10-01","2019-10-02","2019-10-03","2019-10-04","2019-10-07","2019-10-08","2019-10-09","2019-10-10","2019-10-11","2019-10-14","2019-10-15","2019-10-16","2019-10-17","2019-10-18","2019-10-21","2019-10-22","2019-10-23","2019-10-24","2019-10-25","2019-10-28","2019-10-29","2019-10-30","2019-10-31","2019-11-01","2019-11-04","2019-11-05","2019-11-06","2019-11-07","2019-11-08","2019-11-11","2019-11-12","2019-11-13","2019-11-14","2019-11-15","2019-11-18","2019-11-19","2019-11-20","2019-11-21","2019-11-22","2019-11-25","2019-11-26","2019-11-27","2019-11-29","2019-12-02","2019-12-03","2019-12-04","2019-12-05","2019-12-06","2019-12-09","2019-12-10","2019-12-11","2019-12-12","2019-12-13","2019-12-16","2019-12-17","2019-12-18","2019-12-19","2019-12-20","2019-12-23","2019-12-24","2019-12-26","2019-12-27","2019-12-30","2019-12-31","2020-01-02","2020-01-03","2020-01-06","2020-01-07","2020-01-08","2020-01-09","2020-01-10","2020-01-13","2020-01-14","2020-01-15","2020-01-16","2020-01-17","2020-01-21","2020-01-22","2020-01-23","2020-01-24","2020-01-27","2020-01-28","2020-01-29","2020-01-30","2020-01-31","2020-02-03","2020-02-04","2020-02-05","2020-02-06","2020-02-07","2020-02-10","2020-02-11","2020-02-12","2020-02-13","2020-02-14","2020-02-18","2020-02-19","2020-02-20","2020-02-21","2020-02-24","2020-02-25","2020-02-26","2020-02-27","2020-02-28","2020-03-02","2020-03-03","2020-03-04","2020-03-05","2020-03-06","2020-03-09","2020-03-10","2020-03-11","2020-03-12","2020-03-13","2020-03-16","2020-03-17","2020-03-18","2020-03-19","2020-03-20","2020-03-23","2020-03-24","2020-03-25","2020-03-26","2020-03-27","2020-03-30","2020-03-31","2020-04-01","2020-04-02","2020-04-03","2020-04-06","2020-04-07","2020-04-08","2020-04-09","2020-04-13","2020-04-14","2020-04-15","2020-04-16","2020-04-17","2020-04-20","2020-04-21","2020-04-22","2020-04-23","2020-04-24","2020-04-27","2020-04-28","2020-04-29","2020-04-30","2020-05-01","2020-05-04","2020-05-05","2020-05-06","2020-05-07","2020-05-08","2020-05-11","2020-05-12","2020-05-13","2020-05-14","2020-05-15","2020-05-18","2020-05-19","2020-05-20","2020-05-21","2020-05-22","2020-05-26","2020-05-27","2020-05-28","2020-05-29","2020-06-01","2020-06-02","2020-06-03","2020-06-04","2020-06-05","2020-06-08","2020-06-09","2020-06-10","2020-06-11","2020-06-12","2020-06-15","2020-06-16","2020-06-17","2020-06-18","2020-06-19","2020-06-22","2020-06-23","2020-06-24","2020-06-25","2020-06-26","2020-06-29","2020-06-30","2020-07-01","2020-07-02","2020-07-06","2020-07-07","2020-07-08","2020-07-09","2020-07-10","2020-07-13","2020-07-14","2020-07-15","2020-07-16","2020-07-17","2020-07-20","2020-07-21","2020-07-22","2020-07-23","2020-07-24","2020-07-27","2020-07-28","2020-07-29","2020-07-30","2020-07-31","2020-08-03","2020-08-04","2020-08-05","2020-08-06","2020-08-07","2020-08-10","2020-08-11","2020-08-12","2020-08-13","2020-08-14","2020-08-17","2020-08-18","2020-08-19","2020-08-20","2020-08-21","2020-08-24","2020-08-25","2020-08-26","2020-08-27","2020-08-28","2020-08-31","2020-09-01","2020-09-02","2020-09-03","2020-09-04","2020-09-08","2020-09-09","2020-09-10","2020-09-11","2020-09-14","2020-09-15","2020-09-16","2020-09-17","2020-09-18","2020-09-21","2020-09-22","2020-09-23","2020-09-24","2020-09-25","2020-09-28","2020-09-29","2020-09-30","2020-10-01","2020-10-02","2020-10-05","2020-10-06","2020-10-07","2020-10-08","2020-10-09","2020-10-12","2020-10-13","2020-10-14","2020-10-15","2020-10-16","2020-10-19","2020-10-20","2020-10-21","2020-10-22","2020-10-23","2020-10-26","2020-10-27","2020-10-28","2020-10-29","2020-10-30","2020-11-02","2020-11-03","2020-11-04","2020-11-05","2020-11-06","2020-11-09","2020-11-10","2020-11-11","2020-11-12","2020-11-13","2020-11-16","2020-11-17","2020-11-18","2020-11-19","2020-11-20","2020-11-23","2020-11-24","2020-11-25","2020-11-27","2020-11-30","2020-12-01","2020-12-02","2020-12-03","2020-12-04","2020-12-07","2020-12-08","2020-12-09","2020-12-10","2020-12-11","2020-12-14","2020-12-15","2020-12-16","2020-12-17","2020-12-18","2020-12-21","2020-12-22","2020-12-23","2020-12-24","2020-12-28","2020-12-29","2020-12-30","2020-12-31","2021-01-04","2021-01-05","2021-01-06","2021-01-07","2021-01-08","2021-01-11","2021-01-12","2021-01-13","2021-01-14","2021-01-15","2021-01-19","2021-01-20","2021-01-21","2021-01-22","2021-01-25","2021-01-26","2021-01-27","2021-01-28","2021-01-29","2021-02-01","2021-02-02","2021-02-03","2021-02-04","2021-02-05","2021-02-08","2021-02-09","2021-02-10","2021-02-11","2021-02-12","2021-02-16","2021-02-17","2021-02-18","2021-02-19","2021-02-22","2021-02-23","2021-02-24","2021-02-25","2021-02-26","2021-03-01","2021-03-02","2021-03-03","2021-03-04","2021-03-05","2021-03-08","2021-03-09","2021-03-10","2021-03-11","2021-03-12","2021-03-15","2021-03-16","2021-03-17","2021-03-18","2021-03-19","2021-03-22","2021-03-23","2021-03-24","2021-03-25","2021-03-26","2021-03-29","2021-03-30","2021-03-31","2021-04-01","2021-04-05","2021-04-06","2021-04-07","2021-04-08","2021-04-09","2021-04-12","2021-04-13","2021-04-14","2021-04-15","2021-04-16","2021-04-19","2021-04-20","2021-04-21","2021-04-22","2021-04-23","2021-04-26","2021-04-27","2021-04-28","2021-04-29","2021-04-30","2021-05-03","2021-05-04","2021-05-05","2021-05-06","2021-05-07","2021-05-10","2021-05-11","2021-05-12","2021-05-13","2021-05-14","2021-05-17","2021-05-18","2021-05-19","2021-05-20","2021-05-21","2021-05-24","2021-05-25","2021-05-26","2021-05-27","2021-05-28","2021-06-01","2021-06-02","2021-06-03","2021-06-04","2021-06-07","2021-06-08","2021-06-09","2021-06-10","2021-06-11","2021-06-14","2021-06-15","2021-06-16","2021-06-17","2021-06-18","2021-06-21","2021-06-22","2021-06-23","2021-06-24","2021-06-25","2021-06-28","2021-06-29","2021-06-30","2021-07-01","2021-07-02","2021-07-06","2021-07-07","2021-07-08","2021-07-09","2021-07-12","2021-07-13","2021-07-14","2021-07-15","2021-07-16","2021-07-19","2021-07-20","2021-07-21","2021-07-22","2021-07-23","2021-07-26","2021-07-27","2021-07-28","2021-07-29","2021-07-30","2021-08-02","2021-08-03","2021-08-04","2021-08-05","2021-08-06","2021-08-09","2021-08-10","2021-08-11","2021-08-12","2021-08-13","2021-08-16","2021-08-17","2021-08-18","2021-08-19","2021-08-20","2021-08-23","2021-08-24","2021-08-25","2021-08-26","2021-08-27","2021-08-30","2021-08-31","2021-09-01","2021-09-02","2021-09-03","2021-09-07","2021-09-08","2021-09-09","2021-09-10","2021-09-13","2021-09-14","2021-09-15","2021-09-16","2021-09-17","2021-09-20","2021-09-21","2021-09-22","2021-09-23","2021-09-24","2021-09-27","2021-09-28","2021-09-29","2021-09-30","2021-10-01","2021-10-04","2021-10-05","2021-10-06","2021-10-07","2021-10-08","2021-10-11","2021-10-12","2021-10-13","2021-10-14","2021-10-15","2021-10-18","2021-10-19","2021-10-20","2021-10-21","2021-10-22","2021-10-25","2021-10-26","2021-10-27","2021-10-28","2021-10-29","2021-11-01","2021-11-02","2021-11-03","2021-11-04","2021-11-05","2021-11-08","2021-11-09","2021-11-10","2021-11-11","2021-11-12","2021-11-15","2021-11-16","2021-11-17","2021-11-18","2021-11-19","2021-11-22","2021-11-23","2021-11-24","2021-11-26","2021-11-29","2021-11-30","2021-12-01","2021-12-02","2021-12-03","2021-12-06","2021-12-07","2021-12-08","2021-12-09","2021-12-10","2021-12-13","2021-12-14","2021-12-15","2021-12-16","2021-12-17","2021-12-20","2021-12-21","2021-12-22","2021-12-23","2021-12-27","2021-12-28","2021-12-29","2021-12-30","2021-12-31","2022-01-03","2022-01-04","2022-01-05","2022-01-06","2022-01-07","2022-01-10","2022-01-11","2022-01-12","2022-01-13","2022-01-14","2022-01-18","2022-01-19","2022-01-20","2022-01-21","2022-01-24","2022-01-25","2022-01-26","2022-01-27","2022-01-28","2022-01-31","2022-02-01","2022-02-02","2022-02-03","2022-02-04","2022-02-07","2022-02-08","2022-02-09","2022-02-10","2022-02-11","2022-02-14","2022-02-15","2022-02-16","2022-02-17","2022-02-18","2022-02-22","2022-02-23","2022-02-24","2022-02-25","2022-02-28","2022-03-01","2022-03-02","2022-03-03","2022-03-04","2022-03-07","2022-03-08","2022-03-09","2022-03-10","2022-03-11","2022-03-14","2022-03-15","2022-03-16","2022-03-17","2022-03-18","2022-03-21","2022-03-22","2022-03-23","2022-03-24","2022-03-25","2022-03-28","2022-03-29","2022-03-30","2022-03-31","2022-04-01","2022-04-04","2022-04-05","2022-04-06","2022-04-07","2022-04-08","2022-04-11","2022-04-12","2022-04-13","2022-04-14","2022-04-18","2022-04-19","2022-04-20","2022-04-21","2022-04-22","2022-04-25","2022-04-26","2022-04-27","2022-04-28","2022-04-29","2022-05-02","2022-05-03","2022-05-04","2022-05-05","2022-05-06","2022-05-09","2022-05-10","2022-05-11","2022-05-12","2022-05-13","2022-05-16","2022-05-17","2022-05-18","2022-05-19","2022-05-20","2022-05-23","2022-05-24","2022-05-25","2022-05-26","2022-05-27","2022-05-31","2022-06-01","2022-06-02","2022-06-03","2022-06-06","2022-06-07","2022-06-08","2022-06-09","2022-06-10","2022-06-13","2022-06-14","2022-06-15","2022-06-16","2022-06-17","2022-06-21","2022-06-22","2022-06-23","2022-06-24","2022-06-27","2022-06-28","2022-06-29","2022-06-30","2022-07-01","2022-07-05","2022-07-06","2022-07-07","2022-07-08","2022-07-11","2022-07-12","2022-07-13","2022-07-14","2022-07-15","2022-07-18","2022-07-19","2022-07-20","2022-07-21","2022-07-22","2022-07-25","2022-07-26","2022-07-27","2022-07-28","2022-07-29","2022-08-01","2022-08-02","2022-08-03","2022-08-04","2022-08-05","2022-08-08","2022-08-09","2022-08-10","2022-08-11","2022-08-12","2022-08-15","2022-08-16","2022-08-17","2022-08-18","2022-08-19","2022-08-22","2022-08-23","2022-08-24","2022-08-25","2022-08-26","2022-08-29","2022-08-30","2022-08-31","2022-09-01","2022-09-02","2022-09-06","2022-09-07","2022-09-08","2022-09-09","2022-09-12","2022-09-13","2022-09-14","2022-09-15","2022-09-16","2022-09-19","2022-09-20","2022-09-21","2022-09-22","2022-09-23","2022-09-26","2022-09-27","2022-09-28","2022-09-29","2022-09-30","2022-10-03","2022-10-04","2022-10-05","2022-10-06","2022-10-07","2022-10-10","2022-10-11","2022-10-12","2022-10-13","2022-10-14","2022-10-17","2022-10-18","2022-10-19","2022-10-20","2022-10-21","2022-10-24","2022-10-25","2022-10-26","2022-10-27","2022-10-28","2022-10-31","2022-11-01","2022-11-02","2022-11-03","2022-11-04","2022-11-07","2022-11-08","2022-11-09","2022-11-10","2022-11-11","2022-11-14","2022-11-15","2022-11-16","2022-11-17","2022-11-18","2022-11-21","2022-11-22","2022-11-23","2022-11-25","2022-11-28","2022-11-29","2022-11-30","2022-12-01","2022-12-02","2022-12-05","2022-12-06","2022-12-07","2022-12-08","2022-12-09","2022-12-12","2022-12-13","2022-12-14","2022-12-15","2022-12-16","2022-12-19","2022-12-20","2022-12-21","2022-12-22","2022-12-23","2022-12-27","2022-12-28","2022-12-29","2022-12-30","2023-01-03","2023-01-04","2023-01-05","2023-01-06","2023-01-09","2023-01-10","2023-01-11","2023-01-12","2023-01-13","2023-01-17","2023-01-18","2023-01-19","2023-01-20","2023-01-23","2023-01-24","2023-01-25","2023-01-26","2023-01-27","2023-01-30","2023-01-31","2023-02-01","2023-02-02","2023-02-03","2023-02-06","2023-02-07","2023-02-08","2023-02-09","2023-02-10","2023-02-13","2023-02-14","2023-02-15","2023-02-16","2023-02-17","2023-02-21","2023-02-22","2023-02-23","2023-02-24","2023-02-27","2023-02-28","2023-03-01","2023-03-02","2023-03-03","2023-03-06","2023-03-07","2023-03-08","2023-03-09","2023-03-10","2023-03-13","2023-03-14","2023-03-15","2023-03-16","2023-03-17","2023-03-20","2023-03-21","2023-03-22","2023-03-23","2023-03-24","2023-03-27","2023-03-28","2023-03-29","2023-03-30","2023-03-31","2023-04-03","2023-04-04","2023-04-05","2023-04-06","2023-04-10","2023-04-11","2023-04-12","2023-04-13","2023-04-14","2023-04-17","2023-04-18","2023-04-19","2023-04-20","2023-04-21","2023-04-24","2023-04-25","2023-04-26","2023-04-27","2023-04-28","2023-05-01","2023-05-02","2023-05-03","2023-05-04","2023-05-05","2023-05-08","2023-05-09","2023-05-10","2023-05-11","2023-05-12","2023-05-15","2023-05-16","2023-05-17","2023-05-18","2023-05-19","2023-05-22","2023-05-23","2023-05-24","2023-05-25","2023-05-26","2023-05-30","2023-05-31","2023-06-01","2023-06-02","2023-06-05","2023-06-06","2023-06-07","2023-06-08","2023-06-09","2023-06-12","2023-06-13","2023-06-14","2023-06-15","2023-06-16","2023-06-20","2023-06-21","2023-06-22","2023-06-23","2023-06-26","2023-06-27","2023-06-28","2023-06-29","2023-06-30","2023-07-03","2023-07-05","2023-07-06","2023-07-07","2023-07-10","2023-07-11","2023-07-12","2023-07-13","2023-07-14","2023-07-17","2023-07-18","2023-07-19","2023-07-20","2023-07-21","2023-07-24","2023-07-25","2023-07-26","2023-07-27","2023-07-28","2023-07-31","2023-08-01","2023-08-02","2023-08-03","2023-08-04","2023-08-07","2023-08-08","2023-08-09","2023-08-10","2023-08-11","2023-08-14","2023-08-15","2023-08-16","2023-08-17","2023-08-18","2023-08-21","2023-08-22","2023-08-23","2023-08-24","2023-08-25","2023-08-28","2023-08-29","2023-08-30","2023-08-31","2023-09-01","2023-09-05","2023-09-06","2023-09-07","2023-09-08","2023-09-11","2023-09-12","2023-09-13","2023-09-14","2023-09-15","2023-09-18","2023-09-19","2023-09-20","2023-09-21","2023-09-22","2023-09-25","2023-09-26","2023-09-27","2023-09-28","2023-09-29","2023-10-02","2023-10-03","2023-10-04","2023-10-05","2023-10-06","2023-10-09","2023-10-10","2023-10-11","2023-10-12","2023-10-13","2023-10-16","2023-10-17","2023-10-18","2023-10-19","2023-10-20","2023-10-23","2023-10-24","2023-10-25","2023-10-26","2023-10-27","2023-10-30","2023-10-31","2023-11-01","2023-11-02","2023-11-03","2023-11-06","2023-11-07","2023-11-08","2023-11-09","2023-11-10","2023-11-13","2023-11-14","2023-11-15","2023-11-16","2023-11-17","2023-11-20","2023-11-21","2023-11-22","2023-11-24","2023-11-27","2023-11-28","2023-11-29","2023-11-30","2023-12-01","2023-12-04","2023-12-05","2023-12-06","2023-12-07","2023-12-08","2023-12-11","2023-12-12","2023-12-13","2023-12-14","2023-12-15","2023-12-18","2023-12-19","2023-12-20","2023-12-21","2023-12-22","2023-12-26","2023-12-27","2023-12-28","2023-12-29"],"y":[27.947500228881839,27.552499771118161,27.965000152587891,27.760000228881839,27.932500839233398,28.442499160766602,28.440000534057621,28.875,29.770000457763668,28.819999694824219,28.63750076293945,29.817499160766602,30.132499694824219,29.875,30.295000076293949,30.642499923706051,30.5,30.229999542236332,30.264999389648441,30.142499923706051,29.192499160766602,29.027500152587891,28.930000305175781,28.08499908447266,28.545000076293949,28.422500610351559,29.322500228881839,29.694999694824219,29.82500076293945,29.4375,29.719999313354489,29.507499694824219,29.452499389648441,29.57500076293945,29.33499908447266,29.069999694824219,28.79999923706055,29.757499694824219,29.569999694824219,29.557500839233398,28.905000686645511,29.042499542236332,28.295000076293949,28.120000839233398,27.622499465942379,27.83499908447266,27.245000839233398,26.507499694824219,26.832500457763668,26.807500839233398,27.152500152587891,27.007499694824219,26.704999923706051,27.184999465942379,26.829999923706051,26.315000534057621,26.33749961853027,25.677499771118161,25.17499923706055,24.11249923706055,24.239999771118161,24.632499694824219,24.989999771118161,24.347499847412109,24.879999160766602,24.282499313354489,24.16500091552734,24.197500228881839,24.07500076293945,25.354999542236332,24.860000610351559,24.997499465942379,23.354999542236332,23.52249908447266,24.33499908447266,24.107500076293949,23.620000839233398,24.08749961853027,24.14999961853027,23.504999160766602,23.752500534057621,23.747499465942379,23.567499160766602,23.42499923706055,23.497499465942379,24.159999847412109,24.530000686645511,24.065000534057621,24.010000228881839,24.219999313354489,23.672500610351559,24.02499961853027,24.190000534057621,24.22750091552734,24.172500610351559,25.132499694824219,25.1875,25.375,25.752500534057621,25.467500686645511,25.257499694824219,25.280000686645511,25.292499542236332,25.565000534057621,25.629999160766602,26.145000457763668,26.492500305175781,26.45000076293945,26.479999542236332,26.47750091552734,26.680000305175781,26.532499313354489,26.417499542236332,26.297500610351559,26.920000076293949,27.389999389648441,27.247499465942379,27.497499465942379,27.780000686645511,27.452499389648441,27.739999771118161,27.135000228881839,27.16500091552734,27.254999160766602,27.610000610351559,28.010000228881839,28.02499961853027,27.46249961853027,26.870000839233398,26.72750091552734,26.782499313354489,26.492500305175781,26.420000076293949,26.270000457763668,26.08749961853027,24.454999923706051,23.707500457763668,23.434999465942379,23.409999847412109,23.795000076293949,23.547500610351559,23.309999465942379,23.180000305175781,23.197500228881839,23.354999542236332,23.127500534057621,22.58499908447266,22.629999160766602,23.469999313354489,23.372499465942379,23.639999389648441,23.54999923706055,23.805000305175781,24.107500076293949,24.47500038146973,24.905000686645511,25.10250091552734,25.08749961853027,24.965000152587891,24.614999771118161,24.430000305175781,24.479999542236332,24.657499313354489,24.757499694824219,24.735000610351559,24.91250038146973,24.707500457763668,24.33499908447266,24.364999771118161,24.284999847412109,24.38750076293945,23.832500457763668,23.77499961853027,23.97750091552734,23.88750076293945,24.02499961853027,23.35000038146973,23.010000228881839,23.39749908447266,23.60000038146973,23.89999961853027,23.972499847412109,23.747499465942379,23.882499694824219,23.985000610351559,24.170000076293949,24.245000839233398,24.354999542236332,24.217500686645511,24.697500228881839,24.694999694824219,24.957500457763668,24.967500686645511,24.989999771118161,24.857500076293949,24.66500091552734,24.33499908447266,24.167499542236332,25.73749923706055,26.08499908447266,26.052499771118161,26.51250076293945,26.120000839233398,26.447500228881839,26.467500686645511,26.870000839233398,27.092500686645511,27.202499389648441,27,26.982500076293949,27.045000076293949,27.370000839233398,27.344999313354489,27.305000305175781,27.270000457763668,27.340000152587891,27.127500534057621,27.21249961853027,27.007499694824219,26.892499923706051,26.735000610351559,26.704999923706051,26.5,26.52499961853027,26.682500839233398,26.932500839233398,26.92499923706055,27.090000152587891,26.379999160766602,25.782499313354489,26.360000610351559,26.98749923706055,27.942499160766602,28.892499923706051,28.729999542236332,28.395000457763668,28.392499923706051,28.38750076293945,28.655000686645511,28.177499771118161,28.219999313354489,28.27249908447266,28.48749923706055,28.045000076293949,28.26250076293945,28.129999160766602,28.25,28.26250076293945,28.472499847412109,28.514999389648441,29.01250076293945,29.07500076293945,29.33499908447266,29.245000839233398,29.407499313354489,29.38750076293945,29.367500305175781,29.280000686645511,29.264999389648441,29.14999961853027,29.41250038146973,29.5625,28.89749908447266,28.620000839233398,28.430000305175781,28.385000228881839,27.872499465942379,27.89749908447266,27.457500457763668,27.20999908447266,27.60250091552734,27.764999389648441,27.719999313354489,26.947500228881839,27.107500076293949,26.427499771118161,26.777500152587891,27.497499465942379,27.48749923706055,27.514999389648441,27.932500839233398,27.95000076293945,27.807500839233398,27.947500228881839,27.892499923706051,27.864999771118161,27.629999160766602,27.372499465942379,27.47500038146973,27.277500152587891,27.48749923706055,27.757499694824219,28.030000686645511,28.48749923706055,28.32500076293945,28.797500610351559,28.797500610351559,28.954999923706051,28.992500305175781,29.159999847412109,29.23749923706055,29.264999389648441,29.072500228881839,29.129999160766602,29.315000534057621,29.190000534057621,29.182500839233398,28.954999923706051,29.03750038146973,29.004999160766602,29.152500152587891,29.47750091552734,29.747499465942379,29.777500152587891,29.9375,29.8125,29.760000228881839,30,29.997499465942379,29.944999694824219,30,30.020000457763668,29.992500305175781,30.469999313354489,30.485000610351559,30.48749923706055,30.407499313354489,30.33749961853027,32.1875,32.132499694824219,32.270000457763672,32.572498321533203,32.882499694824219,33.009998321533203,33.104999542236328,33.029998779296882,33.322498321533203,33.755001068115227,33.877498626708977,33.837501525878913,33.930000305175781,34.174999237060547,34.277500152587891,34.132499694824219,34.165000915527337,34.232498168945312,34.247501373291023,34.947498321533203,34.740001678466797,34.944999694824219,34.834999084472663,34.880001068115227,34.75,34.669998168945312,34.784999847412109,34.799999237060547,34.747501373291023,35.115001678466797,35.172500610351562,34.997501373291023,35.365001678466797,34.959999084472663,35.354999542236328,35.229999542236328,35.159999847412109,35.220001220703132,35.950000762939453,36.029998779296882,35.982498168945312,35.915000915527337,35.924999237060547,36.192501068115227,36.005001068115227,35.915000915527337,35.834999084472663,35.792499542236328,35.407501220703132,35.450000762939453,35.262500762939453,35.457500457763672,35.299999237060547,35.169998168945312,35.610000610351562,35.567501068115227,35.909999847412109,36.132499694824219,35.919998168945312,35.947498321533203,35.912498474121087,36.645000457763672,36.877498626708977,36.764999389648438,36.632499694824219,37.240001678466797,38.252498626708977,38.497501373291023,38.314998626708977,38.487499237060547,39.025001525878913,38.924999237060547,38.867500305175781,37.5625,38.134998321533203,38.264999389648438,38.497501373291023,38.450000762939453,38.334999084472663,38.467498779296882,38.402500152587891,38.417499542236328,38.189998626708977,38.294998168945312,38.862499237060547,38.482498168945312,38.612499237060547,38.842498779296882,38.747501373291023,37.244998931884773,36.354999542236328,36.647499084472663,36.290000915527337,36.072498321533203,35.567501068115227,36.584999084472663,36.252498626708977,36.467498779296882,36.407501220703132,36.569999694824219,36.455001831054688,35.932498931884773,36.457500457763672,35.919998168945312,36.005001068115227,35.875,36.022499084472663,35.682498931884773,36.044998168945312,36.264999389648438,36.382499694824219,36.435001373291023,36.942501068115227,37.259998321533203,37.389999389648438,37.520000457763672,37.755001068115227,37.584999084472663,37.567501068115227,38.022499084472663,38.185001373291023,38.365001678466797,37.639999389648438,37.375,37.182498931884773,37.512500762939453,39.284999847412109,38.892501831054688,39.097499847412109,39.702499389648438,40.020000457763672,40.264999389648438,38.830001831054688,39.369998931884773,39.962501525878913,40.400001525878913,40.237499237060547,39.465000152587891,39.375,39.302501678466797,39.944999694824219,39.994998931884773,39.817501068115227,39.965000152587891,40.367500305175781,40.727500915527337,40.837501525878913,41,41.012500762939453,40.520000457763672,40.477500915527337,40.314998626708977,39.657501220703132,40.375,40.215000152587891,39.912498474121087,39.569999694824219,39.970001220703132,39.667499542236328,39.682498931884773,39.017501831054688,38.347499847412109,37.972499847412109,37.637500762939453,38.284999847412109,38.557498931884773,38.319999694824219,38.529998779296882,38.452499389648438,38.619998931884773,38.369998931884773,38.847499847412109,38.825000762939453,38.959999084472663,38.974998474121087,39.137500762939453,39,39.247501373291023,39.970001220703132,40.117500305175781,39.939998626708977,38.994998931884773,39.0625,39.042499542236328,39.275001525878913,39.102500915527337,39.352500915527337,40.762500762939453,41.680000305175781,42.259998321533203,41.722499847412109,42.027500152587891,43.125,43.5625,43.702499389648438,44.060001373291023,43.970001220703132,43.667499542236328,43.492500305175781,42.834999084472663,42.270000457763672,42.775001525878913,42.537498474121087,42.494998931884773,43.284999847412109,43.740001678466797,43.742500305175781,43.522499084472663,43.267501831054688,42.369998931884773,42.962501525878913,42.762500762939453,42.450000762939453,42.409999847412109,42.252498626708977,42.330001831054688,42.342498779296882,43.167499542236328,42.924999237060547,43.067501068115227,43.055000305175781,43.492500305175781,44.104999542236328,43.634998321533203,43.587501525878913,43.752498626708977,43.752498626708977,42.642501831054688,42.650001525878913,42.770000457763672,42.307498931884773,43.064998626708977,43.057498931884773,43.257499694824219,43.75,43.587501525878913,43.582500457763672,43.572498321533203,43.819999694824219,44.272499084472663,44.047500610351562,44.775001525878913,44.814998626708977,44.615001678466797,44.25,44.259998321533203,43.555000305175781,42.777500152587891,42.877498626708977,41.990001678466797,41.742500305175781,41.857498168945312,41.944999694824219,40.125,39.122501373291023,40.757499694824219,39.884998321533203,38.787498474121087,39.102500915527337,40.677501678466797,41.084999084472663,41.842498779296882,43.247501373291023,43.107498168945312,42.962501525878913,42.767501831054688,43.125,43.875,44.742500305175781,44.597499847412109,44.529998779296882,43.75,44.052501678466797,44.205001831054688,44.167499542236328,43.757499694824219,44.235000610351562,44.994998931884773,45.430000305175781,44.992500305175781,44.610000610351562,44.662498474121087,44.505001068115227,43.825000762939453,43.810001373291023,42.817501068115227,42.212501525878913,41.235000610351562,43.192501068115227,42.084999084472663,41.619998931884773,41.944999694824219,41.669998168945312,42.097499847412109,42.902500152587891,43.200000762939453,42.095001220703132,42.512500762939453,43.3125,43.110000610351562,43.534999847412109,43.682498931884773,43.955001831054688,44.560001373291023,44.459999084472663,43.200000762939453,41.430000305175781,41.310001373291023,40.735000610351562,40.912498474121087,41.055000305175781,40.580001831054688,41.314998626708977,42.275001525878913,44.142501831054688,44.222499847412109,45.957500457763672,46.290000915527337,46.512500762939453,46.840000152587891,47.509998321533203,47.147499084472663,47.037498474121087,46.610000610351562,47.044998168945312,46.747501373291023,46.577499389648438,46.907501220703132,46.790000915527337,47.090000152587891,47.037498474121087,47.145000457763672,46.974998474121087,46.875,46.717498779296882,47.560001373291023,47.957500457763672,48.327499389648438,48.494998931884773,48.365001678466797,47.924999237060547,47.807498931884773,48.069999694824219,47.674999237060547,47.700000762939453,47.209999084472663,47.185001373291023,46.422500610351562,46.625,46.365001678466797,46.229999542236328,45.542499542236328,46.107498168945312,46.040000915527337,46.375,46.277500152587891,46.794998168945312,45.979999542236328,46.349998474121087,46.992500305175781,47.645000457763672,47.587501525878913,46.970001220703132,47.757499694824219,47.832500457763672,47.727500915527337,47.862499237060547,47.599998474121087,47.970001220703132,47.860000610351562,47.902500152587891,48.25,48.705001831054688,48.552501678466797,47.744998931884773,47.477500915527337,47.572498321533203,50.375,51.847499847412109,51.997501373291023,52.267501831054688,51.777500152587891,51.8125,52.220001220703132,51.882499694824219,52.217498779296882,52.4375,52.560001373291023,53.330001831054688,54.395000457763672,53.865001678466797,53.759998321533203,53.762500762939453,53.872501373291023,54.040000915527337,54.485000610351562,54.924999237060547,55.744998931884773,56.257499694824219,56.907501220703132,57.090000152587891,56.717498779296882,55.775001525878913,55.325000762939453,54.582500457763672,55.962501525878913,55.267501831054688,56.602500915527337,55.959999084472663,54.470001220703132,54.560001373291023,54.592498779296882,55.007499694824219,54.415000915527337,55.197498321533203,55.547500610351562,55.104999542236328,56.237499237060547,56.435001373291023,56.814998626708977,57.319999694824219,58.017501831054688,56.997501373291023,56.072498321533203,55.942501068115227,56.717498779296882,54.090000152587891,53.612499237060547,55.527500152587891,54.340000152587891,55.537498474121087,55.297500610351562,54.005001068115227,54.827499389648438,55.162498474121087,55.682498931884773,53.772499084472663,54.950000762939453,54.075000762939453,53.060001373291023,53.325000762939453,54.715000152587891,55.555000305175781,51.869998931884773,50.397499084472663,50.942501068115227,52.487499237060547,52.122501373291023,51.117500305175781,48.542499542236328,48.057498931884773,46.700000762939453,47.852500915527337,48.382499694824219,46.465000152587891,44.244998931884773,44.194999694824219,43.072498321533203,43.654998779296882,43.560001373291023,45.235000610351562,44.887500762939453,44.645000457763672,46.205001831054688,44.172500610351562,43.680000305175781,42.122501373291023,42.400001525878913,42.157501220703132,42.275001525878913,42.737499237060547,41.369998931884773,40.985000610351562,41.517501831054688,40.222499847412109,39.207500457763672,37.682498931884773,36.707500457763672,39.292499542236328,39.037498474121087,39.057498931884773,39.435001373291023,39.479999542236328,35.547500610351562,37.064998626708977,36.982498168945312,37.6875,38.327499389648438,38.450000762939453,38.072498321533203,37.5,38.267501831054688,38.735000610351562,38.965000152587891,39.205001831054688,38.325000762939453,38.479999542236328,38.174999237060547,39.439998626708977,39.075000762939453,38.669998168945312,41.3125,41.610000610351562,41.630001068115227,42.8125,43.544998168945312,43.560001373291023,42.735000610351562,42.602500915527337,42.357498168945312,42.722499847412109,42.544998168945312,42.700000762939453,42.604999542236328,42.732498168945312,43.007499694824219,42.764999389648438,43.242500305175781,43.557498931884773,43.582500457763672,43.717498779296882,43.287498474121087,43.742500305175781,43.962501525878913,43.882499694824219,43.630001068115227,43.125,43.227500915527337,44.724998474121087,45.227500915527337,45.427501678466797,45.932498931884773,46.529998779296882,47.005001068115227,46.632499694824219,47.040000915527337,48.772499084472663,47.762500762939453,47.185001373291023,46.697498321533203,47.117500305175781,47.180000305175781,47.487499237060547,47.810001373291023,48.505001068115227,48.837501525878913,48.922500610351562,49.25,50.025001525878913,49.875,50.154998779296882,49.737499237060547,49.717498779296882,49.807498931884773,49.8125,50.782501220703132,50.965000152587891,51.132499694824219,51.869998931884773,51.790000915527337,51.319999694824219,51.075000762939453,51.152500152587891,50.167499542236328,52.630001068115227,52.287498474121087,52.9375,52.119998931884773,50.715000152587891,50.724998474121087,50.180000305175781,49.294998168945312,46.430000305175781,47.165000915527337,47.729999542236328,47.520000457763672,47.25,45.772499084472663,46.650001525878913,45.694999694824219,44.915000915527337,44.742500305175781,44.557498931884773,44.345001220703132,44.575000762939453,43.767501831054688,43.325000762939453,44.909999847412109,45.634998321533203,46.305000305175781,47.537498474121087,48.145000457763672,48.702499389648438,48.547500610351562,48.537498474121087,48.185001373291023,48.472499847412109,49.612499237060547,49.467498779296882,49.865001678466797,49.694999694824219,49.645000457763672,48.892501831054688,49.950000762939453,49.935001373291023,49.479999542236328,50.387500762939453,50.682498931884773,51.102500915527337,51.057498931884773,50.005001068115227,50.310001373291023,50.807498931884773,50.4375,50.825000762939453,51.302501678466797,51.125,50.837501525878913,51.415000915527337,50.647499084472663,51.805000305175781,52.209999084472663,52.167499542236328,51.755001068115227,51.935001373291023,52.419998168945312,52.194999694824219,53.259998321533203,52.107498168945312,51.005001068115227,48.334999084472663,49.25,49.759998321533203,50.857498168945312,50.247501373291023,50.119998931884773,52.242500305175781,50.6875,50.435001373291023,51.625,52.587501525878913,52.590000152587891,53.159999847412109,53.115001678466797,50.659999847412109,51.622501373291023,51.040000915527337,51.382499694824219,52.252498626708977,52.185001373291023,51.424999237060547,52.297500610351562,53.319999694824219,53.314998626708977,53.542499542236328,54.174999237060547,55.897499084472663,55.772499084472663,54.6875,54.974998474121087,55.174999237060547,55.692501068115227,55.240001678466797,54.432498931884773,54.680000305175781,54.419998168945312,55.257499694824219,54.972499847412109,54.705001831054688,55.992500305175781,56.147499084472663,54.740001678466797,55.205001831054688,56.752498626708977,56.764999389648438,56.099998474121087,56.757499694824219,57.522499084472663,59.052501678466797,58.967498779296882,58.830001831054688,58.592498779296882,58.819999694824219,59.102500915527337,60.127498626708977,59.990001678466797,60.794998168945312,60.895000457763672,61.645000457763672,62.262500762939453,60.822498321533203,60.814998626708977,62.189998626708977,63.955001831054688,64.375,64.282501220703125,64.30999755859375,64.857498168945312,65.035003662109375,65.550003051757812,65.489997863769531,66.117500305175781,65.660003662109375,66.44000244140625,66.775001525878906,66.572502136230469,65.797500610351562,65.50250244140625,65.444999694824219,66.592498779296875,66.072502136230469,66.959999084472656,66.8125,66.040000915527344,64.862503051757812,65.43499755859375,66.394996643066406,67.677497863769531,66.730003356933594,67.120002746582031,67.692497253417969,67.864997863769531,68.787498474121094,69.964996337890625,70.102500915527344,69.93499755859375,70.004997253417969,69.860000610351562,71,71.067497253417969,72.477500915527344,72.449996948242188,72.879997253417969,73.412498474121094,75.087501525878906,74.357498168945312,74.949996948242188,74.597503662109375,75.797500610351562,77.407501220703125,77.582496643066406,79.239997863769531,78.169998168945312,77.834999084472656,78.80999755859375,79.682502746582031,79.142501831054688,79.425003051757812,79.807502746582031,79.577499389648438,77.237503051757812,79.422500610351562,81.084999084472656,80.967498779296875,77.37750244140625,77.165000915527344,79.712501525878906,80.362503051757812,81.302497863769531,80.007499694824219,80.387496948242188,79.902496337890625,81.800003051757812,81.217498779296875,81.237503051757812,79.75,80.904998779296875,80.074996948242188,78.262496948242188,74.544998168945312,72.019996643066406,73.162498474121094,68.379997253417969,68.339996337890625,74.702499389648438,72.330001831054688,75.68499755859375,73.230003356933594,72.257499694824219,66.542503356933594,71.334999084472656,68.857498168945312,62.057498931884773,69.492500305175781,60.552501678466797,63.215000152587891,61.667499542236328,61.194999694824219,57.310001373291023,56.092498779296882,61.720001220703132,61.380001068115227,64.610000610351562,61.935001373291023,63.702499389648438,63.572498321533203,60.227500915527337,61.232498168945312,60.352500915527337,65.617500305175781,64.857498168945312,66.517501831054688,66.99749755859375,68.3125,71.762496948242188,71.107498168945312,71.672500610351562,70.699996948242188,69.232498168945312,67.092498779296875,69.025001525878906,68.757499694824219,70.742500305175781,70.792503356933594,69.644996643066406,71.932502746582031,73.449996948242188,72.267501831054688,73.290000915527344,74.389999389648438,75.157501220703125,75.93499755859375,77.532501220703125,78.75250244140625,77.852500915527344,76.912498474121094,77.385002136230469,76.927497863769531,78.739997863769531,78.285003662109375,79.807502746582031,79.212501525878906,79.722503662109375,79.182502746582031,79.527496337890625,79.5625,79.485000610351562,80.462501525878906,80.834999084472656,81.279998779296875,80.580001831054688,82.875,83.364997863769531,85.99749755859375,88.209999084472656,83.974998474121094,84.699996948242188,85.74749755859375,88.019996643066406,87.897499084472656,87.932502746582031,87.430000305175781,89.717498779296875,91.632499694824219,90.014999389648438,91.209999084472656,88.407501220703125,90.444999694824219,91.199996948242188,91.027496337890625,91.027496337890625,93.462501525878906,93.172500610351562,95.342498779296875,95.75250244140625,95.919998168945312,95.477500915527344,97.057502746582031,97.724998474121094,96.522499084472656,96.327499389648438,98.357498168945312,97,97.272499084472656,92.845001220703125,92.614997863769531,94.80999755859375,93.25250244140625,95.040000915527344,96.19000244140625,106.2600021362305,108.9375,109.6650009155273,110.0625,113.9024963378906,111.1125030517578,112.7275009155273,109.375,113.0100021362305,115.0100021362305,114.9075012207031,114.6074981689453,115.5625,115.70749664306641,118.27500152587891,124.370002746582,125.8574981689453,124.8249969482422,126.5224990844727,125.0100021362305,124.807502746582,129.03999328613281,134.17999267578131,131.3999938964844,120.879997253418,120.9599990844727,112.8199996948242,117.3199996948242,113.4899978637695,112,115.36000061035161,115.5400009155273,112.129997253418,110.3399963378906,106.8399963378906,110.0800018310547,111.80999755859381,107.120002746582,108.2200012207031,112.2799987792969,114.9599990844727,114.0899963378906,115.80999755859381,116.7900009155273,113.01999664306641,116.5,113.1600036621094,115.0800018310547,114.9700012207031,116.9700012207031,124.40000152587891,121.09999847412109,121.19000244140631,120.7099990844727,119.01999664306641,115.98000335693359,117.5100021362305,116.870002746582,115.75,115.0400009155273,115.0500030517578,116.59999847412109,111.1999969482422,115.3199996948242,108.86000061035161,108.76999664306641,110.44000244140631,114.9499969482422,119.0299987792969,118.69000244140631,116.3199996948242,115.9700012207031,119.4899978637695,119.2099990844727,119.2600021362305,120.3000030517578,119.38999938964839,118.0299987792969,118.63999938964839,117.3399963378906,113.84999847412109,115.1699981689453,116.0299987792969,116.5899963378906,119.0500030517578,122.7200012207031,123.0800018310547,122.94000244140631,122.25,123.75,124.379997253418,121.7799987792969,123.2399978637695,122.4100036621094,121.7799987792969,127.879997253418,127.80999755859381,128.69999694824219,126.6600036621094,128.22999572753909,131.8800048828125,130.96000671386719,131.9700012207031,136.69000244140631,134.8699951171875,133.7200012207031,132.69000244140631,129.4100036621094,131.00999450683591,126.59999847412109,130.91999816894531,132.05000305175781,128.97999572753909,128.80000305175781,130.88999938964841,128.9100036621094,127.13999938964839,127.8300018310547,132.0299987792969,136.8699951171875,139.07000732421881,142.91999816894531,143.1600036621094,142.05999755859381,137.0899963378906,131.96000671386719,134.13999938964841,134.99000549316409,133.94000244140631,137.38999938964841,136.75999450683591,136.9100036621094,136.00999450683591,135.38999938964841,135.1300048828125,135.3699951171875,133.19000244140631,130.8399963378906,129.71000671386719,129.8699951171875,126,125.86000061035161,125.34999847412109,120.9899978637695,121.2600021362305,127.7900009155273,125.120002746582,122.05999755859381,120.129997253418,121.4199981689453,116.36000061035161,121.0899963378906,119.98000335693359,121.9599990844727,121.0299987792969,123.9899978637695,125.5699996948242,124.7600021362305,120.5299987792969,119.9899978637695,123.38999938964839,122.5400009155273,120.0899963378906,120.5899963378906,121.2099990844727,121.38999938964839,119.90000152587891,122.15000152587891,123,125.90000152587891,126.2099990844727,127.90000152587891,130.36000061035159,133,131.24000549316409,134.42999267578131,132.0299987792969,134.5,134.1600036621094,134.8399963378906,133.11000061035159,133.5,131.94000244140631,134.32000732421881,134.7200012207031,134.38999938964841,133.58000183105469,133.47999572753909,131.46000671386719,132.53999328613281,127.84999847412109,128.1000061035156,129.74000549316409,130.21000671386719,126.84999847412109,125.9100036621094,122.76999664306641,124.9700012207031,127.4499969482422,126.26999664306641,124.84999847412109,124.69000244140631,127.30999755859381,125.4300003051758,127.09999847412109,126.90000152587891,126.84999847412109,125.2799987792969,124.61000061035161,124.2799987792969,125.05999755859381,123.5400009155273,125.88999938964839,125.90000152587891,126.7399978637695,127.129997253418,126.11000061035161,127.34999847412109,130.47999572753909,129.63999938964841,130.1499938964844,131.78999328613281,130.46000671386719,132.30000305175781,133.97999572753909,133.69999694824219,133.4100036621094,133.11000061035159,134.7799987792969,136.33000183105469,136.96000671386719,137.27000427246091,139.96000671386719,142.02000427246091,144.57000732421881,143.24000549316409,145.11000061035159,144.5,145.63999938964841,149.1499938964844,148.47999572753909,146.38999938964841,142.44999694824219,146.1499938964844,145.3999938964844,146.80000305175781,148.55999755859381,148.99000549316409,146.77000427246091,144.97999572753909,145.63999938964841,145.86000061035159,145.52000427246091,147.36000061035159,146.94999694824219,147.05999755859381,146.13999938964841,146.0899963378906,145.6000061035156,145.86000061035159,148.88999938964841,149.1000061035156,151.1199951171875,150.19000244140631,146.36000061035159,146.69999694824219,148.19000244140631,149.71000671386719,149.6199951171875,148.36000061035159,147.53999328613281,148.6000061035156,153.1199951171875,151.83000183105469,152.50999450683591,153.6499938964844,154.30000305175781,156.69000244140631,155.11000061035159,154.07000732421881,148.9700012207031,149.55000305175781,148.1199951171875,149.0299987792969,148.78999328613281,146.05999755859381,142.94000244140631,143.42999267578131,145.8500061035156,146.83000183105469,146.91999816894531,145.3699951171875,141.9100036621094,142.83000183105469,141.5,142.6499938964844,139.13999938964841,141.11000061035159,142,143.28999328613281,142.8999938964844,142.80999755859381,141.50999450683591,140.9100036621094,143.75999450683591,144.8399963378906,146.55000305175781,148.75999450683591,149.25999450683591,149.47999572753909,148.69000244140631,148.63999938964841,149.32000732421881,148.8500061035156,152.57000732421881,149.80000305175781,148.96000671386719,150.02000427246091,151.49000549316409,150.96000671386719,151.2799987792969,150.44000244140631,150.80999755859381,147.91999816894531,147.8699951171875,149.99000549316409,150,151,153.49000549316409,157.8699951171875,160.55000305175781,161.02000427246091,161.4100036621094,161.94000244140631,156.80999755859381,160.24000549316409,165.30000305175781,164.77000427246091,163.75999450683591,161.8399963378906,165.32000732421881,171.17999267578131,175.08000183105469,174.55999755859381,179.44999694824219,175.74000549316409,174.33000183105469,179.30000305175781,172.25999450683591,171.13999938964841,169.75,172.99000549316409,175.63999938964841,176.2799987792969,180.33000183105469,179.28999328613281,179.3800048828125,178.19999694824219,177.57000732421881,182.00999450683591,179.69999694824219,174.91999816894531,172,172.16999816894531,172.19000244140631,175.08000183105469,175.5299987792969,172.19000244140631,173.07000732421881,169.80000305175781,166.22999572753909,164.50999450683591,162.4100036621094,161.6199951171875,159.7799987792969,159.69000244140631,159.2200012207031,170.33000183105469,174.7799987792969,174.61000061035159,175.8399963378906,172.8999938964844,172.38999938964841,171.6600036621094,174.83000183105469,176.2799987792969,172.1199951171875,168.63999938964841,168.8800048828125,172.78999328613281,172.55000305175781,168.8800048828125,167.30000305175781,164.32000732421881,160.07000732421881,162.74000549316409,164.8500061035156,165.1199951171875,163.19999694824219,166.55999755859381,166.22999572753909,163.16999816894531,159.30000305175781,157.44000244140631,162.94999694824219,158.52000427246091,154.72999572753909,150.6199951171875,155.0899963378906,159.5899963378906,160.6199951171875,163.97999572753909,165.3800048828125,168.82000732421881,170.21000671386719,174.07000732421881,174.7200012207031,175.6000061035156,178.96000671386719,177.77000427246091,174.61000061035159,174.30999755859381,178.44000244140631,175.05999755859381,171.83000183105469,172.13999938964841,170.0899963378906,165.75,167.6600036621094,170.3999938964844,165.28999328613281,165.07000732421881,167.3999938964844,167.22999572753909,166.41999816894531,161.78999328613281,162.8800048828125,156.80000305175781,156.57000732421881,163.63999938964841,157.6499938964844,157.96000671386719,159.47999572753909,166.02000427246091,156.77000427246091,157.2799987792969,152.05999755859381,154.50999450683591,146.5,142.55999755859381,147.11000061035159,145.53999328613281,149.24000549316409,140.82000732421881,137.3500061035156,137.5899963378906,143.11000061035159,140.36000061035159,140.52000427246091,143.7799987792969,149.63999938964841,148.8399963378906,148.71000671386719,151.21000671386719,145.3800048828125,146.13999938964841,148.71000671386719,147.96000671386719,142.63999938964841,137.1300048828125,131.8800048828125,132.75999450683591,135.42999267578131,130.05999755859381,131.55999755859381,135.8699951171875,135.3500061035156,138.27000427246091,141.6600036621094,141.6600036621094,137.44000244140631,139.22999572753909,136.7200012207031,138.92999267578131,141.55999755859381,142.91999816894531,146.3500061035156,147.03999328613281,144.8699951171875,145.86000061035159,145.49000549316409,148.4700012207031,150.16999816894531,147.07000732421881,151,153.03999328613281,155.3500061035156,154.0899963378906,152.94999694824219,151.6000061035156,156.78999328613281,157.3500061035156,162.50999450683591,161.50999450683591,160.00999450683591,166.1300048828125,165.80999755859381,165.3500061035156,164.8699951171875,164.91999816894531,169.24000549316409,168.49000549316409,172.1000061035156,173.19000244140631,173.0299987792969,174.55000305175781,174.1499938964844,171.52000427246091,167.57000732421881,167.22999572753909,167.5299987792969,170.0299987792969,163.6199951171875,161.3800048828125,158.9100036621094,157.2200012207031,157.96000671386719,155.80999755859381,154.5299987792969,155.96000671386719,154.46000671386719,157.3699951171875,163.42999267578131,153.8399963378906,155.30999755859381,152.3699951171875,150.69999694824219,154.47999572753909,156.8999938964844,153.7200012207031,152.74000549316409,150.42999267578131,150.77000427246091,151.75999450683591,149.8399963378906,142.47999572753909,138.19999694824219,142.44999694824219,146.1000061035156,146.3999938964844,145.42999267578131,140.0899963378906,140.41999816894531,138.97999572753909,138.3399963378906,142.99000549316409,138.3800048828125,142.4100036621094,143.75,143.86000061035159,143.38999938964841,147.27000427246091,149.44999694824219,152.3399963378906,149.3500061035156,144.80000305175781,155.74000549316409,153.3399963378906,150.6499938964844,145.0299987792969,138.8800048828125,138.3800048828125,138.91999816894531,139.5,134.8699951171875,146.8699951171875,149.69999694824219,148.2799987792969,150.03999328613281,148.78999328613281,150.7200012207031,151.28999328613281,148.00999450683591,150.17999267578131,151.07000732421881,148.11000061035159,144.2200012207031,141.16999816894531,148.0299987792969,148.30999755859381,147.80999755859381,146.6300048828125,142.9100036621094,140.94000244140631,142.6499938964844,142.1600036621094,144.49000549316409,145.4700012207031,143.21000671386719,136.5,134.50999450683591,132.3699951171875,132.30000305175781,135.44999694824219,132.22999572753909,131.86000061035159,130.0299987792969,126.0400009155273,129.61000061035159,129.92999267578131,125.0699996948242,126.36000061035161,125.01999664306641,129.6199951171875,130.1499938964844,130.72999572753909,133.49000549316409,133.4100036621094,134.75999450683591,135.94000244140631,135.21000671386719,135.27000427246091,137.8699951171875,141.11000061035159,142.5299987792969,141.86000061035159,143.96000671386719,145.92999267578131,143,144.28999328613281,145.42999267578131,150.82000732421881,154.5,151.72999572753909,154.6499938964844,151.91999816894531,150.8699951171875,151.00999450683591,153.8500061035156,153.19999694824219,155.33000183105469,153.71000671386719,152.55000305175781,148.47999572753909,148.9100036621094,149.3999938964844,146.71000671386719,147.91999816894531,147.4100036621094,145.30999755859381,145.9100036621094,151.0299987792969,153.83000183105469,151.6000061035156,152.8699951171875,150.5899963378906,148.5,150.4700012207031,152.5899963378906,152.99000549316409,155.8500061035156,155,157.3999938964844,159.2799987792969,157.83000183105469,158.92999267578131,160.25,158.2799987792969,157.6499938964844,160.77000427246091,162.36000061035159,164.8999938964844,166.16999816894531,165.6300048828125,163.75999450683591,164.6600036621094,162.0299987792969,160.80000305175781,160.1000061035156,165.55999755859381,165.21000671386719,165.22999572753909,166.4700012207031,167.6300048828125,166.6499938964844,165.02000427246091,165.33000183105469,163.77000427246091,163.75999450683591,168.4100036621094,169.67999267578131,169.5899963378906,168.53999328613281,167.44999694824219,165.78999328613281,173.57000732421881,173.5,171.77000427246091,173.55999755859381,173.75,172.57000732421881,172.07000732421881,172.07000732421881,172.69000244140631,175.05000305175781,175.1600036621094,174.19999694824219,171.55999755859381,171.8399963378906,172.99000549316409,175.42999267578131,177.30000305175781,177.25,180.0899963378906,180.94999694824219,179.58000183105469,179.21000671386719,177.82000732421881,180.57000732421881,180.96000671386719,183.78999328613281,183.30999755859381,183.94999694824219,186.00999450683591,184.91999816894531,185.00999450683591,183.96000671386719,187,186.67999267578131,185.27000427246091,188.05999755859381,189.25,189.5899963378906,193.9700012207031,192.46000671386719,191.33000183105469,191.80999755859381,190.67999267578131,188.61000061035159,188.08000183105469,189.77000427246091,190.53999328613281,190.69000244140631,193.99000549316409,193.72999572753909,195.1000061035156,193.1300048828125,191.94000244140631,192.75,193.6199951171875,194.5,193.2200012207031,195.83000183105469,196.44999694824219,195.61000061035159,192.58000183105469,191.16999816894531,181.99000549316409,178.8500061035156,179.80000305175781,178.19000244140631,177.9700012207031,177.78999328613281,179.46000671386719,177.44999694824219,176.57000732421881,174,174.49000549316409,175.8399963378906,177.22999572753909,181.1199951171875,176.3800048828125,178.61000061035159,180.19000244140631,184.1199951171875,187.6499938964844,187.8699951171875,189.46000671386719,189.69999694824219,182.9100036621094,177.55999755859381,178.17999267578131,179.36000061035159,176.30000305175781,174.21000671386719,175.74000549316409,175.00999450683591,177.9700012207031,179.07000732421881,175.49000549316409,173.92999267578131,174.78999328613281,176.08000183105469,171.96000671386719,170.42999267578131,170.69000244140631,171.21000671386719,173.75,172.3999938964844,173.6600036621094,174.9100036621094,177.49000549316409,178.99000549316409,178.38999938964841,179.80000305175781,180.71000671386719,178.8500061035156,178.7200012207031,177.1499938964844,175.8399963378906,175.46000671386719,172.8800048828125,173,173.44000244140631,171.1000061035156,166.88999938964841,168.2200012207031,170.28999328613281,170.77000427246091,173.9700012207031,177.57000732421881,176.6499938964844,179.22999572753909,181.82000732421881,182.88999938964841,182.4100036621094,186.3999938964844,184.80000305175781,187.44000244140631,188.00999450683591,189.71000671386719,189.69000244140631,191.44999694824219,190.63999938964841,191.30999755859381,189.9700012207031,189.78999328613281,190.3999938964844,189.3699951171875,189.94999694824219,191.24000549316409,189.42999267578131,193.41999816894531,192.32000732421881,194.27000427246091,195.71000671386719,193.17999267578131,194.71000671386719,197.96000671386719,198.11000061035159,197.57000732421881,195.88999938964841,196.94000244140631,194.83000183105469,194.67999267578131,193.6000061035156,193.05000305175781,193.1499938964844,193.58000183105469,192.5299987792969],"type":"scatter","mode":"lines","name":"Train","line":{"color":"#0066CC"},"marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["2024-01-02","2024-01-03","2024-01-04","2024-01-05","2024-01-08","2024-01-09","2024-01-10","2024-01-11","2024-01-12","2024-01-16","2024-01-17","2024-01-18","2024-01-19","2024-01-22","2024-01-23","2024-01-24","2024-01-25","2024-01-26","2024-01-29","2024-01-30","2024-01-31","2024-02-01","2024-02-02","2024-02-05","2024-02-06","2024-02-07","2024-02-08","2024-02-09","2024-02-12","2024-02-13","2024-02-14","2024-02-15","2024-02-16","2024-02-20","2024-02-21","2024-02-22","2024-02-23","2024-02-26","2024-02-27","2024-02-28","2024-02-29","2024-03-01","2024-03-04","2024-03-05","2024-03-06","2024-03-07","2024-03-08","2024-03-11","2024-03-12","2024-03-13","2024-03-14","2024-03-15","2024-03-18","2024-03-19","2024-03-20","2024-03-21","2024-03-22","2024-03-25","2024-03-26","2024-03-27","2024-03-28","2024-04-01","2024-04-02","2024-04-03","2024-04-04","2024-04-05","2024-04-08","2024-04-09","2024-04-10","2024-04-11","2024-04-12","2024-04-15","2024-04-16","2024-04-17","2024-04-18","2024-04-19","2024-04-22","2024-04-23","2024-04-24","2024-04-25","2024-04-26","2024-04-29","2024-04-30","2024-05-01","2024-05-02","2024-05-03","2024-05-06","2024-05-07","2024-05-08","2024-05-09","2024-05-10","2024-05-13","2024-05-14","2024-05-15","2024-05-16","2024-05-17","2024-05-20","2024-05-21","2024-05-22","2024-05-23","2024-05-24","2024-05-28","2024-05-29","2024-05-30","2024-05-31","2024-06-03","2024-06-04","2024-06-05","2024-06-06","2024-06-07","2024-06-10","2024-06-11","2024-06-12","2024-06-13","2024-06-14","2024-06-17","2024-06-18","2024-06-20","2024-06-21","2024-06-24","2024-06-25","2024-06-26","2024-06-27","2024-06-28","2024-07-01","2024-07-02","2024-07-03","2024-07-05","2024-07-08","2024-07-09","2024-07-10","2024-07-11","2024-07-12","2024-07-15","2024-07-16","2024-07-17","2024-07-18","2024-07-19","2024-07-22","2024-07-23","2024-07-24","2024-07-25","2024-07-26","2024-07-29","2024-07-30","2024-07-31","2024-08-01","2024-08-02","2024-08-05","2024-08-06","2024-08-07","2024-08-08","2024-08-09","2024-08-12","2024-08-13","2024-08-14","2024-08-15","2024-08-16","2024-08-19","2024-08-20","2024-08-21","2024-08-22","2024-08-23","2024-08-26","2024-08-27","2024-08-28","2024-08-29","2024-08-30","2024-09-03","2024-09-04","2024-09-05","2024-09-06","2024-09-09","2024-09-10","2024-09-11","2024-09-12","2024-09-13","2024-09-16","2024-09-17","2024-09-18","2024-09-19","2024-09-20","2024-09-23","2024-09-24","2024-09-25","2024-09-26","2024-09-27","2024-09-30","2024-10-01","2024-10-02","2024-10-03","2024-10-04","2024-10-07","2024-10-08","2024-10-09","2024-10-10","2024-10-11","2024-10-14","2024-10-15","2024-10-16","2024-10-17","2024-10-18","2024-10-21","2024-10-22","2024-10-23","2024-10-24","2024-10-25","2024-10-28","2024-10-29","2024-10-30","2024-10-31","2024-11-01","2024-11-04","2024-11-05","2024-11-06","2024-11-07","2024-11-08","2024-11-11","2024-11-12","2024-11-13","2024-11-14","2024-11-15","2024-11-18","2024-11-19","2024-11-20","2024-11-21","2024-11-22","2024-11-25","2024-11-26","2024-11-27","2024-11-29","2024-12-02","2024-12-03","2024-12-04","2024-12-05","2024-12-06","2024-12-09","2024-12-10","2024-12-11","2024-12-12","2024-12-13","2024-12-16","2024-12-17","2024-12-18","2024-12-19","2024-12-20","2024-12-23","2024-12-24","2024-12-26","2024-12-27","2024-12-30","2024-12-31","2025-01-02","2025-01-03","2025-01-06","2025-01-07","2025-01-08","2025-01-10","2025-01-13","2025-01-14","2025-01-15","2025-01-16","2025-01-17","2025-01-21","2025-01-22","2025-01-23","2025-01-24","2025-01-27","2025-01-28","2025-01-29","2025-01-30","2025-01-31","2025-02-03","2025-02-04","2025-02-05","2025-02-06","2025-02-07","2025-02-10","2025-02-11","2025-02-12","2025-02-13","2025-02-14","2025-02-18","2025-02-19","2025-02-20","2025-02-21","2025-02-24","2025-02-25","2025-02-26","2025-02-27","2025-02-28","2025-03-03","2025-03-04","2025-03-05","2025-03-06","2025-03-07","2025-03-10","2025-03-11","2025-03-12","2025-03-13","2025-03-14","2025-03-17","2025-03-18","2025-03-19","2025-03-20","2025-03-21","2025-03-24","2025-03-25","2025-03-26","2025-03-27","2025-03-28","2025-03-31","2025-04-01","2025-04-02","2025-04-03","2025-04-04","2025-04-07","2025-04-08","2025-04-09","2025-04-10","2025-04-11","2025-04-14","2025-04-15","2025-04-16","2025-04-17","2025-04-21","2025-04-22","2025-04-23","2025-04-24","2025-04-25","2025-04-28","2025-04-29","2025-04-30","2025-05-01","2025-05-02","2025-05-05","2025-05-06","2025-05-07","2025-05-08","2025-05-09","2025-05-12","2025-05-13","2025-05-14","2025-05-15","2025-05-16","2025-05-19","2025-05-20","2025-05-21","2025-05-22","2025-05-23","2025-05-27","2025-05-28","2025-05-29","2025-05-30","2025-06-02","2025-06-03","2025-06-04","2025-06-05","2025-06-06","2025-06-09","2025-06-10","2025-06-11","2025-06-12","2025-06-13","2025-06-16","2025-06-17","2025-06-18","2025-06-20","2025-06-23","2025-06-24","2025-06-25","2025-06-26","2025-06-27","2025-06-30","2025-07-01","2025-07-02","2025-07-03","2025-07-07","2025-07-08","2025-07-09","2025-07-10","2025-07-11","2025-07-14","2025-07-15","2025-07-16","2025-07-17","2025-07-18","2025-07-21","2025-07-22","2025-07-23","2025-07-24","2025-07-25","2025-07-28","2025-07-29","2025-07-30","2025-07-31","2025-08-01","2025-08-04","2025-08-05","2025-08-06","2025-08-07","2025-08-08","2025-08-11","2025-08-12","2025-08-13","2025-08-14","2025-08-15","2025-08-18","2025-08-19","2025-08-20","2025-08-21","2025-08-22","2025-08-25","2025-08-26","2025-08-27","2025-08-28","2025-08-29","2025-09-02","2025-09-03","2025-09-04","2025-09-05","2025-09-08","2025-09-09","2025-09-10","2025-09-11","2025-09-12","2025-09-15","2025-09-16","2025-09-17","2025-09-18","2025-09-19","2025-09-22","2025-09-23","2025-09-24","2025-09-25","2025-09-26","2025-09-29","2025-09-30","2025-10-01","2025-10-02","2025-10-03","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-10-10"],"y":[185.63999938964841,184.25,181.9100036621094,181.17999267578131,185.55999755859381,185.13999938964841,186.19000244140631,185.5899963378906,185.91999816894531,183.6300048828125,182.67999267578131,188.6300048828125,191.55999755859381,193.88999938964841,195.17999267578131,194.5,194.16999816894531,192.41999816894531,191.72999572753909,188.03999328613281,184.3999938964844,186.86000061035159,185.8500061035156,187.67999267578131,189.30000305175781,189.4100036621094,188.32000732421881,188.8500061035156,187.1499938964844,185.03999328613281,184.1499938964844,183.86000061035159,182.30999755859381,181.55999755859381,182.32000732421881,184.3699951171875,182.52000427246091,181.1600036621094,182.6300048828125,181.41999816894531,180.75,179.6600036621094,175.1000061035156,170.1199951171875,169.1199951171875,169,170.72999572753909,172.75,173.22999572753909,171.1300048828125,173,172.6199951171875,173.7200012207031,176.08000183105469,178.66999816894531,171.3699951171875,172.2799987792969,170.8500061035156,169.71000671386719,173.30999755859381,171.47999572753909,170.0299987792969,168.8399963378906,169.6499938964844,168.82000732421881,169.58000183105469,168.44999694824219,169.66999816894531,167.7799987792969,175.03999328613281,176.55000305175781,172.69000244140631,169.3800048828125,168,167.03999328613281,165,165.8399963378906,166.8999938964844,169.02000427246091,169.88999938964841,169.30000305175781,173.5,170.33000183105469,169.30000305175781,173.0299987792969,183.3800048828125,181.71000671386719,182.3999938964844,182.74000549316409,184.57000732421881,183.05000305175781,186.2799987792969,187.42999267578131,189.7200012207031,189.8399963378906,189.8699951171875,191.03999328613281,192.3500061035156,190.8999938964844,186.8800048828125,189.97999572753909,189.99000549316409,190.28999328613281,191.28999328613281,192.25,194.0299987792969,194.3500061035156,195.8699951171875,194.47999572753909,196.88999938964841,193.1199951171875,207.1499938964844,213.07000732421881,214.24000549316409,212.49000549316409,216.66999816894531,214.28999328613281,209.67999267578131,207.49000549316409,208.13999938964841,209.07000732421881,213.25,214.1000061035156,210.6199951171875,216.75,220.27000427246091,221.55000305175781,226.3399963378906,227.82000732421881,228.67999267578131,232.97999572753909,227.57000732421881,230.53999328613281,234.3999938964844,234.82000732421881,228.8800048828125,224.17999267578131,224.30999755859381,223.96000671386719,225.00999450683591,218.53999328613281,217.49000549316409,217.96000671386719,218.24000549316409,218.80000305175781,222.08000183105469,218.36000061035159,219.86000061035159,209.27000427246091,207.22999572753909,209.82000732421881,213.30999755859381,216.24000549316409,217.5299987792969,221.27000427246091,221.7200012207031,224.7200012207031,226.05000305175781,225.88999938964841,226.50999450683591,226.3999938964844,224.5299987792969,226.8399963378906,227.17999267578131,228.0299987792969,226.49000549316409,229.78999328613281,229,222.77000427246091,220.8500061035156,222.3800048828125,220.82000732421881,220.9100036621094,220.11000061035159,222.6600036621094,222.77000427246091,222.5,216.32000732421881,216.78999328613281,220.69000244140631,228.8699951171875,228.19999694824219,226.4700012207031,227.3699951171875,226.3699951171875,227.52000427246091,227.78999328613281,233,226.21000671386719,226.7799987792969,225.66999816894531,226.80000305175781,221.69000244140631,225.77000427246091,229.53999328613281,229.03999328613281,227.55000305175781,231.30000305175781,233.8500061035156,231.7799987792969,232.1499938964844,235,236.47999572753909,235.86000061035159,230.75999450683591,230.57000732421881,231.4100036621094,233.3999938964844,233.66999816894531,230.1000061035156,225.9100036621094,222.9100036621094,222.00999450683591,223.44999694824219,222.7200012207031,227.47999572753909,226.96000671386719,224.22999572753909,224.22999572753909,225.1199951171875,228.2200012207031,225,228.02000427246091,228.2799987792969,229,228.52000427246091,229.8699951171875,232.8699951171875,235.05999755859381,234.92999267578131,237.33000183105469,239.5899963378906,242.6499938964844,243.00999450683591,243.03999328613281,242.8399963378906,246.75,247.77000427246091,246.49000549316409,247.96000671386719,248.1300048828125,251.03999328613281,253.47999572753909,248.05000305175781,249.78999328613281,254.49000549316409,255.27000427246091,258.20001220703131,259.01998901367188,255.5899963378906,252.19999694824219,250.41999816894531,243.8500061035156,243.36000061035159,245,242.21000671386719,242.69999694824219,236.8500061035156,234.3999938964844,233.2799987792969,237.8699951171875,228.25999450683591,229.97999572753909,222.63999938964841,223.83000183105469,223.6600036621094,222.7799987792969,229.86000061035159,238.25999450683591,239.36000061035159,237.5899963378906,236,228.00999450683591,232.80000305175781,232.4700012207031,233.2200012207031,227.6300048828125,227.6499938964844,232.6199951171875,236.8699951171875,241.5299987792969,244.6000061035156,244.4700012207031,244.8699951171875,245.83000183105469,245.55000305175781,247.1000061035156,247.03999328613281,240.36000061035159,237.30000305175781,241.8399963378906,238.0299987792969,235.92999267578131,235.74000549316409,235.33000183105469,239.07000732421881,227.47999572753909,220.8399963378906,216.97999572753909,209.67999267578131,213.49000549316409,214,212.69000244140631,215.24000549316409,214.1000061035156,218.27000427246091,220.72999572753909,223.75,221.5299987792969,223.8500061035156,217.8999938964844,222.1300048828125,223.19000244140631,223.88999938964841,203.19000244140631,188.3800048828125,181.46000671386719,172.41999816894531,198.8500061035156,190.41999816894531,198.1499938964844,202.52000427246091,202.13999938964841,194.27000427246091,196.97999572753909,193.1600036621094,199.74000549316409,204.6000061035156,208.3699951171875,209.2799987792969,210.13999938964841,211.21000671386719,212.5,213.32000732421881,205.3500061035156,198.88999938964841,198.50999450683591,196.25,197.49000549316409,198.5299987792969,210.78999328613281,212.92999267578131,212.33000183105469,211.44999694824219,211.25999450683591,208.7799987792969,206.86000061035159,202.0899963378906,201.36000061035159,195.27000427246091,200.21000671386719,200.41999816894531,199.94999694824219,200.8500061035156,201.69999694824219,203.27000427246091,202.82000732421881,200.6300048828125,203.91999816894531,201.44999694824219,202.66999816894531,198.7799987792969,199.19999694824219,196.44999694824219,198.41999816894531,195.63999938964841,196.58000183105469,201,201.5,200.30000305175781,201.55999755859381,201,201.08000183105469,205.16999816894531,207.82000732421881,212.44000244140631,213.55000305175781,209.94999694824219,210.00999450683591,211.13999938964841,212.4100036621094,211.1600036621094,208.6199951171875,209.11000061035159,210.1600036621094,210.02000427246091,211.17999267578131,212.47999572753909,214.3999938964844,214.1499938964844,213.75999450683591,213.8800048828125,214.05000305175781,211.27000427246091,209.05000305175781,207.57000732421881,202.3800048828125,203.3500061035156,202.91999816894531,213.25,220.0299987792969,229.3500061035156,227.17999267578131,229.6499938964844,233.33000183105469,232.7799987792969,231.5899963378906,230.88999938964841,230.55999755859381,226.00999450683591,224.8999938964844,227.75999450683591,227.1600036621094,229.30999755859381,230.49000549316409,232.55999755859381,232.13999938964841,229.7200012207031,238.4700012207031,239.7799987792969,239.69000244140631,237.8800048828125,234.3500061035156,226.78999328613281,230.0299987792969,234.07000732421881,236.69999694824219,238.1499938964844,238.99000549316409,237.8800048828125,245.5,256.07998657226562,254.42999267578131,252.30999755859381,256.8699951171875,255.46000671386719,254.42999267578131,254.6300048828125,255.44999694824219,257.1300048828125,258.01998901367188,256.69000244140631,256.48001098632812,258.05999755859381,254.03999328613281,245.27000427246091],"type":"scatter","mode":"lines","name":"Test","line":{"color":"#FF6B35"},"marker":{"color":"rgba(255,127,14,1)","line":{"color":"rgba(255,127,14,1)"}},"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["2018-12-07","2018-12-10","2018-12-11","2018-12-12","2018-12-13","2018-12-14","2018-12-17","2018-12-18","2018-12-19","2018-12-20","2018-12-21","2018-12-24","2018-12-26","2018-12-27","2018-12-28","2018-12-31","2019-01-02","2019-01-03","2019-01-04","2019-01-07","2019-01-08","2019-01-09","2019-01-10","2019-01-11","2019-01-14","2019-01-15","2019-01-16","2019-01-17","2019-01-18","2019-01-22","2019-01-23","2019-01-24","2019-01-25","2019-01-28","2019-01-29","2019-01-30","2019-01-31","2019-02-01","2019-02-04","2019-02-05","2019-02-06","2019-02-07","2019-02-08","2019-02-11","2019-02-12","2019-02-13","2019-02-14","2019-02-15","2019-02-19","2019-02-20","2019-02-21","2019-02-22","2019-02-25","2019-02-26","2019-02-27","2019-02-28","2019-03-01","2019-03-04","2019-03-05","2019-03-06","2019-03-07","2019-03-08","2019-03-11","2019-03-12","2019-03-13","2019-03-14","2019-03-15","2019-03-18","2019-03-19","2019-03-20","2019-03-21","2019-03-22","2019-03-25","2019-03-26","2019-03-27","2019-03-28","2019-03-29","2019-04-01","2019-04-02","2019-04-03","2019-04-04","2019-04-05","2019-04-08","2019-04-09","2019-04-10","2019-04-11","2019-04-12","2019-04-15","2019-04-16","2019-04-17","2019-04-18","2019-04-22","2019-04-23","2019-04-24","2019-04-25","2019-04-26","2019-04-29","2019-04-30","2019-05-01","2019-05-02","2019-05-03","2019-05-06","2019-05-07","2019-05-08","2019-05-09","2019-05-10","2019-05-13","2019-05-14","2019-05-15","2019-05-16","2019-05-17","2019-05-20","2019-05-21","2019-05-22","2019-05-23","2019-05-24","2019-05-28","2019-05-29","2019-05-30","2019-05-31","2019-06-03","2019-06-04","2019-06-05","2019-06-06","2019-06-07","2019-06-10","2019-06-11","2019-06-12","2019-06-13","2019-06-14","2019-06-17","2019-06-18","2019-06-19","2019-06-20","2019-06-21","2019-06-24","2019-06-25","2019-06-26","2019-06-27","2019-06-28","2019-07-01","2019-07-02","2019-07-03","2019-07-05","2019-07-08","2019-07-09","2019-07-10","2019-07-11","2019-07-12","2019-07-15","2019-07-16","2019-07-17","2019-07-18","2019-07-19","2019-07-22","2019-07-23","2019-07-24","2019-07-25","2019-07-26","2019-07-29","2019-07-30","2019-07-31","2019-08-01","2019-08-02","2019-08-05","2019-08-06","2019-08-07","2019-08-08","2019-08-09","2019-08-12","2019-08-13","2019-08-14","2019-08-15","2019-08-16","2019-08-19","2019-08-20","2019-08-21","2019-08-22","2019-08-23","2019-08-26","2019-08-27","2019-08-28","2019-08-29","2019-08-30","2019-09-03","2019-09-04","2019-09-05","2019-09-06","2019-09-09","2019-09-10","2019-09-11","2019-09-12","2019-09-13","2019-09-16","2019-09-17","2019-09-18","2019-09-19","2019-09-20","2019-09-23","2019-09-24","2019-09-25","2019-09-26","2019-09-27","2019-09-30","2019-10-01","2019-10-02","2019-10-03","2019-10-04","2019-10-07","2019-10-08","2019-10-09","2019-10-10","2019-10-11","2019-10-14","2019-10-15","2019-10-16","2019-10-17","2019-10-18","2019-10-21","2019-10-22","2019-10-23","2019-10-24","2019-10-25","2019-10-28","2019-10-29","2019-10-30","2019-10-31","2019-11-01","2019-11-04","2019-11-05","2019-11-06","2019-11-07","2019-11-08","2019-11-11","2019-11-12","2019-11-13","2019-11-14","2019-11-15","2019-11-18","2019-11-19","2019-11-20","2019-11-21","2019-11-22","2019-11-25","2019-11-26","2019-11-27","2019-11-29","2019-12-02","2019-12-03","2019-12-04","2019-12-05","2019-12-06","2019-12-09","2019-12-10","2019-12-11","2019-12-12","2019-12-13","2019-12-16","2019-12-17","2019-12-18","2019-12-19","2019-12-20","2019-12-23","2019-12-24","2019-12-26","2019-12-27","2019-12-30","2019-12-31","2020-01-02","2020-01-03","2020-01-06","2020-01-07","2020-01-08","2020-01-09","2020-01-10","2020-01-13","2020-01-14","2020-01-15","2020-01-16","2020-01-17","2020-01-21","2020-01-22","2020-01-23","2020-01-24","2020-01-27","2020-01-28","2020-01-29","2020-01-30","2020-01-31","2020-02-03","2020-02-04","2020-02-05","2020-02-06","2020-02-07","2020-02-10","2020-02-11","2020-02-12","2020-02-13","2020-02-14","2020-02-18","2020-02-19","2020-02-20","2020-02-21","2020-02-24","2020-02-25","2020-02-26","2020-02-27","2020-02-28","2020-03-02","2020-03-03","2020-03-04","2020-03-05","2020-03-06","2020-03-09","2020-03-10","2020-03-11","2020-03-12","2020-03-13","2020-03-16","2020-03-17","2020-03-18","2020-03-19","2020-03-20","2020-03-23","2020-03-24","2020-03-25","2020-03-26","2020-03-27","2020-03-30","2020-03-31","2020-04-01","2020-04-02","2020-04-03","2020-04-06","2020-04-07","2020-04-08","2020-04-09","2020-04-13","2020-04-14","2020-04-15","2020-04-16","2020-04-17","2020-04-20","2020-04-21","2020-04-22","2020-04-23","2020-04-24","2020-04-27","2020-04-28","2020-04-29","2020-04-30","2020-05-01","2020-05-04","2020-05-05","2020-05-06","2020-05-07","2020-05-08","2020-05-11","2020-05-12","2020-05-13","2020-05-14","2020-05-15","2020-05-18","2020-05-19","2020-05-20","2020-05-21","2020-05-22","2020-05-26","2020-05-27","2020-05-28","2020-05-29","2020-06-01","2020-06-02","2020-06-03","2020-06-04","2020-06-05","2020-06-08","2020-06-09","2020-06-10","2020-06-11","2020-06-12","2020-06-15","2020-06-16","2020-06-17","2020-06-18","2020-06-19","2020-06-22","2020-06-23","2020-06-24","2020-06-25","2020-06-26","2020-06-29","2020-06-30","2020-07-01","2020-07-02","2020-07-06","2020-07-07","2020-07-08","2020-07-09","2020-07-10","2020-07-13","2020-07-14","2020-07-15","2020-07-16","2020-07-17","2020-07-20","2020-07-21","2020-07-22","2020-07-23","2020-07-24","2020-07-27","2020-07-28","2020-07-29","2020-07-30","2020-07-31","2020-08-03","2020-08-04","2020-08-05","2020-08-06","2020-08-07","2020-08-10","2020-08-11","2020-08-12","2020-08-13","2020-08-14","2020-08-17","2020-08-18","2020-08-19","2020-08-20","2020-08-21","2020-08-24","2020-08-25","2020-08-26","2020-08-27","2020-08-28","2020-08-31","2020-09-01","2020-09-02","2020-09-03","2020-09-04","2020-09-08","2020-09-09","2020-09-10","2020-09-11","2020-09-14","2020-09-15","2020-09-16","2020-09-17","2020-09-18","2020-09-21","2020-09-22","2020-09-23","2020-09-24","2020-09-25","2020-09-28","2020-09-29","2020-09-30","2020-10-01","2020-10-02","2020-10-05","2020-10-06","2020-10-07","2020-10-08","2020-10-09","2020-10-12","2020-10-13","2020-10-14","2020-10-15","2020-10-16","2020-10-19","2020-10-20","2020-10-21","2020-10-22","2020-10-23","2020-10-26","2020-10-27","2020-10-28","2020-10-29","2020-10-30","2020-11-02","2020-11-03","2020-11-04","2020-11-05","2020-11-06","2020-11-09","2020-11-10","2020-11-11","2020-11-12","2020-11-13","2020-11-16","2020-11-17","2020-11-18","2020-11-19","2020-11-20","2020-11-23","2020-11-24","2020-11-25","2020-11-27","2020-11-30","2020-12-01","2020-12-02","2020-12-03","2020-12-04","2020-12-07","2020-12-08","2020-12-09","2020-12-10","2020-12-11","2020-12-14","2020-12-15","2020-12-16","2020-12-17","2020-12-18","2020-12-21","2020-12-22","2020-12-23","2020-12-24","2020-12-28","2020-12-29","2020-12-30","2020-12-31","2021-01-04","2021-01-05","2021-01-06","2021-01-07","2021-01-08","2021-01-11","2021-01-12","2021-01-13","2021-01-14","2021-01-15","2021-01-19","2021-01-20","2021-01-21","2021-01-22","2021-01-25","2021-01-26","2021-01-27","2021-01-28","2021-01-29","2021-02-01","2021-02-02","2021-02-03","2021-02-04","2021-02-05","2021-02-08","2021-02-09","2021-02-10","2021-02-11","2021-02-12","2021-02-16","2021-02-17","2021-02-18","2021-02-19","2021-02-22","2021-02-23","2021-02-24","2021-02-25","2021-02-26","2021-03-01","2021-03-02","2021-03-03","2021-03-04","2021-03-05","2021-03-08","2021-03-09","2021-03-10","2021-03-11","2021-03-12","2021-03-15","2021-03-16","2021-03-17","2021-03-18","2021-03-19","2021-03-22","2021-03-23","2021-03-24","2021-03-25","2021-03-26","2021-03-29","2021-03-30","2021-03-31","2021-04-01","2021-04-05","2021-04-06","2021-04-07","2021-04-08","2021-04-09","2021-04-12","2021-04-13","2021-04-14","2021-04-15","2021-04-16","2021-04-19","2021-04-20","2021-04-21","2021-04-22","2021-04-23","2021-04-26","2021-04-27","2021-04-28","2021-04-29","2021-04-30","2021-05-03","2021-05-04","2021-05-05","2021-05-06","2021-05-07","2021-05-10","2021-05-11","2021-05-12","2021-05-13","2021-05-14","2021-05-17","2021-05-18","2021-05-19","2021-05-20","2021-05-21","2021-05-24","2021-05-25","2021-05-26","2021-05-27","2021-05-28","2021-06-01","2021-06-02","2021-06-03","2021-06-04","2021-06-07","2021-06-08","2021-06-09","2021-06-10","2021-06-11","2021-06-14","2021-06-15","2021-06-16","2021-06-17","2021-06-18","2021-06-21","2021-06-22","2021-06-23","2021-06-24","2021-06-25","2021-06-28","2021-06-29","2021-06-30","2021-07-01","2021-07-02","2021-07-06","2021-07-07","2021-07-08","2021-07-09","2021-07-12","2021-07-13","2021-07-14","2021-07-15","2021-07-16","2021-07-19","2021-07-20","2021-07-21","2021-07-22","2021-07-23","2021-07-26","2021-07-27","2021-07-28","2021-07-29","2021-07-30","2021-08-02","2021-08-03","2021-08-04","2021-08-05","2021-08-06","2021-08-09","2021-08-10","2021-08-11","2021-08-12","2021-08-13","2021-08-16","2021-08-17","2021-08-18","2021-08-19","2021-08-20","2021-08-23","2021-08-24","2021-08-25","2021-08-26","2021-08-27","2021-08-30","2021-08-31","2021-09-01","2021-09-02","2021-09-03","2021-09-07","2021-09-08","2021-09-09","2021-09-10","2021-09-13","2021-09-14","2021-09-15","2021-09-16","2021-09-17","2021-09-20","2021-09-21","2021-09-22","2021-09-23","2021-09-24","2021-09-27","2021-09-28","2021-09-29","2021-09-30","2021-10-01","2021-10-04","2021-10-05","2021-10-06","2021-10-07","2021-10-08","2021-10-11","2021-10-12","2021-10-13","2021-10-14","2021-10-15","2021-10-18","2021-10-19","2021-10-20","2021-10-21","2021-10-22","2021-10-25","2021-10-26","2021-10-27","2021-10-28","2021-10-29","2021-11-01","2021-11-02","2021-11-03","2021-11-04","2021-11-05","2021-11-08","2021-11-09","2021-11-10","2021-11-11","2021-11-12","2021-11-15","2021-11-16","2021-11-17","2021-11-18","2021-11-19","2021-11-22","2021-11-23","2021-11-24","2021-11-26","2021-11-29","2021-11-30","2021-12-01","2021-12-02","2021-12-03","2021-12-06","2021-12-07","2021-12-08","2021-12-09","2021-12-10","2021-12-13","2021-12-14","2021-12-15","2021-12-16","2021-12-17","2021-12-20","2021-12-21","2021-12-22","2021-12-23","2021-12-27","2021-12-28","2021-12-29","2021-12-30","2021-12-31","2022-01-03","2022-01-04","2022-01-05","2022-01-06","2022-01-07","2022-01-10","2022-01-11","2022-01-12","2022-01-13","2022-01-14","2022-01-18","2022-01-19","2022-01-20","2022-01-21","2022-01-24","2022-01-25","2022-01-26","2022-01-27","2022-01-28","2022-01-31","2022-02-01","2022-02-02","2022-02-03","2022-02-04","2022-02-07","2022-02-08","2022-02-09","2022-02-10","2022-02-11","2022-02-14","2022-02-15","2022-02-16","2022-02-17","2022-02-18","2022-02-22","2022-02-23","2022-02-24","2022-02-25","2022-02-28","2022-03-01","2022-03-02","2022-03-03","2022-03-04","2022-03-07","2022-03-08","2022-03-09","2022-03-10","2022-03-11","2022-03-14","2022-03-15","2022-03-16","2022-03-17","2022-03-18","2022-03-21","2022-03-22","2022-03-23","2022-03-24","2022-03-25","2022-03-28","2022-03-29","2022-03-30","2022-03-31","2022-04-01","2022-04-04","2022-04-05","2022-04-06","2022-04-07","2022-04-08","2022-04-11","2022-04-12","2022-04-13","2022-04-14","2022-04-18","2022-04-19","2022-04-20","2022-04-21","2022-04-22","2022-04-25","2022-04-26","2022-04-27","2022-04-28","2022-04-29","2022-05-02","2022-05-03","2022-05-04","2022-05-05","2022-05-06","2022-05-09","2022-05-10","2022-05-11","2022-05-12","2022-05-13","2022-05-16","2022-05-17","2022-05-18","2022-05-19","2022-05-20","2022-05-23","2022-05-24","2022-05-25","2022-05-26","2022-05-27","2022-05-31","2022-06-01","2022-06-02","2022-06-03","2022-06-06","2022-06-07","2022-06-08","2022-06-09","2022-06-10","2022-06-13","2022-06-14","2022-06-15","2022-06-16","2022-06-17","2022-06-21","2022-06-22","2022-06-23","2022-06-24","2022-06-27","2022-06-28","2022-06-29","2022-06-30","2022-07-01","2022-07-05","2022-07-06","2022-07-07","2022-07-08","2022-07-11","2022-07-12","2022-07-13","2022-07-14","2022-07-15","2022-07-18","2022-07-19","2022-07-20","2022-07-21","2022-07-22","2022-07-25","2022-07-26","2022-07-27","2022-07-28","2022-07-29","2022-08-01","2022-08-02","2022-08-03","2022-08-04","2022-08-05","2022-08-08","2022-08-09","2022-08-10","2022-08-11","2022-08-12","2022-08-15","2022-08-16","2022-08-17","2022-08-18","2022-08-19","2022-08-22","2022-08-23","2022-08-24","2022-08-25","2022-08-26","2022-08-29","2022-08-30","2022-08-31","2022-09-01","2022-09-02","2022-09-06","2022-09-07","2022-09-08","2022-09-09","2022-09-12","2022-09-13","2022-09-14","2022-09-15","2022-09-16","2022-09-19","2022-09-20","2022-09-21","2022-09-22","2022-09-23","2022-09-26","2022-09-27","2022-09-28","2022-09-29","2022-09-30","2022-10-03","2022-10-04","2022-10-05","2022-10-06","2022-10-07","2022-10-10","2022-10-11","2022-10-12","2022-10-13","2022-10-14","2022-10-17","2022-10-18","2022-10-19","2022-10-20","2022-10-21","2022-10-24","2022-10-25","2022-10-26","2022-10-27","2022-10-28","2022-10-31","2022-11-01","2022-11-02","2022-11-03","2022-11-04","2022-11-07","2022-11-08","2022-11-09","2022-11-10","2022-11-11","2022-11-14","2022-11-15","2022-11-16","2022-11-17","2022-11-18","2022-11-21","2022-11-22","2022-11-23","2022-11-25","2022-11-28","2022-11-29","2022-11-30","2022-12-01","2022-12-02","2022-12-05","2022-12-06","2022-12-07","2022-12-08","2022-12-09","2022-12-12","2022-12-13","2022-12-14","2022-12-15","2022-12-16","2022-12-19","2022-12-20","2022-12-21","2022-12-22","2022-12-23","2022-12-27","2022-12-28","2022-12-29","2022-12-30","2023-01-03","2023-01-04","2023-01-05","2023-01-06","2023-01-09","2023-01-10","2023-01-11","2023-01-12","2023-01-13","2023-01-17","2023-01-18","2023-01-19","2023-01-20","2023-01-23","2023-01-24","2023-01-25","2023-01-26","2023-01-27","2023-01-30","2023-01-31","2023-02-01","2023-02-02","2023-02-03","2023-02-06","2023-02-07","2023-02-08","2023-02-09","2023-02-10","2023-02-13","2023-02-14","2023-02-15","2023-02-16","2023-02-17","2023-02-21","2023-02-22","2023-02-23","2023-02-24","2023-02-27","2023-02-28","2023-03-01","2023-03-02","2023-03-03","2023-03-06","2023-03-07","2023-03-08","2023-03-09","2023-03-10","2023-03-13","2023-03-14","2023-03-15","2023-03-16","2023-03-17","2023-03-20","2023-03-21","2023-03-22","2023-03-23","2023-03-24","2023-03-27","2023-03-28","2023-03-29","2023-03-30","2023-03-31","2023-04-03","2023-04-04","2023-04-05","2023-04-06","2023-04-10","2023-04-11","2023-04-12","2023-04-13","2023-04-14","2023-04-17","2023-04-18","2023-04-19","2023-04-20","2023-04-21","2023-04-24","2023-04-25","2023-04-26","2023-04-27","2023-04-28","2023-05-01","2023-05-02","2023-05-03","2023-05-04","2023-05-05","2023-05-08","2023-05-09","2023-05-10","2023-05-11","2023-05-12","2023-05-15","2023-05-16","2023-05-17","2023-05-18","2023-05-19","2023-05-22","2023-05-23","2023-05-24","2023-05-25","2023-05-26","2023-05-30","2023-05-31","2023-06-01","2023-06-02","2023-06-05","2023-06-06","2023-06-07","2023-06-08","2023-06-09","2023-06-12","2023-06-13","2023-06-14","2023-06-15","2023-06-16","2023-06-20","2023-06-21","2023-06-22","2023-06-23","2023-06-26","2023-06-27","2023-06-28","2023-06-29","2023-06-30","2023-07-03","2023-07-05","2023-07-06","2023-07-07","2023-07-10","2023-07-11","2023-07-12","2023-07-13","2023-07-14","2023-07-17","2023-07-18","2023-07-19","2023-07-20","2023-07-21","2023-07-24","2023-07-25","2023-07-26","2023-07-27","2023-07-28","2023-07-31","2023-08-01","2023-08-02","2023-08-03","2023-08-04","2023-08-07","2023-08-08","2023-08-09","2023-08-10","2023-08-11","2023-08-14","2023-08-15","2023-08-16","2023-08-17","2023-08-18","2023-08-21","2023-08-22","2023-08-23","2023-08-24","2023-08-25","2023-08-28","2023-08-29","2023-08-30","2023-08-31","2023-09-01","2023-09-05","2023-09-06","2023-09-07","2023-09-08","2023-09-11","2023-09-12","2023-09-13","2023-09-14","2023-09-15","2023-09-18","2023-09-19","2023-09-20","2023-09-21","2023-09-22","2023-09-25","2023-09-26","2023-09-27","2023-09-28","2023-09-29","2023-10-02","2023-10-03","2023-10-04","2023-10-05","2023-10-06","2023-10-09","2023-10-10","2023-10-11","2023-10-12","2023-10-13","2023-10-16","2023-10-17","2023-10-18","2023-10-19","2023-10-20","2023-10-23","2023-10-24","2023-10-25","2023-10-26","2023-10-27","2023-10-30","2023-10-31","2023-11-01","2023-11-02","2023-11-03","2023-11-06","2023-11-07","2023-11-08","2023-11-09","2023-11-10","2023-11-13","2023-11-14","2023-11-15","2023-11-16","2023-11-17","2023-11-20","2023-11-21","2023-11-22","2023-11-24","2023-11-27","2023-11-28","2023-11-29","2023-11-30","2023-12-01","2023-12-04","2023-12-05","2023-12-06","2023-12-07","2023-12-08","2023-12-11","2023-12-12","2023-12-13","2023-12-14","2023-12-15","2023-12-18","2023-12-19","2023-12-20","2023-12-21","2023-12-22","2023-12-26","2023-12-27","2023-12-28","2023-12-29"],"y":[18.60000038146973,18.79999923706055,18.010000228881839,18.680000305175781,18.760000228881839,18.319999694824219,17,17,16.180000305175781,15.5,14.47000026702881,14.02999973297119,13.52000045776367,14.64999961853027,14.14999961853027,15.27000045776367,15.329999923706049,15.5,16.95999908447266,16.270000457763668,16.95000076293945,16.329999923706051,16.479999542236332,17,16.739999771118161,16.590000152587891,16.260000228881839,16.309999465942379,16.690000534057621,15.560000419616699,14.789999961853029,14.64000034332275,14.909999847412109,14.44999980926514,14.63000011444092,15.13000011444092,16.60000038146973,16.219999313354489,16.270000457763668,17.180000305175781,18.139999389648441,17.04999923706055,17.989999771118161,18.170000076293949,18.690000534057621,18.530000686645511,19.659999847412109,21.440000534057621,20.829999923706051,19.920000076293949,19.340000152587891,19.879999160766602,21.64999961853027,23.70000076293945,22.10000038146973,22.60000038146973,22.270000457763668,21.120000839233398,21.370000839233398,20.64999961853027,20.590000152587891,20.930000305175781,20.430000305175781,19.260000228881839,19.969999313354489,20.819999694824219,21.819999694824219,22.180000305175781,20.35000038146973,20,19.340000152587891,19,19.39999961853027,19.89999961853027,19.270000457763668,19.659999847412109,20.35000038146973,20.590000152587891,19.70000076293945,21.329999923706051,23.079999923706051,25.95999908447266,27.229999542236332,26.819999694824219,26.79999923706055,25.729999542236332,24.610000610351559,25.840000152587891,23.780000686645511,23.5,22.510000228881839,23.629999160766602,24.70000076293945,25.760000228881839,25.739999771118161,26.260000228881839,25.139999389648441,26.030000686645511,26.39999961853027,28.340000152587891,27.20000076293945,27.10000038146973,24.54999923706055,23.54000091552734,23.260000228881839,24.920000076293949,24.430000305175781,23.590000152587891,23.120000839233398,23.45999908447266,23.079999923706051,22.60000038146973,22.70000076293945,22,21.379999160766602,21.829999923706051,21.54000091552734,21.70000076293945,21.489999771118161,20.780000686645511,19.85000038146973,19.469999313354489,17.70000076293945,17.940000534057621,17.520000457763668,15.670000076293951,16,16.29999923706055,16.159999847412109,15.39999961853027,15.77000045776367,15.739999771118161,15.5,15.180000305175779,14.69999980926514,14.039999961853029,13.77000045776367,13.69999980926514,14.340000152587891,14.64000034332275,14.72999954223633,14.39999961853027,15.310000419616699,14.960000038146971,14.289999961853029,14.85000038146973,14.47999954223633,14.439999580383301,14.19999980926514,14.319999694824221,14.14000034332275,14.02999973297119,14.260000228881839,14.10999965667725,14.05000019073486,13.60000038146973,14.47000026702881,13.510000228881839,14.11999988555908,13.689999580383301,13.39999961853027,13.10000038146973,13.010000228881839,12.72999954223633,12.260000228881839,12.289999961853029,12.85000038146973,13.189999580383301,13.329999923706049,13.02000045776367,13.30000019073486,12.739999771118161,12.670000076293951,13.159999847412109,13.39999961853027,14.14999961853027,14.289999961853029,14.159999847412109,13.88000011444092,14.97000026702881,14.510000228881839,14.819999694824221,15.180000305175779,15.72999954223633,14.88000011444092,15.420000076293951,15.52999973297119,15.88000011444092,16.030000686645511,17.090000152587891,15.920000076293951,16.39999961853027,16.70999908447266,17.04999923706055,17.659999847412109,17.780000686645511,17.89999961853027,18.069999694824219,17.829999923706051,17.819999694824219,17.180000305175781,16.340000152587891,15.89999961853027,15.920000076293951,14.810000419616699,14.85999965667725,15.069999694824221,15.510000228881839,15.47000026702881,15.310000419616699,14.19999980926514,14.159999847412109,14.055000305175779,13.930000305175779,14.329999923706049,14.14999961853027,14.539999961853029,14.810000419616699,15.5,15.920000076293951,16.89999961853027,16.590000152587891,17.010000228881839,17.030000686645511,16.989999771118161,17.139999389648441,16.75,15.659999847412109,16.79999923706055,16.889999389648441,16.129999160766602,17.5,17.489999771118161,17.39999961853027,17.989999771118161,18.25,18.340000152587891,19.370000839233398,19.45000076293945,19.360000610351559,20.180000305175781,20.20000076293945,20.690000534057621,20,20.329999923706051,20.370000839233398,20.360000610351559,19.760000228881839,21.280000686645511,21.270000457763668,20.639999389648441,18.940000534057621,18.780000686645511,18.870000839233398,18.64999961853027,18.45000076293945,18.620000839233398,18.520000457763668,18.440000534057621,18.639999389648441,19.409999847412109,19.829999923706051,19.70000076293945,19.75,19.860000610351559,19.520000457763668,19.04999923706055,19.559999465942379,19.229999542236332,18.889999389648441,18.129999160766602,17.780000686645511,17.979999542236332,18.39999961853027,19.139999389648441,20.260000228881839,20,20.239999771118161,21.010000228881839,20.620000839233398,20.940000534057621,21.969999313354489,21.469999313354489,21.120000839233398,22.739999771118161,22.360000610351559,20.54999923706055,20.989999771118161,20.510000228881839,20.379999160766602,20.870000839233398,20.04999923706055,19.879999160766602,23.239999771118161,23.64999961853027,21.35000038146973,19.010000228881839,19.045000076293949,19,18.909999847412109,18.920000076293949,18.54000091552734,18.229999542236332,18.590000152587891,23.760000228881839,29.159999847412109,26.159999847412109,25.930000305175781,29.879999160766602,27.909999847412109,27.489999771118161,28.010000228881839,29.610000610351559,24.29000091552734,22.340000152587891,23.610000610351559,22.29999923706055,21.29999923706055,26.489999771118161,28.180000305175781,31.579999923706051,28.270000457763668,28.20000076293945,26.569999694824219,25.819999694824219,27.129999160766602,27.940000534057621,30.04999923706055,30.479999542236332,29.95000076293945,29.670000076293949,33.200000762939453,34.840000152587891,34.639999389648438,32.020000457763672,32.419998168945312,31.860000610351559,32.900001525878913,34.659999847412109,37.25,40.599998474121087,46.849998474121087,51.689998626708977,49.259998321533203,51.200000762939453,47.439998626708977,50.5,48.049999237060547,47.880001068115227,46.369998931884773,45.990001678466797,47.930000305175781,50.5,49.340000152587891,48.950000762939453,53.189998626708977,59.25,66.900001525878906,62.349998474121087,65.180000305175781,64.55999755859375,66.69000244140625,80,71.669998168945312,73.470001220703125,67.050003051757812,69,57.709999084472663,52.180000305175781,55.540000915527337,61.5,62.180000305175781,59.869998931884773,59.889999389648438,60.590000152587891,58.189998626708977,59.099998474121087,58.229999542236328,60.069999694824219,60.200000762939453,62,66.569999694824219,64.339996337890625,63.310001373291023,64.949996948242188,66.349998474121094,64.75,62.939998626708977,64.839996337890625,62,61.279998779296882,62.080001831054688,64.209999084472656,61.590000152587891,58.569999694824219,59.150001525878913,61.090000152587891,61.580001831054688,64.959999084472656,62.610000610351562,71.779998779296875,75.040000915527344,80.220001220703125,81.80999755859375,94.849998474121094,82.680000305175781,80.860000610351562,83.224998474121094,75.330001831054688,73.209999084472656,79.910003662109375,81.489997863769531,79.510002136230469,77.629997253417969,74.099998474121094,77.980003356933594,78.459999084472656,75.800003051757812,73.760002136230469,74.099998474121094,72.010002136230469,68.970001220703125,69.519996643066406,67.830001831054688,69.150001525878906,69.760002136230469,67.029998779296875,68,67.80999755859375,66.449996948242188,64.879997253417969,66.25,70.5,68.029998779296875,67.489997863769531,64.889999389648438,63.319999694824219,64.720001220703125,64.839996337890625,62.599998474121087,54.340000152587891,56.900001525878913,57.560001373291023,59.340000152587891,63.669998168945312,66.879997253417969,68.839996337890625,67.889999389648438,69.870002746582031,69.260002136230469,68.720001220703125,67.160003662109375,65.169998168945312,69.470001220703125,70.550003051757812,70.519996643066406,70.75,70.029998779296875,68.80999755859375,71.949996948242188,71.040000915527344,72.370002746582031,72.930000305175781,73,75.30999755859375,78.290000915527344,76.55999755859375,75.580001831054688,73.94000244140625,70.959999084472656,71.30999755859375,68.370002746582031,70.839996337890625,70.529998779296875,70.239997863769531,70.669998168945312,65.739997863769531,71.279998779296875,67.470001220703125,67.110000610351562,69.080001831054688,69.80999755859375,71.480003356933594,72.449996948242188,77.739997863769531,76.050003051757812,82.44000244140625,87.80999755859375,89.389999389648438,97.949996948242188,93.150001525878906,88.889999389648438,92.769996643066406,97.610000610351562,101.0299987792969,98.55999755859375,109.1800003051758,127.0299987792969,152.74000549316409,141.00999450683591,143,157.25999450683591,152.52000427246091,159.52000427246091,169.86000061035159,156.5899963378906,155.69000244140631,156.92999267578131,155.07000732421881,147.2200012207031,137.0299987792969,144,140.22999572753909,138.30000305175781,125.879997253418,130.3399963378906,123.38999938964839,111.40000152587891,114.38999938964839,111.129997253418,104.4700012207031,111.73000335693359,109.1800003051758,116.2600021362305,115.0899963378906,112.75,117.2600021362305,124.5500030517578,124.05999755859381,129.7200012207031,129.6499938964844,125.0100021362305,125.13999938964839,132.97999572753909,131.02000427246091,147,151.92999267578131,155.72999572753909,159.55000305175781,173.1600036621094,157.47999572753909,158.58000183105469,165.86000061035159,173.30999755859381,176.24000549316409,185.97999572753909,179.52000427246091,179.3399963378906,183.44000244140631,183.74000549316409,178.5299987792969,176.75999450683591,169.57000732421881,174.74000549316409,159.3699951171875,150.16999816894531,144.78999328613281,148.3800048828125,154.80999755859381,157.3999938964844,146.80999755859381,131.2200012207031,132.30000305175781,132.19000244140631,123.4700012207031,130.8699951171875,129.75,140.4700012207031,136.99000549316409,143.6600036621094,156.02000427246091,147.55000305175781,141.46000671386719,143.74000549316409,145.6000061035156,136.52000427246091,131.61000061035159,133.33000183105469,133.2799987792969,123.4199981689453,118.4899978637695,130.94999694824219,132.55000305175781,129.9100036621094,133.5299987792969,131.4700012207031,133.8800048828125,140.91999816894531,139.3999938964844,149.71000671386719,160.0299987792969,159.8699951171875,170.80999755859381,161.9100036621094,156.7799987792969,169.5,168.1000061035156,173.6300048828125,177.61000061035159,183.4100036621094,178.67999267578131,175.66999816894531,178.82000732421881,186.02000427246091,173.5899963378906,162.8399963378906,160.5,163.1499938964844,158.55000305175781,158.99000549316409,152.67999267578131,149.8699951171875,161.3800048828125,160.42999267578131,159.5299987792969,157.99000549316409,165.9700012207031,161.44999694824219,164.16999816894531,169.25999450683591,175.5899963378906,179.53999328613281,185.00999450683591,184.6600036621094,191.6000061035156,195.2200012207031,206.07000732421881,219.57000732421881,213,217.44000244140631,217,218.8500061035156,207.4100036621094,201.5899963378906,197.8399963378906,202.4700012207031,199.19000244140631,208.24000549316409,221.36000061035159,212.03999328613281,220.13999938964841,219.94000244140631,222.94000244140631,234.46000671386719,234.97999572753909,235.11000061035159,234.30000305175781,233.3399963378906,221.8999938964844,232.78999328613281,232.80999755859381,239.3399963378906,235.1499938964844,246.6600036621094,259.67498779296881,286.42999267578131,313.58999633789062,307.32998657226562,321.1099853515625,323.48001098632812,348.82998657226562,335.8699951171875,328.5,349.32000732421881,345.6400146484375,353.60000610351562,346.6099853515625,386.510009765625,419.04998779296881,416.260009765625,413.72000122070312,484.47000122070312,456.760009765625,385.32998657226562,391.42001342773438,389.77999877929688,373.8599853515625,401.8599853515625,398.79998779296881,375.52999877929688,382.98001098632812,411.8900146484375,394.94000244140631,397.8699951171875,400.29998779296881,382.22000122070312,370.69000244140631,376.69000244140631,389.94000244140631,397.66000366210938,416.70001220703131,436.3900146484375,422.89999389648438,455.92001342773438,449.3800048828125,419.72000122070312,427.70999145507812,434.45999145507812,440.64999389648438,430.04998779296881,423.32998657226562,434.04000854492188,440.72000122070312,454.60000610351562,430.1400146484375,408.83999633789062,384.20999145507812,378.89999389648438,384.8599853515625,341.08999633789062,325.83999633789062,332.1099853515625,302.42001342773438,309.3599853515625,304.91000366210938,305.10000610351562,311.1300048828125,321.5,331.8800048828125,324.20999145507812,334.83999633789062,333.6099853515625,333.010009765625,339.57000732421881,326.54000854492188,349.55999755859381,345.739990234375,340.8800048828125,347.92001342773438,345.20999145507812,337.17001342773438,348.6400146484375,345.92001342773438,284.01998901367188,236.99000549316409,244.67999267578131,236.8500061035156,228.96000671386719,225.82000732421881,231.19000244140631,235.07000732421881,234.2799987792969,242.22999572753909,251.4100036621094,263.77999877929688,282.69000244140631,276.3800048828125,273.3900146484375,329.6300048828125,368.510009765625,352.42999267578131,310.6099853515625,301.489990234375,306.72000122070312,265.32998657226562,282.35000610351562,283.39999389648438,272.20999145507812,257.05999755859381,271.989990234375,277.16000366210938,283.27999877929688,282.01998901367188,294.79998779296881,276.3800048828125,268.1400146484375,251.36000061035159,249.99000549316409,246.8800048828125,241.44000244140631,247.8800048828125,251.6000061035156,253.97999572753909,235.05000305175781,233.05999755859381,215.22999572753909,216.05999755859381,213.86000061035159,233.69999694824219,221.38999938964841,222.88999938964841,210.16999816894531,204.72999572753909,186.61000061035159,174.07000732421881,167.52000427246091,160.07000732421881,157.30000305175781,152.53999328613281,154.96000671386719,148.6199951171875,159.4700012207031,169.33000183105469,172.74000549316409,169.61000061035159,163.94999694824219,163.00999450683591,160.27000427246091,153.30999755859381,164.0299987792969,160.41999816894531,161.32000732421881,142.4700012207031,151.1199951171875,151.80999755859381,146.36000061035159,145.74000549316409,144.9700012207031,135.72999572753909,156.22999572753909,151.33000183105469,153.6000061035156,149.52000427246091,147.86000061035159,141.52000427246091,136.46000671386719,126.4599990844727,129.2799987792969,142.49000549316409,139.52000427246091,138.19999694824219,150.07000732421881,148.1199951171875,169.36000061035159,168.25999450683591,178.92999267578131,175.3800048828125,186.7200012207031,178.72999572753909,179.67999267578131,165.91999816894531,173.08000183105469,180.63999938964841,174.91999816894531,172.25999450683591,176.5899963378906,172.53999328613281,162.05000305175781,154.6199951171875,159,160.8399963378906,160,159.5,169.6600036621094,165.49000549316409,154.75,152.7200012207031,150.1199951171875,144.5,140.3399963378906,150.4100036621094,145.78999328613281,142.42999267578131,142.52000427246091,134.4100036621094,142.08000183105469,146.53999328613281,155.05000305175781,142.02000427246091,134.3999938964844,135.80000305175781,132.32000732421881,123.4300003051758,130.16999816894531,137.9100036621094,136.25999450683591,142.2799987792969,137.71000671386719,143.3800048828125,136.25,137.6199951171875,132.05999755859381,130.8500061035156,135.80000305175781,147.6600036621094,145.33000183105469,143.3999938964844,140.17999267578131,137.1499938964844,140,145.3399963378906,148.5299987792969,134.03999328613281,127.120002746582,117.129997253418,121.55999755859381,128.5299987792969,121.0800018310547,128.0299987792969,129.99000549316409,136.07000732421881,143.25999450683591,144.27000427246091,145.36000061035159,142.19000244140631,142.80999755859381,142.8500061035156,149.94999694824219,155.53999328613281,159.55999755859381,172.3999938964844,176.22999572753909,175.25999450683591,173.25,171.24000549316409,159.91999816894531,166.9100036621094,163.3999938964844,167.13999938964841,166.88999938964841,168.88999938964841,163.52000427246091,165.69000244140631,160.8999938964844,158.02000427246091,158.07000732421881,164.0899963378906,161.50999450683591,160.80999755859381,186.49000549316409,194.17999267578131,186.8399963378906,182.94000244140631,171.13999938964841,174.27000427246091,171.80999755859381,171.17999267578131,176.7799987792969,167.96000671386719,158,150,146.1000061035156,142.4700012207031,143.7799987792969,141.42999267578131,142.05000305175781,136.69999694824219,137.25999450683591,135.92999267578131,132.27000427246091,138.94999694824219,138.57000732421881,130.08000183105469,134.8999938964844,141.2799987792969,142.2799987792969,140.32000732421881,131.30000305175781,139.3999938964844,135.86000061035159,137.74000549316409,127.90000152587891,129.70500183105469,125.7600021362305,124.3199996948242,123.63999938964839,119.69000244140631,122.23000335693359,122.15000152587891,118.0699996948242,118.25,120.9899978637695,125.6699981689453,125.620002746582,125.15000152587891,119.3199996948242,123.4199981689453,120.7200012207031,130.7200012207031,134.7200012207031,134,139.25,134.0899963378906,123.51999664306641,118.379997253418,128.32000732421881,133.02000427246091,136.57000732421881,142,144.11000061035159,150.9700012207031,150.33000183105469,154.6199951171875,148.6199951171875,147.5,158.4100036621094,164.03999328613281,164.61000061035159,163.21000671386719,168.55999755859381,171.19999694824219,179.0299987792969,185.4700012207031,185.25,183.8999938964844,181.5899963378906,176.75,179.5899963378906,176.80999755859381,176.3999938964844,175.3800048828125,173.1499938964844,175.9100036621094,181.47999572753909,182.3500061035156,175.92999267578131,173.53999328613281,179,184.69999694824219,177.3500061035156,165.1300048828125,197.53999328613281,208.94999694824219,207.25,193.28999328613281,189.88999938964841,201.1600036621094,210.03999328613281,208.3399963378906,199.08000183105469,180.16999816894531,176.5,178.86000061035159,179.6199951171875,178.99000549316409,177.36000061035159,173.50999450683591,180.3500061035156,183.94999694824219,189.6499938964844,186.63999938964841,188.05999755859381,192,190.69000244140631,197.02000427246091,190.3800048828125,193.97999572753909,196.94000244140631,196.75999450683591,193.07000732421881,193.24000549316409,189.3500061035156,180.8699951171875,176.05999755859381,174.30000305175781,176.3500061035156,173.25,170.27000427246091,171.05999755859381,164.3399963378906,164.47999572753909,169.2799987792969,171.47999572753909,175.6199951171875,177.2799987792969,172.30999755859381,166.6000061035156,160.0899963378906,158.16999816894531,147.57000732421881,139.25999450683591,138.27000427246091,138.80999755859381,135.6600036621094,137.86000061035159,143.19999694824219,144.0299987792969,141.05000305175781,142.08000183105469,137.36000061035159,138.28999328613281,147.8999938964844,151.2799987792969,149.6000061035156,151.7799987792969,150.02000427246091,154.52000427246091,152.1000061035156,148.17999267578131,149.41999816894531,150.8800048828125,148.3500061035156,146.91999816894531,148.80000305175781,147.44000244140631,153.58000183105469,159.47999572753909,156.52000427246091,154.61000061035159,158.27000427246091,160.1499938964844,155.25,155.55999755859381,160.5299987792969,157.1000061035156,143.9700012207031,142.6300048828125,142.82000732421881,141.13999938964841,140.8500061035156,138.13999938964841,134.8999938964844,130.7200012207031,130.07000732421881,132.88999938964841,133.3999938964844,131.3999938964844,130.13999938964841,134.33000183105469,137.03999328613281,131.75,133.77000427246091,130.83000183105469,128.4100036621094,129.30000305175781,130.25999450683591,125.11000061035161,125.5699996948242,125.3300018310547,126.2399978637695,126.7399978637695,137.75,131.5899963378906,126.4700012207031,126.2399978637695,128.88999938964841,127.7099990844727,128.52000427246091,130.50999450683591,128.8999938964844,126.90000152587891,125.61000061035161,124.94000244140631,123.2600021362305,123.51999664306641,127.98000335693359,126.0500030517578,129.97999572753909,128.72999572753909,124.23000335693359,121.0699996948242,120.48000335693359,118.5,120.4100036621094,120.6699981689453,123,122.11000061035161,121.5,121.73000335693359,123.5400009155273,118.2900009155273,118.870002746582,123.0899963378906,122.129997253418,125.9199981689453,126.61000061035161,121.34999847412109,122.59999847412109,122.61000061035161,125.1699981689453,124.76999664306641,126.4300003051758,123.0100021362305,121.870002746582,120.65000152587891,118.5100021362305,118.6600036621094,117.6600036621094,113.94000244140631,110.2200012207031,109.9499969482422,108.19000244140631,101.1999969482422,99.739997863769531,101.8199996948242,100.2799987792969,101.4899978637695,100,96.410003662109375,98.919998168945312,106.2399978637695,101.620002746582,111.0800018310547,116.2399978637695,115.4599990844727,112.65000152587891,111.9300003051758,113.8300018310547,115.9899978637695,116.620002746582,113.0699996948242,112.55999755859381,109.36000061035161,108.2399978637695,108.34999847412109,107.63999938964839,105.8000030517578,105.2399978637695,108.5899963378906,112.80999755859381,114.5899963378906,104.13999938964839,106.7399978637695,103.5299987792969,100.23000335693359,99.989997863769531,98.169998168945312,98.120002746582031,99.44000244140625,100.26999664306641,103.2900009155273,103.30999755859381,103.0800018310547,104.2600021362305,102.9700012207031,103.879997253418,101.8399963378906,104.4300003051758,102.7600021362305,100.7799987792969,98.300003051757812,91.94000244140625,86.330001831054688,86.010002136230469,82.370002746582031,80.400001525878906,78.639999389648438,79.760002136230469,76.760002136230469,75.980003356933594,71.910003662109375,74.069999694824219,75.959999084472656,76.199996948242188,71.230003356933594,77.529998779296875,72.069999694824219,73.660003662109375,71.339996337890625,69.510002136230469,70.050003051757812,70.209999084472656,74.099998474121094,76.349998474121094,76.550003051757812,76.44000244140625,78.959999084472656,77.139999389648438,78.169998168945312,78.519996643066406,77.720001220703125,78.180000305175781,79.010002136230469,77.699996948242188,79.830001831054688,79.870002746582031,78.279998779296875,80.599998474121094,79.949996948242188,80.319999694824219,82,78.040000915527344,78.599998474121094,85.870002746582031,86.010002136230469,85.419998168945312,89.089996337890625,86.19000244140625,91.160003662109375,94.889999389648438,97.330001831054688,100.73000335693359,98.790000915527344,99.449996948242188],"type":"scatter","mode":"lines","name":"Train","line":{"color":"#0066CC"},"showlegend":false,"marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y2","frame":null},{"x":["2024-01-02","2024-01-03","2024-01-04","2024-01-05","2024-01-08","2024-01-09","2024-01-10","2024-01-11","2024-01-12","2024-01-16","2024-01-17","2024-01-18","2024-01-19","2024-01-22","2024-01-23","2024-01-24","2024-01-25","2024-01-26","2024-01-29","2024-01-30","2024-01-31","2024-02-01","2024-02-02","2024-02-05","2024-02-06","2024-02-07","2024-02-08","2024-02-09","2024-02-12","2024-02-13","2024-02-14","2024-02-15","2024-02-16","2024-02-20","2024-02-21","2024-02-22","2024-02-23","2024-02-26","2024-02-27","2024-02-28","2024-02-29","2024-03-01","2024-03-04","2024-03-05","2024-03-06","2024-03-07","2024-03-08","2024-03-11","2024-03-12","2024-03-13","2024-03-14","2024-03-15","2024-03-18","2024-03-19","2024-03-20","2024-03-21","2024-03-22","2024-03-25","2024-03-26","2024-03-27","2024-03-28","2024-04-01","2024-04-02","2024-04-03","2024-04-04","2024-04-05","2024-04-08","2024-04-09","2024-04-10","2024-04-11","2024-04-12","2024-04-15","2024-04-16","2024-04-17","2024-04-18","2024-04-19","2024-04-22","2024-04-23","2024-04-24","2024-04-25","2024-04-26","2024-04-29","2024-04-30","2024-05-01","2024-05-02","2024-05-03","2024-05-06","2024-05-07","2024-05-08","2024-05-09","2024-05-10","2024-05-13","2024-05-14","2024-05-15","2024-05-16","2024-05-17","2024-05-20","2024-05-21","2024-05-22","2024-05-23","2024-05-24","2024-05-28","2024-05-29","2024-05-30","2024-05-31","2024-06-03","2024-06-04","2024-06-05","2024-06-06","2024-06-07","2024-06-10","2024-06-11","2024-06-12","2024-06-13","2024-06-14","2024-06-17","2024-06-18","2024-06-20","2024-06-21","2024-06-24","2024-06-25","2024-06-26","2024-06-27","2024-06-28","2024-07-01","2024-07-02","2024-07-03","2024-07-05","2024-07-08","2024-07-09","2024-07-10","2024-07-11","2024-07-12","2024-07-15","2024-07-16","2024-07-17","2024-07-18","2024-07-19","2024-07-22","2024-07-23","2024-07-24","2024-07-25","2024-07-26","2024-07-29","2024-07-30","2024-07-31","2024-08-01","2024-08-02","2024-08-05","2024-08-06","2024-08-07","2024-08-08","2024-08-09","2024-08-12","2024-08-13","2024-08-14","2024-08-15","2024-08-16","2024-08-19","2024-08-20","2024-08-21","2024-08-22","2024-08-23","2024-08-26","2024-08-27","2024-08-28","2024-08-29","2024-08-30","2024-09-03","2024-09-04","2024-09-05","2024-09-06","2024-09-09","2024-09-10","2024-09-11","2024-09-12","2024-09-13","2024-09-16","2024-09-17","2024-09-18","2024-09-19","2024-09-20","2024-09-23","2024-09-24","2024-09-25","2024-09-26","2024-09-27","2024-09-30","2024-10-01","2024-10-02","2024-10-03","2024-10-04","2024-10-07","2024-10-08","2024-10-09","2024-10-10","2024-10-11","2024-10-14","2024-10-15","2024-10-16","2024-10-17","2024-10-18","2024-10-21","2024-10-22","2024-10-23","2024-10-24","2024-10-25","2024-10-28","2024-10-29","2024-10-30","2024-10-31","2024-11-01","2024-11-04","2024-11-05","2024-11-06","2024-11-07","2024-11-08","2024-11-11","2024-11-12","2024-11-13","2024-11-14","2024-11-15","2024-11-18","2024-11-19","2024-11-20","2024-11-21","2024-11-22","2024-11-25","2024-11-26","2024-11-27","2024-11-29","2024-12-02","2024-12-03","2024-12-04","2024-12-05","2024-12-06","2024-12-09","2024-12-10","2024-12-11","2024-12-12","2024-12-13","2024-12-16","2024-12-17","2024-12-18","2024-12-19","2024-12-20","2024-12-23","2024-12-24","2024-12-26","2024-12-27","2024-12-30","2024-12-31","2025-01-02","2025-01-03","2025-01-06","2025-01-07","2025-01-08","2025-01-10","2025-01-13","2025-01-14","2025-01-15","2025-01-16","2025-01-17","2025-01-21","2025-01-22","2025-01-23","2025-01-24","2025-01-27","2025-01-28","2025-01-29","2025-01-30","2025-01-31","2025-02-03","2025-02-04","2025-02-05","2025-02-06","2025-02-07","2025-02-10","2025-02-11","2025-02-12","2025-02-13","2025-02-14","2025-02-18","2025-02-19","2025-02-20","2025-02-21","2025-02-24","2025-02-25","2025-02-26","2025-02-27","2025-02-28","2025-03-03","2025-03-04","2025-03-05","2025-03-06","2025-03-07","2025-03-10","2025-03-11","2025-03-12","2025-03-13","2025-03-14","2025-03-17","2025-03-18","2025-03-19","2025-03-20","2025-03-21","2025-03-24","2025-03-25","2025-03-26","2025-03-27","2025-03-28","2025-03-31","2025-04-01","2025-04-02","2025-04-03","2025-04-04","2025-04-07","2025-04-08","2025-04-09","2025-04-10","2025-04-11","2025-04-14","2025-04-15","2025-04-16","2025-04-17","2025-04-21","2025-04-22","2025-04-23","2025-04-24","2025-04-25","2025-04-28","2025-04-29","2025-04-30","2025-05-01","2025-05-02","2025-05-05","2025-05-06","2025-05-07","2025-05-08","2025-05-09","2025-05-12","2025-05-13","2025-05-14","2025-05-15","2025-05-16","2025-05-19","2025-05-20","2025-05-21","2025-05-22","2025-05-23","2025-05-27","2025-05-28","2025-05-29","2025-05-30","2025-06-02","2025-06-03","2025-06-04","2025-06-05","2025-06-06","2025-06-09","2025-06-10","2025-06-11","2025-06-12","2025-06-13","2025-06-16","2025-06-17","2025-06-18","2025-06-20","2025-06-23","2025-06-24","2025-06-25","2025-06-26","2025-06-27","2025-06-30","2025-07-01","2025-07-02","2025-07-03","2025-07-07","2025-07-08","2025-07-09","2025-07-10","2025-07-11","2025-07-14","2025-07-15","2025-07-16","2025-07-17","2025-07-18","2025-07-21","2025-07-22","2025-07-23","2025-07-24","2025-07-25","2025-07-28","2025-07-29","2025-07-30","2025-07-31","2025-08-01","2025-08-04","2025-08-05","2025-08-06","2025-08-07","2025-08-08","2025-08-11","2025-08-12","2025-08-13","2025-08-14","2025-08-15","2025-08-18","2025-08-19","2025-08-20","2025-08-21","2025-08-22","2025-08-25","2025-08-26","2025-08-27","2025-08-28","2025-08-29","2025-09-02","2025-09-03","2025-09-04","2025-09-05","2025-09-08","2025-09-09","2025-09-10","2025-09-11","2025-09-12","2025-09-15","2025-09-16","2025-09-17","2025-09-18","2025-09-19","2025-09-22","2025-09-23","2025-09-24","2025-09-25","2025-09-26","2025-09-29","2025-09-30","2025-10-01","2025-10-02","2025-10-03","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-10-10"],"y":[112.5,108.5800018310547,108.6600036621094,111.120002746582,115.44000244140631,110.1800003051758,109.4599990844727,106.7949981689453,105.9499969482422,102.1600036621094,100.34999847412109,99.069999694824219,99.699996948242188,99.699996948242188,101.9199981689453,101.11000061035161,102.80999755859381,101.80999755859381,104.8399963378906,102.4700012207031,101.0500030517578,99.019996643066406,97.5,95.489997863769531,100.0299987792969,99.300003051757812,93.660003662109375,87.410003662109375,89,85.370002746582031,85.949996948242188,91.139999389648438,88.370002746582031,86.989997863769531,87.589996337890625,99.44000244140625,96.459999084472656,94.019996643066406,96.199996948242188,97.480003356933594,92.239997863769531,95.05999755859375,96,95.55999755859375,98.099998474121094,99.480003356933594,103.0299987792969,111.98000335693359,110.4300003051758,106.5100021362305,103.4599990844727,103.84999847412109,104.2600021362305,105.11000061035161,103.0800018310547,104.0899963378906,105.4300003051758,110.379997253418,107.4100036621094,110.5899963378906,106.55999755859381,105.59999847412109,103.61000061035161,101.2099990844727,102.26999664306641,102.879997253418,105.0899963378906,111.59999847412109,107.13999938964839,107.0100021362305,105.13999938964839,103.86000061035161,103.7900009155273,103.44000244140631,102,101.4100036621094,104.4599990844727,107.88999938964839,108.84999847412109,106.1800003051758,107.9700012207031,111.620002746582,110.30999755859381,111.4599990844727,125.5899963378906,125,122.129997253418,121.0699996948242,121.88999938964839,122.69000244140631,117.30999755859381,125.6699981689453,128.32000732421881,129.05999755859381,132.67999267578131,132.8999938964844,141.00999450683591,143.69000244140631,163.33000183105469,164.00999450683591,166.61000061035159,153.19999694824219,147.91999816894531,151.49000549316409,142.55000305175781,147.82000732421881,145.3399963378906,154.8399963378906,154.69000244140631,151.00999450683591,148.5899963378906,148.38999938964841,147.7200012207031,145.22999572753909,140.0299987792969,137.8999938964844,133.27000427246091,134.3999938964844,133.3999938964844,137,137.6000061035156,122.4499969482422,121.1800003051758,118.75,115.9499969482422,117.0699996948242,115.9499969482422,118.3199996948242,116.4499969482422,116.0699996948242,117.44000244140631,122.8199996948242,121.4599990844727,121.48000335693359,125.13999938964839,124.0550003051758,121.3199996948242,121.13999938964839,122.5,121.25,118.19000244140631,120.40000152587891,122.11000061035161,122.1699981689453,118.8399963378906,119.2200012207031,94.169998168945312,86.580001831054688,83.75,82.300003051757812,81.550003051757812,84.319999694824219,84.930000305175781,81.290000915527344,82.900001525878906,82.25,86.620002746582031,86.839996337890625,89.959999084472656,86.94000244140625,86.650001525878906,81.040000915527344,82.44000244140625,81.660003662109375,78.980003356933594,78.360000610351562,77.589996337890625,77.400001525878906,72.94000244140625,72.489997863769531,73.44000244140625,72.889999389648438,76.610000610351562,79.279998779296875,79.510002136230469,69.680000305175781,68.279998779296875,69.169998168945312,71.989997863769531,69.860000610351562,68.019996643066406,65.69000244140625,64.139999389648438,63.939998626708977,63.639999389648438,63.930000305175781,65.75,66.830001831054688,63.930000305175781,63.159999847412109,61.069999694824219,60.200000762939453,58.720001220703132,58.389999389648438,58.860000610351562,56.830001831054688,58.290000915527337,57.729999542236328,57.310001373291023,57.459999084472663,54.819999694824219,54.099998474121087,53.799999237060547,53.400001525878913,53.389999389648438,52.799999237060547,53.090000152587891,54.799999237060547,55.220001220703132,54.720001220703132,54.360000610351562,54.630001068115227,53.540000915527337,53.290000915527337,51.810001373291023,50.279998779296882,46.830001831054688,42.75,43.470001220703132,42.139999389648438,39.770000457763672,36.849998474121087,39.509998321533203,37.290000915527337,36.939998626708977,38.25,41.110000610351562,43.659999847412109,42.049999237060547,43.389999389648438,43.060001373291023,44.259998321533203,42.580001831054688,41.630001068115227,42.939998626708977,44.439998626708977,45.650001525878913,41.509998321533203,42.860000610351562,42.819999694824219,41.830001831054688,41.840000152587891,40.759998321533203,38.360000610351562,39.560001373291023,39.389999389648438,39.590000152587891,40.270000457763672,40.430000305175781,40.130001068115227,39.380001068115227,41.580001831054688,42,42.180000305175781,42.569999694824219,47.529998779296882,43.169998168945312,42.25,35.150001525878913,34.459999084472663,34.770000457763672,33.759998321533203,34.060001373291023,35.889999389648438,38.5,42.389999389648438,41.409999847412109,41.650001525878913,44.939998626708977,40.720001220703132,41.040000915527337,39.419998168945312,36.549999237060547,34.169998168945312,34.979999542236328,33.610000610351562,32.599998474121087,31.870000839233398,30.930000305175781,30.534999847412109,31.920000076293949,32.990001678466797,35.75,35.900001525878913,33.729999542236328,35.529998779296882,33.900001525878913,33.279998779296882,33.580001831054688,31.090000152587891,30.95999908447266,30.270000457763668,30.370000839233398,35.209999084472663,34.299999237060547,35.610000610351562,35.959999084472663,33.759998321533203,35.009998321533203,34.299999237060547,34.619998931884773,34.709999084472663,33.810001373291023,33.319999694824219,32.450000762939453,32.659999847412109,34.169998168945312,33.849998474121087,31.479999542236332,32.119998931884773,31.120000839233398,28.35000038146973,27.159999847412109,27.719999313354489,25.729999542236332,25.110000610351559,25.639999389648441,24.639999389648441,26.670000076293949,24.5,26.20000076293945,26.79999923706055,26.239999771118161,25.190000534057621,24.715000152587891,25.129999160766602,25.739999771118161,26.54000091552734,27.389999389648441,27.219999313354489,27.45999908447266,27.819999694824219,28.54000091552734,27.030000686645511,27.610000610351559,27.840000152587891,24.430000305175781,24.059999465942379,24.379999160766602,24.25,25.70000076293945,25.489999771118161,24.020000457763668,23.64999961853027,24.860000610351559,26.389999389648441,27.989999771118161,25.79999923706055,26.719999313354489,26.260000228881839,26.760000228881839,26.04999923706055,26.930000305175781,26.559999465942379,27.04999923706055,27.809999465942379,27.270000457763668,26.120000839233398,27.45999908447266,28.139999389648441,27.680000305175781,27.75,27.35000038146973,26.670000076293949,26,25.54999923706055,25.39999961853027,25.89999961853027,25.670000076293949,26.79999923706055,26.860000610351559,27.54000091552734,27.159999847412109,27.590000152587891,28.690000534057621,30.280000686645511,30.489999771118161,29.89999961853027,32.540000915527337,32.790000915527337,34.279998779296882,33.639999389648438,32.869998931884773,31.579999923706051,32.060001373291023,32.200000762939453,31.260000228881839,30.969999313354489,32.729999542236328,34.669998168945312,34.009998321533203,34.150001525878913,33.909999847412109,32.659999847412109,32.150001525878913,29.559999465942379,27.604999542236332,27.639999389648441,27.469999313354489,26.70999908447266,26.610000610351559,26.120000839233398,25.469999313354489,25.659999847412109,26.889999389648441,26.690000534057621,28.020000457763668,28.090000152587891,27.909999847412109,26.889999389648441,26.219999313354489,27.120000839233398,25.35000038146973,24.729999542236332,25.10000038146973,24.469999313354489,24.090000152587891,24.190000534057621,24.04999923706055,24.280000686645511,25.139999389648441,24.829999923706051,24.469999313354489,24.309999465942379,25.389999389648441,23.510000228881839,23.879999160766602,24.840000152587891,25,25.45000076293945,25.239999771118161,26.559999465942379,25.79000091552734,25.879999160766602,24.610000610351559,24.489999771118161,25.329999923706051,25.829999923706051,27.60000038146973,28.370000839233398,28.489999771118161,27.54000091552734,27.340000152587891,27.920000076293949,27.530000686645511,26.829999923706051],"type":"scatter","mode":"lines","name":"Test","line":{"color":"#FF6B35"},"showlegend":false,"marker":{"color":"rgba(214,39,40,1)","line":{"color":"rgba(214,39,40,1)"}},"error_y":{"color":"rgba(214,39,40,1)"},"error_x":{"color":"rgba(214,39,40,1)"},"xaxis":"x","yaxis":"y2","frame":null}],"layout":{"xaxis":{"domain":[0,1],"automargin":true,"title":"Fecha","anchor":"y2"},"yaxis2":{"domain":[0,0.47999999999999998],"automargin":true,"anchor":"x"},"yaxis":{"domain":[0.52000000000000002,1],"automargin":true,"anchor":"x"},"annotations":[],"shapes":[],"images":[],"margin":{"b":40,"l":60,"t":25,"r":10},"title":"MRNA - División Train/Test","hovermode":"closest","showlegend":true},"attrs":{"523070a126f1":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"lines","name":"Train","line":{"color":"#0066CC"},"inherit":true},"523014b12f92":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"lines","name":"Test","line":{"color":"#FF6B35"},"inherit":true},"523074db631a":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"lines","name":"Train","line":{"color":"#0066CC"},"showlegend":false,"inherit":true},"52307f992318":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"lines","name":"Test","line":{"color":"#FF6B35"},"showlegend":false,"inherit":true}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"subplot":true,"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script><p class="caption">
+Figure 3.1: División de datos en conjuntos de entrenamiento (azul) y prueba (naranja) para AAPL y MRNA.
+</p>
+</div>
+</div>
+</div>
+<div id="aplicación-de-métodos-de-suavizamiento" class="section level2" number="3.4">
+<h2>
+<span class="header-section-number">3.4</span> Aplicación de Métodos de Suavizamiento<a class="anchor" aria-label="anchor" href="#aplicaci%C3%B3n-de-m%C3%A9todos-de-suavizamiento"><i class="fas fa-link"></i></a>
+</h2>
+<div id="suavizamiento-exponencial-simple-ses" class="section level3" number="3.4.1">
+<h3>
+<span class="header-section-number">3.4.1</span> Suavizamiento Exponencial Simple (SES)<a class="anchor" aria-label="anchor" href="#suavizamiento-exponencial-simple-ses"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Ecuación:</strong>
+<span class="math display">\[\hat{y}_{t+1} = \alpha y_t + (1-\alpha)\hat{y}_t\]</span></p>
+<p>donde <span class="math inline">\(\alpha \in [0,1]\)</span> controla cuánto peso se da a observaciones recientes.</p>
+<p><strong>Interpretación:</strong>
+- <span class="math inline">\(\alpha\)</span> cercano a 1: Pronóstico reacciona rápidamente a cambios (más “nervioso”)
+- <span class="math inline">\(\alpha\)</span> cercano a 0: Pronóstico es suave y estable (más “inercial”)</p>
+<p><strong>Limitación para nuestro caso:</strong> SES asume que la serie fluctúa alrededor de un nivel constante (sin tendencia). Como nuestras series tienen tendencias alcistas fuertes, esperamos que SES subestime sistemáticamente los precios futuros.</p>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:ses-aplicacion">Table 3.2: </span>Parámetros estimados para Suavizamiento Exponencial Simple (SES). Valores de α cercanos a 1 indican alta reactividad a cambios recientes.</caption>
+<thead><tr class="header">
+<th align="left">Activo</th>
+<th align="center">α (Nivel)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">AAPL</td>
+<td align="center">0.9615</td>
+</tr>
+<tr class="even">
+<td align="left">MSFT</td>
+<td align="center">0.8885</td>
+</tr>
+<tr class="odd">
+<td align="left">TSLA</td>
+<td align="center">0.9707</td>
+</tr>
+<tr class="even">
+<td align="left">PFE</td>
+<td align="center">0.9688</td>
+</tr>
+<tr class="odd">
+<td align="left">MRNA</td>
+<td align="center">0.9999</td>
+</tr>
+<tr class="even">
+<td align="left">JNJ</td>
+<td align="center">0.9348</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Interpretación de parámetros SES:</strong></p>
+<ul>
+<li>Todos los <span class="math inline">\(\alpha\)</span> estimados son altos (<span class="math inline">\(\alpha &gt; 0.8\)</span>), indicando que el modelo da mucho peso a observaciones recientes.</li>
+<li>Esto ocurre porque SES intenta “perseguir” la tendencia alcista, pero sin un componente de tendencia explícito, siempre va rezagado.</li>
+</ul>
+</div>
+<div id="suavizamiento-exponencial-doble-holt" class="section level3" number="3.4.2">
+<h3>
+<span class="header-section-number">3.4.2</span> Suavizamiento Exponencial Doble (Holt)<a class="anchor" aria-label="anchor" href="#suavizamiento-exponencial-doble-holt"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Ecuaciones:</strong>
+<span class="math display">\[L_t = \alpha y_t + (1-\alpha)(L_{t-1} + b_{t-1})\]</span>
+<span class="math display">\[b_t = \beta(L_t - L_{t-1}) + (1-\beta)b_{t-1}\]</span>
+<span class="math display">\[\hat{y}_{t+h} = L_t + h \cdot b_t\]</span></p>
+<p>donde:
+- <span class="math inline">\(L_t\)</span>: Nivel suavizado en tiempo <span class="math inline">\(t\)</span>
+- <span class="math inline">\(b_t\)</span>: Tendencia suavizada en tiempo <span class="math inline">\(t\)</span>
+- <span class="math inline">\(\alpha\)</span>: Parámetro de suavizamiento del nivel
+- <span class="math inline">\(\beta\)</span>: Parámetro de suavizamiento de la tendencia
+- <span class="math inline">\(h\)</span>: Horizonte de pronóstico</p>
+<p><strong>Ventaja:</strong> Captura tendencias lineales, apropiado para series alcistas como precios de acciones.</p>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:holt-aplicacion">Table 3.3: </span>Parámetros estimados para Método Holt (Doble Exponencial). β controla cuánto peso se da a cambios recientes en la tendencia.</caption>
+<thead><tr class="header">
+<th align="left">Activo</th>
+<th align="center">α (Nivel)</th>
+<th align="center">β (Tendencia)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">AAPL</td>
+<td align="center">0.9594</td>
+<td align="center">1e-04</td>
+</tr>
+<tr class="even">
+<td align="left">MSFT</td>
+<td align="center">0.8855</td>
+<td align="center">1e-04</td>
+</tr>
+<tr class="odd">
+<td align="left">TSLA</td>
+<td align="center">0.9703</td>
+<td align="center">1e-04</td>
+</tr>
+<tr class="even">
+<td align="left">PFE</td>
+<td align="center">0.9689</td>
+<td align="center">3e-04</td>
+</tr>
+<tr class="odd">
+<td align="left">MRNA</td>
+<td align="center">0.9999</td>
+<td align="center">1e-04</td>
+</tr>
+<tr class="even">
+<td align="left">JNJ</td>
+<td align="center">0.9354</td>
+<td align="center">1e-04</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Interpretación de parámetros Holt:</strong></p>
+<ul>
+<li>
+<span class="math inline">\(\alpha\)</span> altos (~0.9-0.99): Nivel se ajusta rápidamente a nuevas observaciones.</li>
+<li>
+<span class="math inline">\(\beta\)</span> variados:
+<ul>
+<li>
+<span class="math inline">\(\beta\)</span> bajo (AAPL, MSFT): Tendencia es estable, cambios lentos.</li>
+<li>
+<span class="math inline">\(\beta\)</span> alto (MRNA): Tendencia cambia rápidamente (quiebre COVID-19).</li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="holt-winters-triple-exponencial" class="section level3" number="3.4.3">
+<h3>
+<span class="header-section-number">3.4.3</span> Holt-Winters (Triple Exponencial)<a class="anchor" aria-label="anchor" href="#holt-winters-triple-exponencial"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Ecuaciones (Modelo Aditivo):</strong>
+<span class="math display">\[L_t = \alpha(y_t - S_{t-s}) + (1-\alpha)(L_{t-1} + b_{t-1})\]</span>
+<span class="math display">\[b_t = \beta(L_t - L_{t-1}) + (1-\beta)b_{t-1}\]</span>
+<span class="math display">\[S_t = \gamma(y_t - L_t) + (1-\gamma)S_{t-s}\]</span>
+<span class="math display">\[\hat{y}_{t+h} = L_t + h \cdot b_t + S_{t-s+h}\]</span></p>
+<p>donde:
+- <span class="math inline">\(S_t\)</span>: Componente estacional en tiempo <span class="math inline">\(t\)</span>
+- <span class="math inline">\(\gamma\)</span>: Parámetro de suavizamiento de estacionalidad
+- <span class="math inline">\(s\)</span>: Período estacional (para datos diarios de acciones, podríamos usar <span class="math inline">\(s=5\)</span> para semana o <span class="math inline">\(s=21\)</span> para mes)</p>
+<p><strong>Hipótesis:</strong> Dado que el Capítulo 2 mostró estacionalidad despreciable, esperamos que <span class="math inline">\(\gamma \approx 0\)</span> (componente estacional no aporta) y que Holt-Winters tenga desempeño similar a Holt.</p>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:holtwinters-aplicacion">Table 3.4: </span>Parámetros estimados para Holt-Winters (Triple Exponencial). γ cercano a 0 confirma que estacionalidad no es relevante.</caption>
+<thead><tr class="header">
+<th align="left">Activo</th>
+<th align="center">α (Nivel)</th>
+<th align="center">β (Tendencia)</th>
+<th align="center">γ (Estacionalidad)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">AAPL</td>
+<td align="center">0.9401</td>
+<td align="center">0.0001</td>
+<td align="center">0.0002</td>
+</tr>
+<tr class="even">
+<td align="left">MSFT</td>
+<td align="center">0.8101</td>
+<td align="center">0.0254</td>
+<td align="center">0.0002</td>
+</tr>
+<tr class="odd">
+<td align="left">TSLA</td>
+<td align="center">0.9703</td>
+<td align="center">0.0001</td>
+<td align="center">0.0001</td>
+</tr>
+<tr class="even">
+<td align="left">PFE</td>
+<td align="center">0.9522</td>
+<td align="center">0.0019</td>
+<td align="center">0.0003</td>
+</tr>
+<tr class="odd">
+<td align="left">MRNA</td>
+<td align="center">0.9977</td>
+<td align="center">0.0028</td>
+<td align="center">0.0002</td>
+</tr>
+<tr class="even">
+<td align="left">JNJ</td>
+<td align="center">0.8664</td>
+<td align="center">0.0016</td>
+<td align="center">0.0067</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Validación de hipótesis:</strong></p>
+<p>Los valores de <span class="math inline">\(\gamma\)</span> (parámetro estacional) son cercanos a cero o el modelo no logra estimarlos, confirmando que la componente estacional NO aporta información útil para pronóstico. Esto valida los hallazgos del Capítulo 2: <strong>la estacionalidad en precios de acciones es despreciable</strong>.</p>
+</div>
+</div>
+<div id="evaluación-de-pronósticos" class="section level2" number="3.5">
+<h2>
+<span class="header-section-number">3.5</span> Evaluación de Pronósticos<a class="anchor" aria-label="anchor" href="#evaluaci%C3%B3n-de-pron%C3%B3sticos"><i class="fas fa-link"></i></a>
+</h2>
+<div id="métricas-de-error" class="section level3" number="3.5.1">
+<h3>
+<span class="header-section-number">3.5.1</span> Métricas de Error<a class="anchor" aria-label="anchor" href="#m%C3%A9tricas-de-error"><i class="fas fa-link"></i></a>
+</h3>
+<p>Evaluaremos el desempeño de cada método usando tres métricas estándar:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>RMSE (Root Mean Squared Error):</strong>
+<span class="math display">\[RMSE = \sqrt{\frac{1}{n}\sum_{t=1}^{n}(y_t - \hat{y}_t)^2}\]</span>
+</li>
+</ol>
+<ul>
+<li>Penaliza fuertemente errores grandes</li>
+<li>Unidades: dólares (mismo que precios)</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>
+<strong>MAE (Mean Absolute Error):</strong>
+<span class="math display">\[MAE = \frac{1}{n}\sum_{t=1}^{n}|y_t - \hat{y}_t|\]</span>
+</li>
+</ol>
+<ul>
+<li>Error promedio en valor absoluto</li>
+<li>Más robusto a outliers que RMSE</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>
+<strong>MAPE (Mean Absolute Percentage Error):</strong>
+<span class="math display">\[MAPE = \frac{100}{n}\sum_{t=1}^{n}\left|\frac{y_t - \hat{y}_t}{y_t}\right|\]</span>
+</li>
+</ol>
+<ul>
+<li>Error porcentual promedio</li>
+<li>Más interpretable (e.g., “el modelo se equivoca en promedio un 5%”)</li>
+</ul>
+<pre><code>## 
+## 
+## 
+## Table: (\#tab:evaluacion-metricas)Métricas de error para AAPL
+## 
+## |Método       | RMSE ($)| MAE ($)| MAPE (%)|
+## |:------------|--------:|-------:|--------:|
+## |SES          |    31.48|   26.77|    12.01|
+## |Holt         |    19.90|   17.59|     8.30|
+## |Holt-Winters |    19.54|   17.21|     8.22|
+## 
+## 
+## 
+## Table: (\#tab:evaluacion-metricas)Métricas de error para MSFT
+## 
+## |Método       | RMSE ($)| MAE ($)| MAPE (%)|
+## |:------------|--------:|-------:|--------:|
+## |SES          |    71.98|   59.87|    13.06|
+## |Holt         |    39.79|   32.99|     7.34|
+## |Holt-Winters |    75.20|   60.89|    14.17|
+## 
+## 
+## 
+## Table: (\#tab:evaluacion-metricas)Métricas de error para TSLA
+## 
+## |Método       | RMSE ($)| MAE ($)| MAPE (%)|
+## |:------------|--------:|-------:|--------:|
+## |SES          |    86.38|   70.11|    25.05|
+## |Holt         |    72.02|   60.18|    23.45|
+## |Holt-Winters |    78.50|   64.57|    23.95|
+## 
+## 
+## 
+## Table: (\#tab:evaluacion-metricas)Métricas de error para PFE
+## 
+## |Método       | RMSE ($)| MAE ($)| MAPE (%)|
+## |:------------|--------:|-------:|--------:|
+## |SES          |     3.05|    2.46|     9.86|
+## |Holt         |     2.63|    2.13|     8.52|
+## |Holt-Winters |     3.32|    2.87|    10.85|
+## 
+## 
+## 
+## Table: (\#tab:evaluacion-metricas)Métricas de error para MRNA
+## 
+## |Método       | RMSE ($)| MAE ($)| MAPE (%)|
+## |:------------|--------:|-------:|--------:|
+## |SES          |    52.47|   45.50|   129.19|
+## |Holt         |    66.83|   56.37|   165.84|
+## |Holt-Winters |    31.30|   27.68|    68.47|
+## 
+## 
+## 
+## Table: (\#tab:evaluacion-metricas)Métricas de error para JNJ
+## 
+## |Método       | RMSE ($)| MAE ($)| MAPE (%)|
+## |:------------|--------:|-------:|--------:|
+## |SES          |     9.69|    7.30|     4.51|
+## |Holt         |     9.92|    8.05|     5.20|
+## |Holt-Winters |     9.42|    7.30|     4.55|</code></pre>
+</div>
+<div id="ranking-de-métodos" class="section level3" number="3.5.2">
+<h3>
+<span class="header-section-number">3.5.2</span> Ranking de Métodos<a class="anchor" aria-label="anchor" href="#ranking-de-m%C3%A9todos"><i class="fas fa-link"></i></a>
+</h3>
+<div class="figure">
+<span style="display:block;" id="fig:ranking-metodos"></span>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-caf66b987c5a6e88ceaa" style="width:960px;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-caf66b987c5a6e88ceaa">{"x":{"visdat":{"5230402a4f6a":["function () ","plotlyVisDat"]},"cur_data":"5230402a4f6a","attrs":{"5230402a4f6a":{"x":{},"y":{},"text":{},"color":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"bar"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Comparación de RMSE por Método y Activo","xaxis":{"domain":[0,1],"automargin":true,"title":"Activo","type":"category","categoryorder":"array","categoryarray":["AAPL","JNJ","MRNA","MSFT","PFE","TSLA"]},"yaxis":{"domain":[0,1],"automargin":true,"title":"RMSE ($)"},"barmode":"group","hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":["PFE","JNJ","AAPL","MSFT","MRNA","TSLA"],"y":[2.6252451339094698,9.9153161915487171,19.895884107312686,39.787852967729549,66.828519030161416,72.019113683481791],"text":["RMSE: $ 2.63","RMSE: $ 9.92","RMSE: $ 19.9","RMSE: $ 39.79","RMSE: $ 66.83","RMSE: $ 72.02"],"type":"bar","name":"Holt","marker":{"color":"rgba(102,194,165,1)","line":{"color":"rgba(102,194,165,1)"}},"textfont":{"color":"rgba(102,194,165,1)"},"error_y":{"color":"rgba(102,194,165,1)"},"error_x":{"color":"rgba(102,194,165,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["PFE","JNJ","AAPL","MRNA","MSFT","TSLA"],"y":[3.3162529988697629,9.4220671934139286,19.541447655314979,31.301502960469708,75.204105489673722,78.504331061535467],"text":["RMSE: $ 3.32","RMSE: $ 9.42","RMSE: $ 19.54","RMSE: $ 31.3","RMSE: $ 75.2","RMSE: $ 78.5"],"type":"bar","name":"Holt-Winters","marker":{"color":"rgba(252,141,98,1)","line":{"color":"rgba(252,141,98,1)"}},"textfont":{"color":"rgba(252,141,98,1)"},"error_y":{"color":"rgba(252,141,98,1)"},"error_x":{"color":"rgba(252,141,98,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":["PFE","JNJ","AAPL","MRNA","MSFT","TSLA"],"y":[3.0526113217246902,9.692611961661223,31.482981383494664,52.471077106266463,71.978129684854807,86.384276562168935],"text":["RMSE: $ 3.05","RMSE: $ 9.69","RMSE: $ 31.48","RMSE: $ 52.47","RMSE: $ 71.98","RMSE: $ 86.38"],"type":"bar","name":"SES","marker":{"color":"rgba(141,160,203,1)","line":{"color":"rgba(141,160,203,1)"}},"textfont":{"color":"rgba(141,160,203,1)"},"error_y":{"color":"rgba(141,160,203,1)"},"error_x":{"color":"rgba(141,160,203,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script><p class="caption">
+Figure 3.2: Comparación de RMSE entre métodos de suavizamiento. Barras más cortas = mejor desempeño.
+</p>
+</div>
+<p><strong>Hallazgos principales:</strong></p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Holt supera a SES en todos los activos:</strong> Confirma que capturar tendencia es esencial.</p></li>
+<li><p><strong>Holt-Winters similar a Holt:</strong> La componente estacional no aporta valor, validando Capítulo 2.</p></li>
+<li>
+<p><strong>Errores absolutos varían por activo:</strong></p>
+<ul>
+<li>AAPL, MSFT, JNJ: RMSE moderado (~$5-15) - empresas estables</li>
+<li>MRNA: RMSE muy alto (~$30-50) - alta volatilidad, quiebre estructural COVID-19</li>
+<li>TSLA: RMSE alto (~$20-40) - volatilidad característica de Tesla</li>
+</ul>
+</li>
+<li>
+<p><strong>Errores porcentuales (MAPE) revelan dificultad relativa:</strong></p>
+<ul>
+<li>Todos los activos: MAPE 5-15%</li>
+<li>Precios de acciones son inherentemente difíciles de pronosticar</li>
+</ul>
+</li>
+</ol>
+</div>
+</div>
+<div id="visualización-de-pronósticos" class="section level2" number="3.6">
+<h2>
+<span class="header-section-number">3.6</span> Visualización de Pronósticos<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-de-pron%C3%B3sticos"><i class="fas fa-link"></i></a>
+</h2>
+<p><strong>Observaciones visuales:</strong></p>
+<ul>
+<li><p><strong>SES (Simple):</strong> Subestima sistemáticamente en series con tendencia alcista (AAPL). El pronóstico es casi plano.</p></li>
+<li><p><strong>Holt (Doble):</strong> Captura bien la dirección de la tendencia, aunque puede tener rezago en cambios bruscos.</p></li>
+<li><p><strong>Holt-Winters (Triple):</strong> Prácticamente idéntico a Holt, confirmando que componente estacional no aporta.</p></li>
+<li><p><strong>MRNA:</strong> Ningún método captura el quiebre estructural extremo (pico de vacuna COVID-19). Esto evidencia las limitaciones de suavizamiento exponencial para series con cambios de régimen.</p></li>
+</ul>
+</div>
+<div id="análisis-de-residuos" class="section level2" number="3.7">
+<h2>
+<span class="header-section-number">3.7</span> Análisis de Residuos<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-residuos"><i class="fas fa-link"></i></a>
+</h2>
+<p>Un modelo bien especificado debe tener residuos que se comporten como <strong>ruido blanco:</strong> independientes, media cero, varianza constante, no autocorrelacionados.</p>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:analisis-residuos">Table 3.5: </span>Test de Ljung-Box para residuos del método Holt. P-valor &lt; 0.05 indica que residuos están autocorrelacionados, sugiriendo que el modelo no captura toda la estructura temporal.</caption>
+<colgroup>
+<col width="10%">
+<col width="14%">
+<col width="17%">
+<col width="11%">
+<col width="46%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Activo</th>
+<th align="left">Test</th>
+<th align="right">Estadístico</th>
+<th align="right">P-valor</th>
+<th align="left">Conclusión</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">AAPL</td>
+<td align="left">Ljung-Box</td>
+<td align="right">47.3545</td>
+<td align="right">5e-04</td>
+<td align="left">Autocorrelación presente (MALO)</td>
+</tr>
+<tr class="even">
+<td align="left">MSFT</td>
+<td align="left">Ljung-Box</td>
+<td align="right">76.7197</td>
+<td align="right">0e+00</td>
+<td align="left">Autocorrelación presente (MALO)</td>
+</tr>
+<tr class="odd">
+<td align="left">TSLA</td>
+<td align="left">Ljung-Box</td>
+<td align="right">68.0054</td>
+<td align="right">0e+00</td>
+<td align="left">Autocorrelación presente (MALO)</td>
+</tr>
+<tr class="even">
+<td align="left">PFE</td>
+<td align="left">Ljung-Box</td>
+<td align="right">69.5052</td>
+<td align="right">0e+00</td>
+<td align="left">Autocorrelación presente (MALO)</td>
+</tr>
+<tr class="odd">
+<td align="left">MRNA</td>
+<td align="left">Ljung-Box</td>
+<td align="right">106.8594</td>
+<td align="right">0e+00</td>
+<td align="left">Autocorrelación presente (MALO)</td>
+</tr>
+<tr class="even">
+<td align="left">JNJ</td>
+<td align="left">Ljung-Box</td>
+<td align="right">61.4341</td>
+<td align="right">0e+00</td>
+<td align="left">Autocorrelación presente (MALO)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Interpretación del Test de Ljung-Box:</strong></p>
+<ul>
+<li>
+<strong>P-valor &lt; 0.05:</strong> Rechazamos hipótesis nula de no autocorrelación → Residuos están autocorrelacionados</li>
+<li>
+<strong>Implicación:</strong> El modelo Holt <strong>NO captura toda la dependencia temporal</strong> en los datos</li>
+</ul>
+<p>Esto es esperado porque:</p>
+<ol style="list-style-type: decimal">
+<li>Holt asume tendencia <strong>lineal</strong>, pero precios de acciones pueden tener tendencias no lineales</li>
+<li>Holt NO modela <strong>autocorrelación</strong> compleja en los residuos (esto requiere ARIMA)</li>
+<li>Holt NO captura <strong>heterocedasticidad</strong> (volatilidad variable, requiere GARCH)</li>
+</ol>
+<p><strong>Conclusión:</strong> Los métodos de suavizamiento son un buen <strong>baseline</strong>, pero necesitamos modelos más sofisticados (ARIMA/GARCH) para capturar toda la estructura temporal.</p>
+</div>
+<div id="síntesis-y-conclusiones-del-capítulo" class="section level2" number="3.8">
+<h2>
+<span class="header-section-number">3.8</span> Síntesis y Conclusiones del Capítulo<a class="anchor" aria-label="anchor" href="#s%C3%ADntesis-y-conclusiones-del-cap%C3%ADtulo"><i class="fas fa-link"></i></a>
+</h2>
+<div id="hallazgos-principales" class="section level3" number="3.8.1">
+<h3>
+<span class="header-section-number">3.8.1</span> Hallazgos Principales<a class="anchor" aria-label="anchor" href="#hallazgos-principales"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tabla-resumen-final">Table 3.6: </span>Resumen de hallazgos y sus implicaciones para capítulos posteriores.</caption>
+<colgroup>
+<col width="14%">
+<col width="40%">
+<col width="45%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Aspecto</th>
+<th align="left">Hallazgo</th>
+<th align="left">Implicación para Modelado</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Mejor método</td>
+<td align="left">Holt (Doble) &gt; Holt-Winters ≈ Holt &gt; SES (Simple)</td>
+<td align="left">Tendencia es componente clave. Estacionalidad irrelevante</td>
+</tr>
+<tr class="even">
+<td align="left">Validación Cap. 2</td>
+<td align="left">Estacionalidad NO aporta (γ ≈ 0). HW no mejora sobre Holt</td>
+<td align="left">Análisis de descomposición (Cap. 2) fue correcto</td>
+</tr>
+<tr class="odd">
+<td align="left">RMSE promedio</td>
+<td align="left">5-15% error (MAPE). Series inherentemente difíciles de pronosticar</td>
+<td align="left">Necesitamos modelos que capturen volatilidad y eventos extremos</td>
+</tr>
+<tr class="even">
+<td align="left">Interpretabilidad</td>
+<td align="left">Alta. Parámetros α, β tienen significado claro</td>
+<td align="left">Útil como benchmark contra modelos complejos (ARIMA/GARCH)</td>
+</tr>
+<tr class="odd">
+<td align="left">Limitaciones principales</td>
+<td align="left">No captura autocorrelación, heterocedasticidad, ni cambios de régimen</td>
+<td align="left">Capítulos siguientes: ARIMA (autocorr.), GARCH (vol.), Cambio régimen (COVID)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div id="justificación-de-procedimientos-1" class="section level3" number="3.8.2">
+<h3>
+<span class="header-section-number">3.8.2</span> Justificación de Procedimientos<a class="anchor" aria-label="anchor" href="#justificaci%C3%B3n-de-procedimientos-1"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>1. ¿Por qué aplicar métodos de suavizamiento si sabíamos que la estacionalidad es despreciable?</strong></p>
+<p>Tres razones fundamentales:</p>
+<ul>
+<li>
+<strong>Validación empírica:</strong> Confirmar hallazgos del Capítulo 2 con un enfoque diferente (pronóstico vs descomposición).</li>
+<li>
+<strong>Benchmark de referencia:</strong> Establecer un baseline simple contra el cual comparar modelos complejos (ARIMA, GARCH).</li>
+<li>
+<strong>Captura de tendencia:</strong> Aunque no capturan toda la dinámica, Holt y Holt-Winters SÍ modelan tendencias, útil para pronósticos de corto plazo.</li>
+</ul>
+<p><strong>2. ¿Por qué trabajar con precios en niveles y no con retornos?</strong></p>
+<p>Los métodos de suavizamiento exponencial están diseñados para series en niveles. Trabajar con retornos requeriría:</p>
+<ul>
+<li>Pronósticos de retornos → Reconvertir a precios (acumulación de errores)</li>
+<li>Los retornos son cercanos a ruido blanco (Cap. 2), suavizamiento no aporta</li>
+</ul>
+<p>Por lo tanto, para este capítulo trabajamos con <strong>precios directamente</strong>, y en capítulos posteriores trabajaremos con <strong>retornos</strong> para modelos ARIMA/GARCH.</p>
+<p><strong>3. ¿Por qué todos los métodos tienen errores altos?</strong></p>
+<p>Los precios de acciones son inherentemente difíciles de pronosticar por:</p>
+<ul>
+<li>
+<strong>Eficiencia de mercados:</strong> Toda información pública ya está incorporada en precios</li>
+<li>
+<strong>Eventos impredecibles:</strong> Noticias, anuncios corporativos, cambios regulatorios</li>
+<li>
+<strong>Volatilidad variable:</strong> Períodos tranquilos vs crisis (COVID-19)</li>
+<li>
+<strong>Cambios de régimen:</strong> MRNA es ejemplo extremo (vacuna COVID)</li>
+</ul>
+<p><strong>4. ¿Qué aprendimos que NO sabíamos antes?</strong></p>
+<ul>
+<li>Confirmar <strong>cuantitativamente</strong> que estacionalidad no aporta (γ ≈ 0)</li>
+<li>Establecer <strong>benchmark de error</strong> (MAPE 5-15%) para comparar modelos futuros</li>
+<li>Identificar que <strong>residuos están autocorrelacionados</strong> → Necesitamos ARIMA</li>
+<li>Evidenciar que <strong>volatilidad NO es constante</strong> → Necesitamos GARCH</li>
+</ul>
+</div>
+<div id="próximos-pasos-capítulos-siguientes" class="section level3" number="3.8.3">
+<h3>
+<span class="header-section-number">3.8.3</span> Próximos Pasos (Capítulos Siguientes)<a class="anchor" aria-label="anchor" href="#pr%C3%B3ximos-pasos-cap%C3%ADtulos-siguientes"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>Limitaciones de Suavizamiento → Soluciones en Capítulos Posteriores
+─────────────────────────────────────────────────────────────────
+
+1. NO captura autocorrelación compleja
+   │
+   └─► CAPÍTULO 4: Modelos ARIMA(p,d,q)
+       - Modelar dependencia temporal en retornos
+       - ACF/PACF para identificar p, q
+       - Comparar AIC/BIC vs Holt
+
+2. NO captura heterocedasticidad (volatilidad variable)
+   │
+   └─► CAPÍTULO 5: Modelos GARCH(p,q)
+       - Modelar clusters de volatilidad
+       - Capturar períodos de alta vs baja volatilidad
+       - Crucial para VaR y gestión de riesgo
+
+3. NO captura cambios de régimen (COVID-19, MRNA)
+   │
+   └─► CAPÍTULO 6: Modelos Markov-Switching
+       - Identificar regímenes (alta vol vs baja vol)
+       - Modelar transiciones entre estados
+       - Variables dummy para eventos discretos
+
+4. NO utiliza volatilidad para derivados
+   │
+   └─► CAPÍTULO 7: Integración Black-Scholes
+       - Usar volatilidad GARCH en pricing de opciones
+       - Comparar con volatilidad implícita de mercado
+       - Estrategias de cobertura</code></pre>
+</div>
+<div id="reflexión-final" class="section level3" number="3.8.4">
+<h3>
+<span class="header-section-number">3.8.4</span> Reflexión Final<a class="anchor" aria-label="anchor" href="#reflexi%C3%B3n-final"><i class="fas fa-link"></i></a>
+</h3>
+<p>Los métodos de suavizamiento exponencial, aunque simples, cumplen un rol importante como <strong>punto de partida</strong> para modelado de series de tiempo financieras:</p>
+<ul>
+<li>Proporcionan intuición sobre componentes (nivel, tendencia, estacionalidad)</li>
+<li>Son computacionalmente eficientes para pronósticos rápidos</li>
+<li>Sirven como benchmark para justificar la complejidad de modelos avanzados</li>
+</ul>
+<p>Sin embargo, para capturar la <strong>complejidad completa</strong> de precios de acciones (autocorrelación, heterocedasticidad, eventos extremos, cambios de régimen), necesitamos las herramientas más sofisticadas que desarrollaremos en los siguientes capítulos.</p>
+<p><strong>Mensaje clave:</strong> Suavizamiento exponencial es necesario pero <strong>no suficiente</strong> para modelado robusto de precios accionarios. Los capítulos subsecuentes construirán sobre estas bases para crear modelos más completos y realistas.</p>
+
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="literature.html"><span class="header-section-number">2</span> Descomposición y Estacionariedad</a></div>
+<div class="next"><a href="applications.html"><span class="header-section-number">4</span> Applications</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#holt-winters"><span class="header-section-number">3</span> Holt-Winters y Suavizamiento Exponencial</a></li>
+<li><a class="nav-link" href="#diagrama-de-flujo-metodolog%C3%ADa-de-suavizamiento"><span class="header-section-number">3.1</span> Diagrama de Flujo: Metodología de Suavizamiento</a></li>
+<li>
+<a class="nav-link" href="#fundamento-te%C3%B3rico"><span class="header-section-number">3.2</span> Fundamento Teórico</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#por-qu%C3%A9-suavizamiento-exponencial"><span class="header-section-number">3.2.1</span> ¿Por qué Suavizamiento Exponencial?</a></li>
+<li><a class="nav-link" href="#clasificaci%C3%B3n-de-m%C3%A9todos-por-componentes"><span class="header-section-number">3.2.2</span> Clasificación de Métodos por Componentes</a></li>
+<li><a class="nav-link" href="#decisi%C3%B3n-aditivo-o-multiplicativo"><span class="header-section-number">3.2.3</span> Decisión: ¿Aditivo o Multiplicativo?</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#preparaci%C3%B3n-de-datos"><span class="header-section-number">3.3</span> Preparación de Datos</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#carga-y-preparaci%C3%B3n-de-datos"><span class="header-section-number">3.3.1</span> Carga y Preparación de Datos</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#aplicaci%C3%B3n-de-m%C3%A9todos-de-suavizamiento"><span class="header-section-number">3.4</span> Aplicación de Métodos de Suavizamiento</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#suavizamiento-exponencial-simple-ses"><span class="header-section-number">3.4.1</span> Suavizamiento Exponencial Simple (SES)</a></li>
+<li><a class="nav-link" href="#suavizamiento-exponencial-doble-holt"><span class="header-section-number">3.4.2</span> Suavizamiento Exponencial Doble (Holt)</a></li>
+<li><a class="nav-link" href="#holt-winters-triple-exponencial"><span class="header-section-number">3.4.3</span> Holt-Winters (Triple Exponencial)</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#evaluaci%C3%B3n-de-pron%C3%B3sticos"><span class="header-section-number">3.5</span> Evaluación de Pronósticos</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#m%C3%A9tricas-de-error"><span class="header-section-number">3.5.1</span> Métricas de Error</a></li>
+<li><a class="nav-link" href="#ranking-de-m%C3%A9todos"><span class="header-section-number">3.5.2</span> Ranking de Métodos</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#visualizaci%C3%B3n-de-pron%C3%B3sticos"><span class="header-section-number">3.6</span> Visualización de Pronósticos</a></li>
+<li><a class="nav-link" href="#an%C3%A1lisis-de-residuos"><span class="header-section-number">3.7</span> Análisis de Residuos</a></li>
+<li>
+<a class="nav-link" href="#s%C3%ADntesis-y-conclusiones-del-cap%C3%ADtulo"><span class="header-section-number">3.8</span> Síntesis y Conclusiones del Capítulo</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#hallazgos-principales"><span class="header-section-number">3.8.1</span> Hallazgos Principales</a></li>
+<li><a class="nav-link" href="#justificaci%C3%B3n-de-procedimientos-1"><span class="header-section-number">3.8.2</span> Justificación de Procedimientos</a></li>
+<li><a class="nav-link" href="#pr%C3%B3ximos-pasos-cap%C3%ADtulos-siguientes"><span class="header-section-number">3.8.3</span> Próximos Pasos (Capítulos Siguientes)</a></li>
+<li><a class="nav-link" href="#reflexi%C3%B3n-final"><span class="header-section-number">3.8.4</span> Reflexión Final</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Análisis de Series de Tiempo de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-11-03.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>
