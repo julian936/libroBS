@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Capítulo 10 Aplicación a Múltiples Activos | Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados</title>
+<meta name="author" content="Julian">
+<meta name="description" content="Table 10.1: Modelos ARIMA seleccionados para cada activo Ticker Modelo AIC BIC LB.p.valor Ruido.Blanco AAPL AAPL ARIMA(0,1,1) with drift -12956.673 -12939.185 0.000 ❌ MSFT MSFT ARIMA(0,1,1) with...">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Capítulo 10 Aplicación a Múltiples Activos | Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados">
+<meta property="og:type" content="book">
+<meta property="og:description" content="Table 10.1: Modelos ARIMA seleccionados para cada activo Ticker Modelo AIC BIC LB.p.valor Ruido.Blanco AAPL AAPL ARIMA(0,1,1) with drift -12956.673 -12939.185 0.000 ❌ MSFT MSFT ARIMA(0,1,1) with...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Capítulo 10 Aplicación a Múltiples Activos | Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados">
+<meta name="twitter:description" content="Table 10.1: Modelos ARIMA seleccionados para cada activo Ticker Modelo AIC BIC LB.p.valor Ruido.Blanco AAPL AAPL ARIMA(0,1,1) with drift -12956.673 -12939.185 0.000 ❌ MSFT MSFT ARIMA(0,1,1) with...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.11.0/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><link href="libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Propuesta de Análisis</a></li>
+<li><a class="" href="intro.html"><span class="header-section-number">1</span> Visualización de las Series de Tiempo</a></li>
+<li><a class="" href="literature.html"><span class="header-section-number">2</span> Descomposición y Estacionariedad</a></li>
+<li><a class="" href="holt-winters.html"><span class="header-section-number">3</span> Modelado con Holt-Winters y Suavizamiento Exponencial</a></li>
+<li><a class="" href="introducci%C3%B3n.html"><span class="header-section-number">4</span> Introducción</a></li>
+<li><a class="" href="preparaci%C3%B3n-de-datos-1.html"><span class="header-section-number">5</span> Preparación de Datos</a></li>
+<li><a class="" href="fase-1-identificaci%C3%B3n-del-modelo.html"><span class="header-section-number">6</span> Fase 1: Identificación del Modelo</a></li>
+<li><a class="" href="fase-2-estimaci%C3%B3n-de-par%C3%A1metros.html"><span class="header-section-number">7</span> Fase 2: Estimación de Parámetros</a></li>
+<li><a class="" href="fase-3-diagn%C3%B3stico-del-modelo.html"><span class="header-section-number">8</span> Fase 3: Diagnóstico del Modelo</a></li>
+<li><a class="" href="fase-4-pron%C3%B3stico.html"><span class="header-section-number">9</span> Fase 4: Pronóstico</a></li>
+<li><a class="active" href="aplicaci%C3%B3n-a-m%C3%BAltiples-activos.html"><span class="header-section-number">10</span> Aplicación a Múltiples Activos</a></li>
+<li><a class="" href="conclusiones.html"><span class="header-section-number">11</span> Conclusiones</a></li>
+<li><a class="" href="referencias.html"><span class="header-section-number">12</span> Referencias</a></li>
+<li><a class="" href="final-words.html"><span class="header-section-number">13</span> Final Words</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="aplicación-a-múltiples-activos" class="section level1" number="10">
+<h1>
+<span class="header-section-number">Capítulo 10</span> Aplicación a Múltiples Activos<a class="anchor" aria-label="anchor" href="#aplicaci%C3%B3n-a-m%C3%BAltiples-activos"><i class="fas fa-link"></i></a>
+</h1>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:multiples-activos">Table 10.1: </span>Modelos ARIMA seleccionados para cada activo</caption>
+<colgroup>
+<col width="6%">
+<col width="8%">
+<col width="29%">
+<col width="13%">
+<col width="13%">
+<col width="13%">
+<col width="15%">
+</colgroup>
+<thead><tr class="header">
+<th align="left"></th>
+<th align="left">Ticker</th>
+<th align="left">Modelo</th>
+<th align="right">AIC</th>
+<th align="right">BIC</th>
+<th align="right">LB.p.valor</th>
+<th align="left">Ruido.Blanco</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">AAPL</td>
+<td align="left">AAPL</td>
+<td align="left">ARIMA(0,1,1) with drift</td>
+<td align="right">-12956.673</td>
+<td align="right">-12939.185</td>
+<td align="right">0.000</td>
+<td align="left">❌</td>
+</tr>
+<tr class="even">
+<td align="left">MSFT</td>
+<td align="left">MSFT</td>
+<td align="left">ARIMA(0,1,1) with drift</td>
+<td align="right">-13411.179</td>
+<td align="right">-13393.692</td>
+<td align="right">0.000</td>
+<td align="left">❌</td>
+</tr>
+<tr class="odd">
+<td align="left">TSLA</td>
+<td align="left">TSLA</td>
+<td align="left">ARIMA(2,1,2) with drift</td>
+<td align="right">-9408.971</td>
+<td align="right">-9373.995</td>
+<td align="right">0.099</td>
+<td align="left">✅</td>
+</tr>
+<tr class="even">
+<td align="left">PFE</td>
+<td align="left">PFE</td>
+<td align="left">ARIMA(4,1,1) with drift</td>
+<td align="right">-13950.203</td>
+<td align="right">-13909.398</td>
+<td align="right">0.003</td>
+<td align="left">❌</td>
+</tr>
+<tr class="odd">
+<td align="left">MRNA</td>
+<td align="left">MRNA</td>
+<td align="left">ARIMA(5,2,0)</td>
+<td align="right">-5518.779</td>
+<td align="right">-5486.086</td>
+<td align="right">0.000</td>
+<td align="left">❌</td>
+</tr>
+<tr class="even">
+<td align="left">JNJ</td>
+<td align="left">JNJ</td>
+<td align="left">ARIMA(2,1,0)</td>
+<td align="right">-15272.741</td>
+<td align="right">-15255.253</td>
+<td align="right">0.000</td>
+<td align="left">❌</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Interpretación comparativa entre activos:</strong></p>
+<div id="diversidad-de-modelos" class="section level3" number="10.0.1">
+<h3>
+<span class="header-section-number">10.0.1</span> Diversidad de modelos<a class="anchor" aria-label="anchor" href="#diversidad-de-modelos"><i class="fas fa-link"></i></a>
+</h3>
+<p>Cada activo requiere una especificación diferente:</p>
+<ul>
+<li>
+<strong>AAPL y MSFT</strong>: ARIMA(0,1,1) - Estructura simple, similares entre sí</li>
+<li>
+<strong>TSLA</strong>: ARIMA(2,1,2) - Mayor complejidad, volatilidad característica</li>
+<li>
+<strong>PFE</strong>: ARIMA(4,1,1) - Componente AR más desarrollado</li>
+<li>
+<strong>MRNA</strong>: ARIMA(5,2,0) - Doble diferenciación, serie más errática</li>
+<li>
+<strong>JNJ</strong>: ARIMA(2,1,0) - Estructura AR pura</li>
+</ul>
+</div>
+<div id="criterios-de-información" class="section level3" number="10.0.2">
+<h3>
+<span class="header-section-number">10.0.2</span> Criterios de información<a class="anchor" aria-label="anchor" href="#criterios-de-informaci%C3%B3n"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<strong>JNJ</strong> tiene el AIC/BIC más bajo: Serie más predecible (empresa estable)</li>
+<li>
+<strong>MRNA</strong> tiene valores más altos: Mayor volatilidad e incertidumbre</li>
+</ul>
+</div>
+<div id="calidad-del-ajuste-ljung-box" class="section level3" number="10.0.3">
+<h3>
+<span class="header-section-number">10.0.3</span> Calidad del ajuste (Ljung-Box)<a class="anchor" aria-label="anchor" href="#calidad-del-ajuste-ljung-box"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>La mayoría de activos <strong>no pasan</strong> la prueba de ruido blanco</li>
+<li>Esto es común en series financieras de alta frecuencia</li>
+<li>Sugiere la presencia de volatilidad heterocedástica o efectos estacionales</li>
+</ul>
+<p><strong>Implicaciones:</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>No existe un modelo único</strong>: Cada activo tiene dinámicas propias</li>
+<li>
+<strong>Empresas tech (AAPL, MSFT)</strong>: Comportamiento más similar</li>
+<li>
+<strong>Sector farmacéutico</strong>: Mayor heterogeneidad (MRNA vs PFE vs JNJ)</li>
+<li>
+<strong>Tesla (TSLA)</strong>: Requiere modelado más complejo debido a su volatilidad</li>
+</ol>
+<hr>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="fase-4-pron%C3%B3stico.html"><span class="header-section-number">9</span> Fase 4: Pronóstico</a></div>
+<div class="next"><a href="conclusiones.html"><span class="header-section-number">11</span> Conclusiones</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav"><li>
+<a class="nav-link" href="#aplicaci%C3%B3n-a-m%C3%BAltiples-activos"><span class="header-section-number">10</span> Aplicación a Múltiples Activos</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#diversidad-de-modelos"><span class="header-section-number">10.0.1</span> Diversidad de modelos</a></li>
+<li><a class="nav-link" href="#criterios-de-informaci%C3%B3n"><span class="header-section-number">10.0.2</span> Criterios de información</a></li>
+<li><a class="nav-link" href="#calidad-del-ajuste-ljung-box"><span class="header-section-number">10.0.3</span> Calidad del ajuste (Ljung-Box)</a></li>
+</ul>
+</li></ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados</strong>" was written by Julian. It was last built on 2025-11-09.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

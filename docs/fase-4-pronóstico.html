@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Capítulo 9 Fase 4: Pronóstico | Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados</title>
+<meta name="author" content="Julian">
+<meta name="description" content="Interpretación de los pronósticos:  9.0.1 Estructura del pronóstico  Línea azul oscuro: Trayectoria puntual pronosticada Banda azul oscuro: Intervalo de confianza del 80% Banda azul claro:...">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Capítulo 9 Fase 4: Pronóstico | Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados">
+<meta property="og:type" content="book">
+<meta property="og:description" content="Interpretación de los pronósticos:  9.0.1 Estructura del pronóstico  Línea azul oscuro: Trayectoria puntual pronosticada Banda azul oscuro: Intervalo de confianza del 80% Banda azul claro:...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Capítulo 9 Fase 4: Pronóstico | Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados">
+<meta name="twitter:description" content="Interpretación de los pronósticos:  9.0.1 Estructura del pronóstico  Línea azul oscuro: Trayectoria puntual pronosticada Banda azul oscuro: Intervalo de confianza del 80% Banda azul claro:...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.11.0/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><link href="libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Propuesta de Análisis</a></li>
+<li><a class="" href="intro.html"><span class="header-section-number">1</span> Visualización de las Series de Tiempo</a></li>
+<li><a class="" href="literature.html"><span class="header-section-number">2</span> Descomposición y Estacionariedad</a></li>
+<li><a class="" href="holt-winters.html"><span class="header-section-number">3</span> Modelado con Holt-Winters y Suavizamiento Exponencial</a></li>
+<li><a class="" href="introducci%C3%B3n.html"><span class="header-section-number">4</span> Introducción</a></li>
+<li><a class="" href="preparaci%C3%B3n-de-datos-1.html"><span class="header-section-number">5</span> Preparación de Datos</a></li>
+<li><a class="" href="fase-1-identificaci%C3%B3n-del-modelo.html"><span class="header-section-number">6</span> Fase 1: Identificación del Modelo</a></li>
+<li><a class="" href="fase-2-estimaci%C3%B3n-de-par%C3%A1metros.html"><span class="header-section-number">7</span> Fase 2: Estimación de Parámetros</a></li>
+<li><a class="" href="fase-3-diagn%C3%B3stico-del-modelo.html"><span class="header-section-number">8</span> Fase 3: Diagnóstico del Modelo</a></li>
+<li><a class="active" href="fase-4-pron%C3%B3stico.html"><span class="header-section-number">9</span> Fase 4: Pronóstico</a></li>
+<li><a class="" href="aplicaci%C3%B3n-a-m%C3%BAltiples-activos.html"><span class="header-section-number">10</span> Aplicación a Múltiples Activos</a></li>
+<li><a class="" href="conclusiones.html"><span class="header-section-number">11</span> Conclusiones</a></li>
+<li><a class="" href="referencias.html"><span class="header-section-number">12</span> Referencias</a></li>
+<li><a class="" href="final-words.html"><span class="header-section-number">13</span> Final Words</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="fase-4-pronóstico" class="section level1" number="9">
+<h1>
+<span class="header-section-number">Capítulo 9</span> Fase 4: Pronóstico<a class="anchor" aria-label="anchor" href="#fase-4-pron%C3%B3stico"><i class="fas fa-link"></i></a>
+</h1>
+<div class="inline-figure"><img src="04-application_files/figure-html/pronosticos-1.png" width="960" style="display: block; margin: auto;"></div>
+<p><strong>Interpretación de los pronósticos:</strong></p>
+<div id="estructura-del-pronóstico" class="section level3" number="9.0.1">
+<h3>
+<span class="header-section-number">9.0.1</span> Estructura del pronóstico<a class="anchor" aria-label="anchor" href="#estructura-del-pron%C3%B3stico"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<strong>Línea azul oscuro</strong>: Trayectoria puntual pronosticada</li>
+<li>
+<strong>Banda azul oscuro</strong>: Intervalo de confianza del 80%</li>
+<li>
+<strong>Banda azul claro</strong>: Intervalo de confianza del 95%</li>
+</ul>
+</div>
+<div id="características-del-pronóstico-arima" class="section level3" number="9.0.2">
+<h3>
+<span class="header-section-number">9.0.2</span> Características del pronóstico ARIMA<a class="anchor" aria-label="anchor" href="#caracter%C3%ADsticas-del-pron%C3%B3stico-arima"><i class="fas fa-link"></i></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Tendencia lineal</strong>: El drift hace que el pronóstico tenga una tendencia constante</li>
+<li>
+<strong>Incertidumbre creciente</strong>: Los intervalos se amplían con el horizonte temporal</li>
+<li>
+<strong>Convergencia</strong>: Los pronósticos de largo plazo tienden hacia la media</li>
+</ol>
+<p><strong>Limitaciones:</strong>
+Los modelos ARIMA son más efectivos para pronósticos de corto plazo (días o semanas). Para horizontes más largos, la predicción se vuelve menos informativa.</p>
+</div>
+<div id="transformación-a-escala-original" class="section level2" number="9.1">
+<h2>
+<span class="header-section-number">9.1</span> Transformación a Escala Original<a class="anchor" aria-label="anchor" href="#transformaci%C3%B3n-a-escala-original"><i class="fas fa-link"></i></a>
+</h2>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tabla-pronosticos">Table 9.1: </span>Pronósticos de precio AAPL en dólares (primeros 10 días)</caption>
+<colgroup>
+<col width="5%">
+<col width="22%">
+<col width="16%">
+<col width="16%">
+<col width="19%">
+<col width="19%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">Día</th>
+<th align="right">Pronóstico (<span class="math inline">\()| LI 95% (\)</span>)</th>
+<th align="right">LS 95% (<span class="math inline">\()| Amplitud (\)</span>)</th>
+<th align="right">Amplitud (%)</th>
+<th align="right"></th>
+<th align="right"></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">245.99</td>
+<td align="right">237.29</td>
+<td align="right">255.00</td>
+<td align="right">17.71</td>
+<td align="right">7.20</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">246.20</td>
+<td align="right">234.31</td>
+<td align="right">258.69</td>
+<td align="right">24.38</td>
+<td align="right">9.90</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">246.41</td>
+<td align="right">232.06</td>
+<td align="right">261.66</td>
+<td align="right">29.60</td>
+<td align="right">12.01</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">246.63</td>
+<td align="right">230.19</td>
+<td align="right">264.24</td>
+<td align="right">34.05</td>
+<td align="right">13.81</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">246.84</td>
+<td align="right">228.57</td>
+<td align="right">266.57</td>
+<td align="right">38.00</td>
+<td align="right">15.39</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">247.05</td>
+<td align="right">227.13</td>
+<td align="right">268.72</td>
+<td align="right">41.59</td>
+<td align="right">16.83</td>
+</tr>
+<tr class="odd">
+<td align="right">7</td>
+<td align="right">247.27</td>
+<td align="right">225.83</td>
+<td align="right">270.73</td>
+<td align="right">44.90</td>
+<td align="right">18.16</td>
+</tr>
+<tr class="even">
+<td align="right">8</td>
+<td align="right">247.48</td>
+<td align="right">224.64</td>
+<td align="right">272.64</td>
+<td align="right">48.00</td>
+<td align="right">19.40</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="right">247.69</td>
+<td align="right">223.54</td>
+<td align="right">274.46</td>
+<td align="right">50.92</td>
+<td align="right">20.56</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">247.91</td>
+<td align="right">222.51</td>
+<td align="right">276.21</td>
+<td align="right">53.70</td>
+<td align="right">21.66</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Interpretación de los pronósticos en escala original:</strong></p>
+<p>Al transformar de vuelta a dólares (aplicando exponencial), observamos:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Pronóstico puntual</strong>: Comienza en ~$245.99 y crece gradualmente</li>
+<li>
+<strong>Amplitud de intervalos</strong>: Aumenta de $17.71 (día 1) a $53.7 (día 10)</li>
+<li>
+<strong>Amplitud porcentual</strong>: Relativamente constante alrededor del 15.4%</li>
+</ol>
+<p><strong>Nota sobre la transformación exponencial:</strong>
+Cuando aplicamos <code><a href="https://rdrr.io/r/base/Log.html">exp()</a></code> a los límites, los intervalos se vuelven <strong>asimétricos</strong> en escala original. Esto refleja correctamente que las pérdidas están limitadas (precio no puede ser negativo) mientras que las ganancias no tienen límite superior.</p>
+</div>
+<div id="visualización-en-escala-original" class="section level2" number="9.2">
+<h2>
+<span class="header-section-number">9.2</span> Visualización en Escala Original<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-en-escala-original"><i class="fas fa-link"></i></a>
+</h2>
+<div class="inline-figure"><img src="04-application_files/figure-html/viz-final-1.png" width="960" style="display: block; margin: auto;"></div>
+<p><strong>Análisis visual del pronóstico:</strong></p>
+<div id="continuidad-con-datos-históricos" class="section level3" number="9.2.1">
+<h3>
+<span class="header-section-number">9.2.1</span> Continuidad con datos históricos<a class="anchor" aria-label="anchor" href="#continuidad-con-datos-hist%C3%B3ricos"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>El pronóstico comienza suavemente desde el último valor observado</li>
+<li>No hay saltos abruptos, lo que indica un modelo estable</li>
+</ul>
+</div>
+<div id="comportamiento-de-la-banda-de-confianza" class="section level3" number="9.2.2">
+<h3>
+<span class="header-section-number">9.2.2</span> Comportamiento de la banda de confianza<a class="anchor" aria-label="anchor" href="#comportamiento-de-la-banda-de-confianza"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>Se ensancha progresivamente, reflejando mayor incertidumbre a futuro</li>
+<li>La amplitud es razonable, no extrema ni demasiado estrecha</li>
+</ul>
+</div>
+<div id="tendencia-proyectada" class="section level3" number="9.2.3">
+<h3>
+<span class="header-section-number">9.2.3</span> Tendencia proyectada<a class="anchor" aria-label="anchor" href="#tendencia-proyectada"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>El modelo captura la tendencia alcista reciente</li>
+<li>La pendiente del pronóstico es conservadora (no extrapola excesivamente)</li>
+</ul>
+<p><strong>Consideraciones prácticas para uso del pronóstico:</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Horizonte recomendado</strong>: 5-10 días para decisiones operativas</li>
+<li>
+<strong>Actualización</strong>: Re-estimar el modelo con nuevos datos diariamente</li>
+<li>
+<strong>Contexto externo</strong>: Los pronósticos no incorporan eventos futuros (anuncios, resultados trimestrales)</li>
+</ol>
+<hr>
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="fase-3-diagn%C3%B3stico-del-modelo.html"><span class="header-section-number">8</span> Fase 3: Diagnóstico del Modelo</a></div>
+<div class="next"><a href="aplicaci%C3%B3n-a-m%C3%BAltiples-activos.html"><span class="header-section-number">10</span> Aplicación a Múltiples Activos</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li>
+<a class="nav-link" href="#fase-4-pron%C3%B3stico"><span class="header-section-number">9</span> Fase 4: Pronóstico</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#estructura-del-pron%C3%B3stico"><span class="header-section-number">9.0.1</span> Estructura del pronóstico</a></li>
+<li><a class="nav-link" href="#caracter%C3%ADsticas-del-pron%C3%B3stico-arima"><span class="header-section-number">9.0.2</span> Características del pronóstico ARIMA</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#transformaci%C3%B3n-a-escala-original"><span class="header-section-number">9.1</span> Transformación a Escala Original</a></li>
+<li>
+<a class="nav-link" href="#visualizaci%C3%B3n-en-escala-original"><span class="header-section-number">9.2</span> Visualización en Escala Original</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#continuidad-con-datos-hist%C3%B3ricos"><span class="header-section-number">9.2.1</span> Continuidad con datos históricos</a></li>
+<li><a class="nav-link" href="#comportamiento-de-la-banda-de-confianza"><span class="header-section-number">9.2.2</span> Comportamiento de la banda de confianza</a></li>
+<li><a class="nav-link" href="#tendencia-proyectada"><span class="header-section-number">9.2.3</span> Tendencia proyectada</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados</strong>" was written by Julian. It was last built on 2025-11-09.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

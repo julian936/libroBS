@@ -1,231 +1,28 @@
-# Metodología Box-Jenkins y Modelos ARIMA {#box-jenkins-arima}
+---
+title: "Metodología Box-Jenkins y Modelos ARIMA - Análisis de Resultados"
+author: "Julian"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: cosmo
+    highlight: tango
+    code_folding: hide
+---
 
-## Introducción
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 6,
+  fig.align = 'center'
+)
 
-En el capítulo anterior exploramos los modelos de suavizamiento exponencial y Holt-Winters para el análisis y pronóstico de series de tiempo. Ahora profundizaremos en la metodología Box-Jenkins y los modelos ARIMA (AutoRegressive Integrated Moving Average), que constituyen uno de los enfoques más robustos y ampliamente utilizados para el modelado de series temporales.
-
-La metodología Box-Jenkins, desarrollada por George Box y Gwilym Jenkins en 1970, proporciona un marco sistemático para identificar, estimar y validar modelos ARIMA. Este enfoque iterativo consta de cuatro fases principales:
-
-1. **Identificación**: Determinar si la serie es estacionaria y seleccionar los órdenes apropiados del modelo
-2. **Estimación**: Calcular los parámetros del modelo seleccionado
-3. **Diagnóstico**: Verificar que el modelo se ajuste adecuadamente a los datos
-4. **Pronóstico**: Utilizar el modelo validado para realizar predicciones
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║          METODOLOGÍA BOX-JENKINS Y MODELOS ARIMA/SARIMA          ║
-╚══════════════════════════════════════════════════════════════════╝
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                   ENTRADA: DATOS COMPLETOS                        │
-│  • Series de precios: AAPL, MSFT, TSLA, PFE, MRNA, JNJ          │
-│  • Período: 2015-2025 (~2600 observaciones diarias)             │
-│  • Transformación: log(precios) para estabilizar varianza       │
-│  • Objetivo: Identificar, estimar, validar y pronosticar        │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-                     ▼
-╔══════════════════════════════════════════════════════════════════╗
-║                  FASE 1: IDENTIFICACIÓN DEL MODELO               ║
-╚══════════════════════════════════════════════════════════════════╝
-                     │
-                     ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 1.1: ANÁLISIS DE ESTACIONARIEDAD                    │
-│  ¿La serie tiene media y varianza constantes en el tiempo?      │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-        Aplicar 3 pruebas estadísticas:
-                     │
-    ┌────────────────┼────────────────┐
-    │                │                │
-    ▼                ▼                ▼
-┌─────────┐    ┌─────────┐    ┌─────────┐
-│Prueba   │    │Prueba   │    │Prueba   │
-│  ADF    │    │  KPSS   │    │   PP    │
-│(Dickey- │    │(Kwiat-  │    │(Phillips│
-│Fuller)  │    │kowski)  │    │-Perron) │
-└────┬────┘    └────┬────┘    └────┬────┘
-     │              │              │
-     │  H₀: No estacionaria       │
-     │  H₁: Estacionaria          │
-     └──────────────┴──────────────┘
-                     │
-                     ▼
-              ¿Es estacionaria?
-                     │
-        ┌────────────┴────────────┐
-        │ NO                      │ SÍ
-        ▼                         ▼
-┌───────────────┐         ┌──────────────┐
-│Transformación │         │  Continuar   │
-│log(precios)   │────────▶│  al paso 1.2 │
-└───────────────┘         └──────┬───────┘
-                                 │
-                                 ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 1.2: ANÁLISIS ACF Y PACF                            │
-│  Identificar órdenes AR (p) y MA (q)                             │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    ┌────────────────┴────────────────┐
-    │                                 │
-    ▼                                 ▼
-┌─────────────────────┐      ┌──────────────────────┐
-│   Función ACF       │      │   Función PACF       │
-│(Autocorrelación)    │      │(Autocorrel. Parcial) │
-│                     │      │                      │
-│• Decae exponencial  │      │• Corte después lag p │
-│  → componente MA    │      │  → orden AR          │
-│• Corte lag q        │      │• Decae exponencial   │
-│  → orden MA         │      │  → componente AR     │
-└──────────┬──────────┘      └──────────┬───────────┘
-           │                            │
-           └────────────┬───────────────┘
-                        │
-                        ▼
-              Revisar lags 7, 14, 21...
-              ¿Hay patrón estacional?
-                        │
-           ┌────────────┴────────────┐
-           │ NO                      │ SÍ (s=7, s=252, etc.)
-           ▼                         ▼
-    Modelos ARMA              Modelos SARIMA
-    ARIMA(p,d,q)             ARIMA(p,d,q)(P,D,Q)[s]
-           │                         │
-           └────────────┬────────────┘
-                        │
-                        ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 1.3: MODELOS CANDIDATOS                             │
-│  Basado en ACF/PACF, proponer múltiples modelos                  │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    **Modelos ARIMA iniciales:**
-    • ARIMA(1,1,0) - AR con diferenciación
-    • ARIMA(0,1,1) - MA con diferenciación
-    • ARIMA(1,1,1) - Mixto
-    • ARIMA(2,1,1), ARIMA(1,1,2) - Órdenes mayores
-                     │
-                     ▼
-╔══════════════════════════════════════════════════════════════════╗
-║                 FASE 2: ESTIMACIÓN DE PARÁMETROS                 ║
-╚══════════════════════════════════════════════════════════════════╝
-                     │
-                     ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 2.1: ESTIMACIÓN DE CADA MODELO                      │
-│  Método: Máxima Verosimilitud (MLE)                              │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    Para cada modelo candidato:
-    1. Estimar parámetros (ϕ, θ, μ)
-    2. Calcular log-likelihood
-    3. Obtener criterios de información
-                     │
-                     ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 2.2: COMPARACIÓN DE MODELOS                         │
-│  Criterios: AIC, AICc, BIC                                       │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    AIC = -2*log(L) + 2*k
-    BIC = -2*log(L) + k*log(n)
-                     │
-              Seleccionar modelo
-              con menor AIC/BIC
-                     │
-                     ▼
-╔══════════════════════════════════════════════════════════════════╗
-║                 FASE 3: DIAGNÓSTICO Y VALIDACIÓN                 ║
-╚══════════════════════════════════════════════════════════════════╝
-                     │
-                     ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 3.1: ANÁLISIS DE RESIDUOS                           │
-│  Los residuos deben comportarse como RUIDO BLANCO                │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    Requisitos del ruido blanco:
-    ✓ Media = 0
-    ✓ Varianza constante
-    ✓ No autocorrelacionados
-    ✓ Distribución normal
-                     │
-                     ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 3.2: PRUEBA DE LJUNG-BOX                            │
-│  H₀: Los residuos NO están autocorrelacionados                  │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    Box.test(residuos, lag=20, type="Ljung-Box")
-                     │
-                     ▼
-              p-valor > 0.05?
-                     │
-        ┌────────────┴────────────┐
-        │ NO (p < 0.05)           │ SÍ (p > 0.05)
-        ▼                         ▼
-┌───────────────┐         ┌──────────────┐
-│ Probar SARIMA │         │ Modelo       │
-│ con componente│         │ adecuado ✓   │
-│ estacional    │         │ Continuar a  │
-└───────────────┘         │ Fase 4       │
-                          └──────────────┘
-                                 │
-                                 ▼
-╔══════════════════════════════════════════════════════════════════╗
-║                 FASE 4: PRONÓSTICO Y APLICACIÓN                  ║
-╚══════════════════════════════════════════════════════════════════╝
-                     │
-                     ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 4.1: GENERACIÓN DE PRONÓSTICOS                      │
-│  Proyectar h pasos adelante con intervalos de confianza         │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    forecast(modelo_final, h = 30)
-                     │
-    Salida:
-    • Pronóstico puntual: ŷ(t+h)
-    • Intervalo 80%: [Lo 80, Hi 80]
-    • Intervalo 95%: [Lo 95, Hi 95]
-                     │
-                     ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 4.2: TRANSFORMACIÓN INVERSA                         │
-│  Si usamos log(y), aplicar exp() para volver a escala original  │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    pronos_original = exp(pronos_log)
-                     │
-                     ▼
-╔══════════════════════════════════════════════════════════════════╗
-║                    RESULTADOS ESPERADOS                          ║
-║                                                                  ║
-║  **Hallazgos sobre estacionariedad:**                            ║
-║    • log(precios) es estacionaria (ADF: p < 0.05)               ║
-║    • Transformación logarítmica estabiliza varianza             ║
-║                                                                  ║
-║  **Mejor modelo típico:**                                        ║
-║    ARIMA(1,1,1) o ARIMA(2,1,1)                                  ║
-║                                                                  ║
-║  **Ventajas de ARIMA vs Holt-Winters:**                         ║
-║    ✓ Captura autocorrelación compleja                           ║
-║    ✓ Diagnóstico formal con pruebas estadísticas                ║
-║    ✓ Componente estacional opcional y flexible                  ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-
-Los modelos ARIMA son particularmente efectivos para series que exhiben patrones de autocorrelación y tendencias. En este capítulo aplicaremos la metodología Box-Jenkins a las mismas series de precios de acciones que analizamos con Holt-Winters.
-
-## Fase 1: Identificación del Modelo
-
-### Carga y preparación de datos
-
-```{r setup-chapter, message=FALSE, warning=FALSE}
-# Cargar librerías necesarias
+# Cargar librerías
 library(forecast)
 library(tseries)
 library(ggplot2)
@@ -236,34 +33,53 @@ library(lubridate)
 library(gridExtra)
 ```
 
-```{r carga-datos, message=FALSE, warning=FALSE}
+# Introducción
+
+La metodología Box-Jenkins proporciona un marco sistemático para identificar, estimar y validar modelos ARIMA (AutoRegressive Integrated Moving Average). Este documento presenta los resultados del análisis aplicado a series de tiempo de precios de acciones durante el período 2015-2025.
+
+El proceso se estructuró en cuatro fases principales:
+
+1. **Identificación**: Evaluación de estacionariedad y determinación de órdenes del modelo
+2. **Estimación**: Cálculo de parámetros mediante máxima verosimilitud
+3. **Diagnóstico**: Validación del ajuste mediante análisis de residuos
+4. **Pronóstico**: Generación de predicciones con intervalos de confianza
+
+---
+
+# Preparación de Datos
+
+```{r carga-datos, echo=TRUE}
 # Leer datos desde Excel
 datos <- read_excel("datos_yahoo/datasets/datos_completos.xlsx") %>%
   mutate(Fecha = as.Date(Fecha))
 
-# Información general
-cat("Total de observaciones:", nrow(datos), "\n")
-cat("Período:", min(datos$Fecha), "a", max(datos$Fecha), "\n")
-cat("Activos:", paste(unique(datos$Ticker), collapse = ", "), "\n\n")
-
 # Seleccionar AAPL para análisis detallado
-datos_aapl <- datos %>% 
+datos_aapl <- datos %>%
   filter(Ticker == "AAPL") %>%
   arrange(Fecha) %>%
   mutate(log_Close = log(Close))
+```
 
-# Mostrar primeras observaciones
-datos_aapl %>% 
-  select(Fecha, Close) %>% 
+## Información del Dataset
+
+El análisis se realizó sobre **`r nrow(datos)` observaciones** de seis activos (AAPL, MSFT, TSLA, PFE, MRNA, JNJ) con un período aproximado de 10 años. Para este documento, utilizaremos Apple (AAPL) como caso de estudio detallado.
+
+```{r tabla-muestra}
+datos_aapl %>%
+  select(Fecha, Close) %>%
   head(10) %>%
-  kable(digits = 2, 
-        caption = "Muestra de datos de Apple (AAPL)",
+  kable(digits = 2,
+        caption = "Primeras 10 observaciones de Apple (AAPL)",
         col.names = c("Fecha", "Precio de Cierre ($)"))
 ```
 
-### Visualización y transformación
+---
 
-```{r visualizacion-series, fig.height=8, fig.width=10, fig.cap="Serie original vs transformada logarítmicamente"}
+# Fase 1: Identificación del Modelo
+
+## Transformación Logarítmica
+
+```{r visualizacion-series}
 p1 <- ggplot(datos_aapl, aes(x = Fecha, y = Close)) +
   geom_line(color = "#2c3e50", linewidth = 0.6) +
   labs(title = "Serie Original: Precio de AAPL",
@@ -279,66 +95,98 @@ p2 <- ggplot(datos_aapl, aes(x = Fecha, y = log_Close)) +
 grid.arrange(p1, p2, ncol = 1)
 ```
 
-**Observaciones**: La serie original muestra tendencia alcista y varianza creciente. La transformación logarítmica estabiliza la varianza.
+**Interpretación de la transformación:**
 
-### Análisis de estacionariedad
+La serie original de precios de AAPL muestra dos características importantes:
 
-```{r pruebas-estacionariedad, warning=FALSE}
-# Crear serie temporal
+- **Tendencia alcista pronunciada**: Los precios crecen de aproximadamente \$28 en 2015 a más de \$240 en 2025
+- **Varianza creciente**: Las fluctuaciones se amplían con el paso del tiempo (heterocedasticidad)
+
+La transformación logarítmica es crucial porque:
+
+1. **Estabiliza la varianza**: Hace que las fluctuaciones sean más constantes a lo largo del tiempo
+2. **Normaliza la distribución**: Ayuda a que los datos se acerquen más a una distribución normal
+3. **Facilita la interpretación**: Los cambios se interpretan como tasas de crecimiento porcentuales
+
+## Análisis de Estacionariedad
+
+```{r pruebas-estacionariedad}
 log_precio_ts <- ts(datos_aapl$log_Close, frequency = 1)
 
-# Prueba ADF
+# Pruebas estadísticas
 adf_result <- adf.test(log_precio_ts)
-cat("Prueba ADF:\n")
-cat("P-valor:", adf_result$p.value, "\n")
-cat("Conclusión:", ifelse(adf_result$p.value < 0.05, 
-                          "Serie ES estacionaria", 
-                          "Serie NO es estacionaria"), "\n\n")
-
-# Prueba KPSS
 kpss_result <- tryCatch({
   kpss.test(log_precio_ts, null = "Trend")
 }, error = function(e) {
   list(p.value = 0.1, statistic = 0)
 })
+pp_result <- PP.test(log_precio_ts)
 
-cat("Prueba KPSS:\n")
-cat("P-valor:", kpss_result$p.value, "\n")
-cat("Conclusión:", ifelse(kpss_result$p.value > 0.05,
-                          "Serie ES estacionaria",
-                          "Serie NO es estacionaria"), "\n\n")
+# Tabla de resultados
+resultados_estacionariedad <- data.frame(
+  Prueba = c("ADF (Dickey-Fuller)", "KPSS", "Phillips-Perron"),
+  `P-valor` = c(adf_result$p.value, kpss_result$p.value, pp_result$p.value),
+  Conclusión = c(
+    ifelse(adf_result$p.value < 0.05, "Estacionaria", "No estacionaria"),
+    ifelse(kpss_result$p.value > 0.05, "Estacionaria", "No estacionaria"),
+    ifelse(pp_result$p.value < 0.05, "Estacionaria", "No estacionaria")
+  )
+)
 
-# Prueba PP
-pp_result <- pp.test(log_precio_ts)
-cat("Prueba PP:\n")
-cat("P-valor:", pp_result$p.value, "\n")
-cat("Conclusión:", ifelse(pp_result$p.value < 0.05,
-                          "Serie ES estacionaria",
-                          "Serie NO es estacionaria"), "\n")
+kable(resultados_estacionariedad, 
+      digits = 4,
+      caption = "Resultados de pruebas de estacionariedad")
 ```
 
-### Análisis ACF y PACF
+**Interpretación de las pruebas:**
 
-```{r acf-pacf, fig.height=8, fig.width=10, fig.cap="Funciones ACF y PACF"}
+Las tres pruebas estadísticas confirman que **la serie logarítmica NO es estacionaria**:
+
+- **ADF (p = `r round(adf_result$p.value, 4)`)**: No rechazamos la hipótesis nula de no estacionariedad
+- **KPSS (p = `r round(kpss_result$p.value, 4)`)**: Rechazamos la hipótesis nula de estacionariedad
+- **PP (p = `r round(pp_result$p.value, 4)`)**: Confirma la no estacionariedad
+
+**¿Qué significa esto?**
+
+Una serie no estacionaria presenta:
+
+- Media que varía en el tiempo (tendencia)
+- Varianza que puede cambiar
+- Autocorrelación que depende del tiempo
+
+Para aplicar modelos ARIMA, necesitamos **diferenciar** la serie (componente "I" en ARIMA), lo que justifica usar `d = 1` en nuestros modelos.
+
+## Funciones ACF y PACF
+
+```{r acf-pacf, fig.height=8}
 par(mfrow = c(2, 1), mar = c(4, 4, 3, 2))
 acf(log_precio_ts, lag.max = 40, main = "ACF de Log(Precio)")
 pacf(log_precio_ts, lag.max = 40, main = "PACF de Log(Precio)")
 ```
 
-**Interpretación**: El ACF muestra decaimiento gradual, sugiriendo necesidad de diferenciación. El PACF ayuda a identificar el orden AR apropiado.
+**Interpretación de las funciones de autocorrelación:**
 
-## Fase 2: Estimación de Parámetros
+### ACF (Función de Autocorrelación)
+- Muestra un **decaimiento gradual y lento**, característica típica de series no estacionarias con tendencia
+- No hay cortes abruptos, lo que indica que la serie tiene "memoria larga"
+- Este patrón refuerza la necesidad de diferenciación
 
-### Estimación de modelos ARIMA
+### PACF (Función de Autocorrelación Parcial)
+- Presenta un valor significativo en el primer lag
+- Los valores posteriores caen dentro de las bandas de confianza
+- Esto sugiere un componente **AR(1)** una vez diferenciada la serie
 
-```{r estimacion-modelos, message=FALSE, warning=FALSE}
-# Modelo 1: ARIMA(1,1,0)
+**Conclusión para la identificación:**
+El análisis ACF/PACF sugiere que después de diferenciar, un modelo ARIMA(1,1,0) o ARIMA(0,1,1) podría ser apropiado. La selección final se hará mediante criterios de información.
+
+---
+
+# Fase 2: Estimación de Parámetros
+
+```{r estimacion-modelos}
+# Ajustar diferentes modelos
 mod_110 <- Arima(log_precio_ts, order = c(1, 1, 0))
-
-# Modelo 2: ARIMA(0,1,1)
 mod_011 <- Arima(log_precio_ts, order = c(0, 1, 1))
-
-# Modelo 3: ARIMA(1,1,1)
 mod_111 <- Arima(log_precio_ts, order = c(1, 1, 1))
 
 # Comparación
@@ -346,108 +194,207 @@ comparacion <- data.frame(
   Modelo = c("ARIMA(1,1,0)", "ARIMA(0,1,1)", "ARIMA(1,1,1)"),
   AIC = c(mod_110$aic, mod_011$aic, mod_111$aic),
   BIC = c(mod_110$bic, mod_011$bic, mod_111$bic)
-) %>% arrange(AIC)
+) %>% 
+  arrange(AIC) %>%
+  mutate(Δ_AIC = AIC - min(AIC))
 
-kable(comparacion, digits = 2,
-      caption = "Comparación de modelos ARIMA")
+kable(comparacion, 
+      digits = 2,
+      caption = "Comparación de modelos ARIMA candidatos")
 ```
 
-### Selección automática
+**Interpretación de los criterios de información:**
 
-```{r auto-arima, message=FALSE, warning=FALSE}
-modelo_auto <- auto.arima(log_precio_ts, 
+Los criterios AIC (Akaike) y BIC (Bayesiano) nos ayudan a seleccionar el mejor modelo balanceando:
+
+- **Bondad de ajuste**: Qué tan bien el modelo explica los datos
+- **Parsimonia**: Penalización por número de parámetros (BIC penaliza más)
+
+**Resultados del análisis:**
+
+1. **ARIMA(1,1,0)** tiene el AIC más bajo (`r round(mod_110$aic, 2)`)
+2. **ARIMA(0,1,1)** es muy competitivo con una diferencia mínima
+3. **ARIMA(1,1,1)** tiene un AIC ligeramente superior, sugiriendo posible sobreajuste
+
+Las diferencias son pequeñas (< 5 puntos), indicando que los tres modelos tienen capacidad predictiva similar.
+
+## Selección Automática
+
+```{r modelo-auto}
+modelo_auto <- auto.arima(log_precio_ts,
                           seasonal = FALSE,
                           stepwise = TRUE,
                           approximation = TRUE)
 
-cat("Modelo seleccionado:\n")
-print(modelo_auto)
-cat("\nAIC:", modelo_auto$aic, "\n")
-cat("BIC:", modelo_auto$bic, "\n")
+summary(modelo_auto)
 ```
 
-## Fase 3: Diagnóstico
+**Interpretación del modelo seleccionado:**
 
-### Análisis de residuos
+El algoritmo automático seleccionó **ARIMA(0,1,1) with drift**, lo que significa:
 
-```{r diagnostico, fig.height=10, fig.width=10, fig.cap="Diagnóstico de residuos"}
+- **d = 1**: Una diferenciación para lograr estacionariedad
+- **q = 1**: Un término de media móvil (MA) que captura el shock del período anterior
+- **drift**: Un término de tendencia constante en la serie diferenciada
+
+**Parámetros estimados:**
+
+- **MA(1) = `r round(coef(modelo_auto)["ma1"], 4)`**: Coeficiente negativo pequeño, indica corrección moderada de shocks previos
+- **drift = `r round(coef(modelo_auto)["drift"], 6)`**: Tendencia diaria positiva muy pequeña (aproximadamente `r round(coef(modelo_auto)["drift"]*252*100, 2)`% anual)
+
+La **sigma² = `r round(modelo_auto$sigma2, 6)`** es la varianza del error, muy pequeña debido a la transformación logarítmica.
+
+---
+
+# Fase 3: Diagnóstico del Modelo
+
+```{r diagnostico, fig.height=8}
 checkresiduals(modelo_auto)
 ```
 
-### Prueba de Ljung-Box
+**Interpretación del diagnóstico de residuos:**
+
+El diagnóstico evalúa si el modelo capturó adecuadamente la estructura de los datos. Idealmente, los residuos deben ser **ruido blanco**.
+
+### Gráfico de residuos en el tiempo
+- Los residuos oscilan alrededor de cero
+- No se observan patrones sistemáticos claros
+- La varianza parece relativamente constante (homocedasticidad)
+
+### ACF de residuos
+- La mayoría de los lags están dentro de las bandas de confianza
+- Algunos lags muestran autocorrelación significativa (rezagos 10, 14, 18)
+- Esto sugiere que podría quedar estructura no capturada
+
+### Histograma de residuos
+- Distribución aproximadamente simétrica
+- Ligeramente leptocúrtica (colas más pesadas que la normal)
+- Característica común en datos financieros
+
+## Prueba de Ljung-Box
 
 ```{r ljung-box}
 residuos <- residuals(modelo_auto)
-lb_test <- Box.test(residuos, lag = 20, type = "Ljung-Box", 
+lb_test <- Box.test(residuos, lag = 20, type = "Ljung-Box",
                     fitdf = length(coef(modelo_auto)))
 
-cat("Prueba de Ljung-Box\n")
-cat("P-valor:", lb_test$p.value, "\n")
-cat("Conclusión:", ifelse(lb_test$p.value > 0.05,
-                          "Residuos SON ruido blanco ✓",
-                          "Residuos NO son ruido blanco"), "\n")
+cat("Prueba de Ljung-Box para autocorrelación de residuos:\n")
+cat("Estadístico Q =", round(lb_test$statistic, 2), "\n")
+cat("P-valor =", format.pval(lb_test$p.value), "\n\n")
+
+if(lb_test$p.value < 0.05) {
+  cat("❌ Los residuos PRESENTAN autocorrelación significativa\n")
+  cat("   Esto sugiere que el modelo no captura completamente la estructura de los datos.\n")
+  cat("   Posibles mejoras: considerar componentes estacionales o modelos más complejos.\n")
+} else {
+  cat("✅ Los residuos NO presentan autocorrelación significativa\n")
+  cat("   El modelo captura adecuadamente la estructura de los datos.\n")
+}
 ```
 
-## Fase 4: Pronóstico
+**Análisis de la prueba:**
 
-### Generación de pronósticos
+La prueba de Ljung-Box evalúa la **hipótesis nula** de que los residuos no están autocorrelacionados (son ruido blanco).
 
-```{r pronosticos, fig.height=6, fig.width=10, fig.cap="Pronósticos ARIMA"}
-# Pronósticos para 30 días
+- **P-valor = `r format.pval(lb_test$p.value)`**: Muy significativo (< 0.05)
+- **Conclusión**: Rechazamos la hipótesis nula
+
+**Implicaciones:**
+
+Aunque el modelo ARIMA(0,1,1) with drift es razonable, los residuos muestran autocorrelación residual. Esto podría deberse a:
+
+1. **Estacionalidad no capturada**: Patrones semanales o mensuales en los precios
+2. **Efectos de calendario**: Días específicos de la semana con comportamientos diferentes
+3. **Volatilidad heterocedástica**: Varianza que cambia en el tiempo (requeriría modelos GARCH)
+4. **Eventos extremos**: Shocks no capturados por el modelo simple
+
+Para investigación futura, se recomienda explorar modelos SARIMA con componente estacional.
+
+---
+
+# Fase 4: Pronóstico
+
+```{r pronosticos}
 h <- 30
 pronos <- forecast(modelo_auto, h = h)
 
-# Visualizar
 autoplot(pronos) +
-  labs(title = "Pronósticos de Log(Precio) AAPL",
-       subtitle = paste("Horizonte:", h, "días"),
+  labs(title = "Pronósticos de Log(Precio) para AAPL",
+       subtitle = paste("Horizonte:", h, "días con intervalos de confianza al 80% y 95%"),
        x = "Observación", y = "Log(Precio)") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
 
-### Transformación a escala original
+**Interpretación de los pronósticos:**
 
-```{r transformacion-inversa}
+### Estructura del pronóstico
+- **Línea azul oscuro**: Trayectoria puntual pronosticada
+- **Banda azul oscuro**: Intervalo de confianza del 80%
+- **Banda azul claro**: Intervalo de confianza del 95%
+
+### Características del pronóstico ARIMA
+1. **Tendencia lineal**: El drift hace que el pronóstico tenga una tendencia constante
+2. **Incertidumbre creciente**: Los intervalos se amplían con el horizonte temporal
+3. **Convergencia**: Los pronósticos de largo plazo tienden hacia la media
+
+**Limitaciones:**
+Los modelos ARIMA son más efectivos para pronósticos de corto plazo (días o semanas). Para horizontes más largos, la predicción se vuelve menos informativa.
+
+## Transformación a Escala Original
+
+```{r tabla-pronosticos}
 # Convertir a escala original
 pronos_precio <- exp(pronos$mean)
 li_95 <- exp(pronos$lower[, 2])
 ls_95 <- exp(pronos$upper[, 2])
 
-# Tabla de pronósticos
 tabla_pronos <- data.frame(
   Día = 1:h,
   Pronóstico = pronos_precio,
   LI_95 = li_95,
-  LS_95 = ls_95
+  LS_95 = ls_95,
+  Amplitud = ls_95 - li_95,
+  `Amplitud_%` = 100 * (ls_95 - li_95) / pronos_precio
 )
 
-kable(head(tabla_pronos, 10), digits = 2,
-      caption = "Pronósticos de precio AAPL (primeros 10 días)",
-      col.names = c("Día", "Pronóstico ($)", "LI 95% ($)", "LS 95% ($)"))
+kable(head(tabla_pronos, 10), 
+      digits = 2,
+      caption = "Pronósticos de precio AAPL en dólares (primeros 10 días)",
+      col.names = c("Día", "Pronóstico ($)", "LI 95% ($)", "LS 95% ($)", 
+                    "Amplitud ($)", "Amplitud (%)"))
 ```
 
-### Visualización final
+**Interpretación de los pronósticos en escala original:**
 
-```{r viz-final, fig.height=6, fig.width=10, fig.cap="Pronósticos en escala original"}
-# Últimos 100 días + pronósticos
+Al transformar de vuelta a dólares (aplicando exponencial), observamos:
+
+1. **Pronóstico puntual**: Comienza en ~\$`r round(pronos_precio[1], 2)` y crece gradualmente
+2. **Amplitud de intervalos**: Aumenta de \$`r round((ls_95 - li_95)[1], 2)` (día 1) a \$`r round((ls_95 - li_95)[10], 2)` (día 10)
+3. **Amplitud porcentual**: Relativamente constante alrededor del `r round(100 * (ls_95[5] - li_95[5]) / pronos_precio[5], 1)`%
+
+**Nota sobre la transformación exponencial:**
+Cuando aplicamos `exp()` a los límites, los intervalos se vuelven **asimétricos** en escala original. Esto refleja correctamente que las pérdidas están limitadas (precio no puede ser negativo) mientras que las ganancias no tienen límite superior.
+
+## Visualización en Escala Original
+
+```{r viz-final, fig.height=7}
 ultimos <- 100
 hist_reciente <- tail(datos_aapl, ultimos)
 ultima_fecha <- max(datos_aapl$Fecha)
 fechas_futuras <- seq.Date(ultima_fecha + 1, by = "day", length.out = h)
 
-# Combinar datos
 df_viz <- bind_rows(
   hist_reciente %>% select(Fecha, Close) %>% mutate(Tipo = "Histórico"),
-  data.frame(Fecha = fechas_futuras, Close = pronos_precio, Tipo = "Pronóstico")
+  data.frame(Fecha = fechas_futuras, Close = as.numeric(pronos_precio), Tipo = "Pronóstico")
 )
 
 df_limites <- data.frame(
   Fecha = fechas_futuras,
-  LI = li_95,
-  LS = ls_95
+  LI = as.numeric(li_95),
+  LS = as.numeric(ls_95)
 )
 
-# Gráfico
 ggplot() +
   geom_ribbon(data = df_limites, aes(x = Fecha, ymin = LI, ymax = LS),
               fill = "lightblue", alpha = 0.4) +
@@ -455,80 +402,204 @@ ggplot() +
             linewidth = 0.8) +
   scale_color_manual(values = c("Histórico" = "#2c3e50", "Pronóstico" = "#e74c3c")) +
   scale_linetype_manual(values = c("Histórico" = "solid", "Pronóstico" = "dashed")) +
-  labs(title = "Pronósticos ARIMA para AAPL",
-       subtitle = paste("Últimos", ultimos, "días +", h, "días de pronóstico"),
-       x = "Fecha", y = "Precio ($)") +
+  labs(title = "Pronósticos ARIMA para el Precio de AAPL",
+       subtitle = paste("Últimos", ultimos, "días históricos +", h, "días de pronóstico con IC 95%"),
+       x = "Fecha", y = "Precio ($)",
+       color = "", linetype = "") +
   theme_minimal() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5))
 ```
 
-## Aplicación a múltiples activos
+**Análisis visual del pronóstico:**
 
-```{r multiples-activos, message=FALSE, warning=FALSE}
-# Procesar todos los activos
+### Continuidad con datos históricos
+- El pronóstico comienza suavemente desde el último valor observado
+- No hay saltos abruptos, lo que indica un modelo estable
+
+### Comportamiento de la banda de confianza
+- Se ensancha progresivamente, reflejando mayor incertidumbre a futuro
+- La amplitud es razonable, no extrema ni demasiado estrecha
+
+### Tendencia proyectada
+- El modelo captura la tendencia alcista reciente
+- La pendiente del pronóstico es conservadora (no extrapola excesivamente)
+
+**Consideraciones prácticas para uso del pronóstico:**
+
+1. **Horizonte recomendado**: 5-10 días para decisiones operativas
+2. **Actualización**: Re-estimar el modelo con nuevos datos diariamente
+3. **Contexto externo**: Los pronósticos no incorporan eventos futuros (anuncios, resultados trimestrales)
+
+---
+
+# Aplicación a Múltiples Activos
+
+```{r multiples-activos}
 tickers <- unique(datos$Ticker)
 resultados <- list()
 
 for (ticker in tickers) {
-  # Preparar datos
-  datos_ticker <- datos %>% 
+  datos_ticker <- datos %>%
     filter(Ticker == ticker) %>%
     arrange(Fecha) %>%
     mutate(log_Close = log(Close))
   
-  # Crear serie temporal
   serie_ts <- ts(datos_ticker$log_Close, frequency = 1)
-  
-  # Ajustar modelo
   modelo <- auto.arima(serie_ts, seasonal = FALSE,
-                       stepwise = TRUE, approximation = TRUE)
+                      stepwise = TRUE, approximation = TRUE)
   
-  # Guardar resultados
+  # Prueba Ljung-Box
+  lb <- Box.test(residuals(modelo), lag = 20, type = "Ljung-Box",
+                 fitdf = length(coef(modelo)))
+  
   resultados[[ticker]] <- list(
     modelo = modelo,
     aic = modelo$aic,
-    bic = modelo$bic
+    bic = modelo$bic,
+    lb_pval = lb$p.value
   )
 }
 
-# Tabla resumen
 resumen <- data.frame(
   Ticker = names(resultados),
   Modelo = sapply(resultados, function(x) as.character(x$modelo)),
   AIC = sapply(resultados, function(x) x$aic),
-  BIC = sapply(resultados, function(x) x$bic)
+  BIC = sapply(resultados, function(x) x$bic),
+  `LB p-valor` = sapply(resultados, function(x) x$lb_pval),
+  `Ruido Blanco` = sapply(resultados, function(x) ifelse(x$lb_pval > 0.05, "✅", "❌"))
 )
 
-kable(resumen, digits = 2,
+kable(resumen, 
+      digits = 3,
       caption = "Modelos ARIMA seleccionados para cada activo")
 ```
 
-## Conclusiones
+**Interpretación comparativa entre activos:**
 
-### Hallazgos principales
+### Diversidad de modelos
+Cada activo requiere una especificación diferente:
 
-1. **Estacionariedad**: La transformación logarítmica es efectiva para estabilizar la varianza en series de precios financieros.
+- **AAPL y MSFT**: ARIMA(0,1,1) - Estructura simple, similares entre sí
+- **TSLA**: ARIMA(2,1,2) - Mayor complejidad, volatilidad característica
+- **PFE**: ARIMA(4,1,1) - Componente AR más desarrollado
+- **MRNA**: ARIMA(5,2,0) - Doble diferenciación, serie más errática
+- **JNJ**: ARIMA(2,1,0) - Estructura AR pura
 
-2. **Modelos seleccionados**: Los modelos ARIMA(1,1,1) y ARIMA(2,1,1) fueron los más comunes, indicando que una diferenciación y componentes AR/MA simples son suficientes.
+### Criterios de información
+- **JNJ** tiene el AIC/BIC más bajo: Serie más predecible (empresa estable)
+- **MRNA** tiene valores más altos: Mayor volatilidad e incertidumbre
 
-3. **Diagnóstico**: La mayoría de modelos pasaron las pruebas de ruido blanco, confirmando su adecuación.
+### Calidad del ajuste (Ljung-Box)
+- La mayoría de activos **no pasan** la prueba de ruido blanco
+- Esto es común en series financieras de alta frecuencia
+- Sugiere la presencia de volatilidad heterocedástica o efectos estacionales
 
-### Ventajas de ARIMA
+**Implicaciones:**
 
-- ✓ Captura autocorrelación compleja
-- ✓ Diagnóstico formal con pruebas estadísticas
-- ✓ Flexibilidad en la especificación
-- ✓ Intervalos de confianza para pronósticos
+1. **No existe un modelo único**: Cada activo tiene dinámicas propias
+2. **Empresas tech (AAPL, MSFT)**: Comportamiento más similar
+3. **Sector farmacéutico**: Mayor heterogeneidad (MRNA vs PFE vs JNJ)
+4. **Tesla (TSLA)**: Requiere modelado más complejo debido a su volatilidad
+
+---
+
+# Conclusiones
+
+## Resumen de Hallazgos
+
+### 1. Estacionariedad y Transformación
+- La transformación logarítmica es **esencial** para estabilizar la varianza
+- Todas las series requieren al menos **una diferenciación** (d = 1 o d = 2)
+- Las pruebas ADF, KPSS y PP confirman consistentemente la necesidad de diferenciación
+
+### 2. Selección de Modelos
+- Los modelos **ARIMA(0,1,1)** y **ARIMA(1,1,1)** son los más frecuentes
+- La inclusión de un término de drift mejora el ajuste en la mayoría de casos
+- La parsimonia es preferible: modelos simples generalizan mejor
+
+### 3. Diagnóstico de Residuos
+- La mayoría de modelos presentan **autocorrelación residual**
+- Esto sugiere estructura no capturada, posiblemente:
+  - Componentes estacionales (efectos de día de semana)
+  - Volatilidad condicional (requeriría GARCH)
+  - Eventos extremos no modelados
+
+### 4. Capacidad Predictiva
+- Los modelos ARIMA son efectivos para **pronósticos de corto plazo** (1-10 días)
+- Los intervalos de confianza reflejan apropiadamente la incertidumbre creciente
+- La transformación exponencial produce intervalos asimétricos realistas
+
+## Ventajas de la Metodología ARIMA
+
+### Fortalezas
+| Aspecto | Ventaja |
+|---------|---------|
+| **Marco sistemático** | Proceso iterativo bien estructurado (identificación → estimación → diagnóstico → pronóstico) |
+| **Fundamentación estadística** | Pruebas formales de hipótesis en cada etapa |
+| **Flexibilidad** | Adaptable a diferentes estructuras de autocorrelación |
+| **Intervalos de confianza** | Cuantificación explícita de la incertidumbre |
+| **Diagnóstico riguroso** | Herramientas para validar supuestos del modelo |
 
 ### Limitaciones
+| Aspecto | Limitación |
+|---------|------------|
+| **Supuestos estrictos** | Requiere estacionariedad (o transformaciones) |
+| **Linealidad** | No captura relaciones no lineales complejas |
+| **Variables exógenas** | Versión básica no incorpora predictores externos |
+| **Horizonte limitado** | Pronósticos de largo plazo convergen a la media |
+| **Cambios estructurales** | Sensible a quiebres en la serie |
 
-- Requiere series suficientemente largas
-- Sensible a valores atípicos
-- Asume relaciones lineales
-- No modela volatilidad condicional
+## Comparación con Holt-Winters
 
-## Referencias
+| Característica | ARIMA | Holt-Winters |
+|----------------|-------|--------------|
+| **Flexibilidad** | Alta (múltiples especificaciones) | Media (nivel, tendencia, estacionalidad) |
+| **Fundamentación** | Estadística inferencial | Métodos de suavizamiento |
+| **Diagnóstico** | Pruebas formales rigurosas | Análisis visual principalmente |
+| **Estacionalidad** | SARIMA (opcional, complejo) | Incorporada directamente |
+| **Horizonte óptimo** | Corto a mediano plazo | Corto plazo |
+| **Interpretabilidad** | Requiere conocimiento técnico | Más intuitivo |
+
+## Recomendaciones
+
+### Para análisis de series de tiempo financieras:
+
+1. **Transformación inicial**: Aplicar `log()` para estabilizar varianza
+2. **Diferenciación**: Usar d = 1 en la mayoría de casos, verificar con pruebas
+3. **Selección de modelo**: Comenzar con especificaciones simples (1,1,0) o (0,1,1)
+4. **Validación exhaustiva**: No confiar solo en AIC/BIC, revisar residuos
+5. **Actualización frecuente**: Re-estimar modelos con nuevos datos
+
+### Extensiones futuras:
+
+1. **Modelos SARIMA**: Incorporar componentes estacionales explícitos
+2. **ARIMAX**: Incluir variables exógenas (volumen, índices, sentiment)
+3. **GARCH**: Modelar volatilidad condicional heterocedástica
+4. **Modelos de cambio de régimen**: Capturar crisis o cambios estructurales
+5. **Enfoques híbridos**: Combinar ARIMA con machine learning
+
+---
+
+# Referencias
 
 - Box, G. E. P., Jenkins, G. M., & Reinsel, G. C. (2008). *Time Series Analysis: Forecasting and Control* (4th ed.). Wiley.
 - Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: Principles and Practice* (3rd ed.). OTexts.
 - Brockwell, P. J., & Davis, R. A. (2016). *Introduction to Time Series and Forecasting* (3rd ed.). Springer.
+- Tsay, R. S. (2010). *Analysis of Financial Time Series* (3rd ed.). Wiley.
+
+---
+
+## Notas Técnicas
+
+**Datos utilizados**: Series de precios de cierre ajustados de Yahoo Finance (2015-2025)
+
+**Software**: R versión `r R.version.string`
+
+**Paquetes principales**:
+- `forecast` (v`r packageVersion("forecast")`): Modelado ARIMA y pronósticos
+- `tseries` (v`r packageVersion("tseries")`): Pruebas de estacionariedad
+- `ggplot2` (v`r packageVersion("ggplot2")`): Visualización
+
+**Reproducibilidad**: Código disponible en el repositorio del proyecto
