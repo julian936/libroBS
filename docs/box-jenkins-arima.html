@@ -282,44 +282,9 @@
 <h3>
 <span class="header-section-number">4.2.1</span> Carga y preparación de datos<a class="anchor" aria-label="anchor" href="#carga-y-preparaci%C3%B3n-de-datos"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Cargar librerías necesarias</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://pkg.robjhyndman.com/forecast/">forecast</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tseries</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://readxl.tidyverse.org">readxl</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/">knitr</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org">lubridate</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Leer datos desde Excel</span></span>
-<span><span class="va">datos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readxl.tidyverse.org/reference/read_excel.html">read_excel</a></span><span class="op">(</span><span class="st">"datos_yahoo/datasets/datos_completos.xlsx"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Fecha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="va">Fecha</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Información general</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Total de observaciones:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">datos</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Total de observaciones: 14290</code></pre>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Período:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Fecha</span><span class="op">)</span>, <span class="st">"a"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Fecha</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Período: 16721 a 20371</code></pre>
-<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Activos:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Ticker</span><span class="op">)</span>, collapse<span class="op">=</span><span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Activos: AAPL, MSFT, TSLA, PFE, MRNA, JNJ</code></pre>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Seleccionar AAPL para análisis detallado</span></span>
-<span><span class="va">datos_aapl</span> <span class="op">&lt;-</span> <span class="va">datos</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Ticker</span> <span class="op">==</span> <span class="st">"AAPL"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">Fecha</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>log_Close <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">Close</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Mostrar primeras observaciones</span></span>
-<span><span class="va">datos_aapl</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">Fecha</span>, <span class="va">Close</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>        caption <span class="op">=</span> <span class="st">"Muestra de datos de Apple (AAPL)"</span>,</span>
-<span>        col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Fecha"</span>, <span class="st">"Precio de Cierre ($)"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
 <span id="tab:carga-datos">Table 3.1: </span>Muestra de datos de Apple (AAPL)</caption>
@@ -384,21 +349,7 @@
 <h3>
 <span class="header-section-number">4.2.2</span> Visualización y transformación<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-y-transformaci%C3%B3n"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">datos_aapl</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Fecha</span>, y <span class="op">=</span> <span class="va">Close</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#2c3e50"</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Serie Original: Precio de AAPL"</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Fecha"</span>, y <span class="op">=</span> <span class="st">"Precio ($)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">datos_aapl</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Fecha</span>, y <span class="op">=</span> <span class="va">log_Close</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#27ae60"</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Serie Transformada: Log(Precio)"</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Fecha"</span>, y <span class="op">=</span> <span class="st">"Log(Precio)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html">grid.arrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:visualizacion-series"></span>
 <img src="04-application_files/figure-html/visualizacion-series-1.png" alt="Serie original vs transformada logarítmicamente" width="672"><p class="caption">
 Figure 4.1: Serie original vs transformada logarítmicamente
@@ -432,58 +383,14 @@ Figure 4.1: Serie original vs transformada logarítmicamente
 <h3>
 <span class="header-section-number">4.2.3</span> Análisis de estacionariedad<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-estacionariedad-1"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Crear serie temporal</span></span>
-<span><span class="va">log_precio_ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html">ts</a></span><span class="op">(</span><span class="va">datos_aapl</span><span class="op">$</span><span class="va">log_Close</span>, frequency <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Prueba ADF</span></span>
-<span><span class="va">adf_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tseries/man/adf.test.html">adf.test</a></span><span class="op">(</span><span class="va">log_precio_ts</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba ADF:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba ADF:</code></pre>
-<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">adf_result</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## P-valor: 0.4033387</code></pre>
-<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">adf_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, </span>
-<span>                          <span class="st">"Serie ES estacionaria"</span>, </span>
-<span>                          <span class="st">"Serie NO es estacionaria"</span><span class="op">)</span>, <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Serie NO es estacionaria</code></pre>
-<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Prueba KPSS</span></span>
-<span><span class="va">kpss_result</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tseries/man/kpss.test.html">kpss.test</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, null <span class="op">=</span> <span class="st">"Trend"</span><span class="op">)</span></span>
-<span><span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>p.value <span class="op">=</span> <span class="fl">0.1</span>, statistic <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<pre><code>## Warning in kpss.test(log_precio_ts, null = "Trend"): p-value smaller than
-## printed p-value</code></pre>
-<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba KPSS:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba KPSS:</code></pre>
-<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">kpss_result</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## P-valor: 0.01</code></pre>
-<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">kpss_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&gt;</span> <span class="fl">0.05</span>, </span>
-<span>                          <span class="st">"Serie ES estacionaria"</span>, </span>
-<span>                          <span class="st">"Serie NO es estacionaria"</span><span class="op">)</span>, <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Serie NO es estacionaria</code></pre>
-<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Prueba Phillips-Perron</span></span>
-<span><span class="va">pp_result</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/pp.test.html">PP.test</a></span><span class="op">(</span><span class="va">log_precio_ts</span><span class="op">)</span></span>
-<span><span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>p.value <span class="op">=</span> <span class="fl">0.5</span>, statistic <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba PP:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba PP:</code></pre>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">pp_result</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## P-valor: 0.4426644</code></pre>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">pp_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, </span>
-<span>                          <span class="st">"Serie ES estacionaria"</span>, </span>
-<span>                          <span class="st">"Serie NO es estacionaria"</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Serie NO es estacionaria</code></pre>
 <p><strong>Interpretación detallada de las pruebas de estacionariedad:</strong></p>
 <div id="prueba-aumentada-de-dickey-fuller-adf-1" class="section level4" number="4.2.3.1">
@@ -562,11 +469,7 @@ Figure 4.1: Serie original vs transformada logarítmicamente
 <h3>
 <span class="header-section-number">4.2.4</span> Análisis ACF y PACF<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-acf-y-pacf"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, lag.max <span class="op">=</span> <span class="fl">40</span>, main <span class="op">=</span> <span class="st">"ACF de Log(Precio)"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/acf.html">pacf</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, lag.max <span class="op">=</span> <span class="fl">40</span>, main <span class="op">=</span> <span class="st">"PACF de Log(Precio)"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:acf-pacf"></span>
 <img src="04-application_files/figure-html/acf-pacf-1.png" alt="Funciones ACF y PACF" width="672"><p class="caption">
 Figure 4.2: Funciones ACF y PACF
@@ -635,25 +538,6 @@ Figure 4.2: Funciones ACF y PACF
 <h3>
 <span class="header-section-number">4.3.1</span> Estimación de modelos ARIMA<a class="anchor" aria-label="anchor" href="#estimaci%C3%B3n-de-modelos-arima"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Modelo 1: ARIMA(1,1,0)</span></span>
-<span><span class="va">mod_110</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/Arima.html">Arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Modelo 2: ARIMA(0,1,1)</span></span>
-<span><span class="va">mod_011</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/Arima.html">Arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Modelo 3: ARIMA(1,1,1)</span></span>
-<span><span class="va">mod_111</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/Arima.html">Arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Comparación</span></span>
-<span><span class="va">comparacion</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  Modelo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ARIMA(1,1,0)"</span>, <span class="st">"ARIMA(0,1,1)"</span>, <span class="st">"ARIMA(1,1,1)"</span><span class="op">)</span>,</span>
-<span>  AIC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">mod_110</span><span class="op">$</span><span class="va">aic</span>, <span class="va">mod_011</span><span class="op">$</span><span class="va">aic</span>, <span class="va">mod_111</span><span class="op">$</span><span class="va">aic</span><span class="op">)</span>,</span>
-<span>  BIC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">mod_110</span><span class="op">$</span><span class="va">bic</span>, <span class="va">mod_011</span><span class="op">$</span><span class="va">bic</span>, <span class="va">mod_111</span><span class="op">$</span><span class="va">bic</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">AIC</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="va">comparacion</span>, digits <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>      caption <span class="op">=</span> <span class="st">"Comparación de modelos ARIMA"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
 <span id="tab:estimacion-modelos">Table 4.1: </span>Comparación de modelos ARIMA</caption>
@@ -747,16 +631,7 @@ Figure 4.2: Funciones ACF y PACF
 <h3>
 <span class="header-section-number">4.3.2</span> Selección automática<a class="anchor" aria-label="anchor" href="#selecci%C3%B3n-autom%C3%A1tica"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">modelo_auto</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>,</span>
-<span>                          seasonal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                          stepwise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                          approximation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Modelo seleccionado:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Modelo seleccionado:</code></pre>
-<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Series: log_precio_ts 
 ## ARIMA(0,1,1) with drift 
 ## 
@@ -767,12 +642,8 @@ Figure 4.2: Funciones ACF y PACF
 ## 
 ## sigma^2 = 0.000337:  log likelihood = 6481.34
 ## AIC=-12956.67   AICc=-12956.66   BIC=-12939.19</code></pre>
-<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nAIC:"</span>, <span class="va">modelo_auto</span><span class="op">$</span><span class="va">aic</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## AIC: -12956.67</code></pre>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"BIC:"</span>, <span class="va">modelo_auto</span><span class="op">$</span><span class="va">bic</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## BIC: -12939.19</code></pre>
 <p><strong>Interpretación del modelo seleccionado automáticamente:</strong></p>
 <p>La función <code><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima()</a></code> realizó una búsqueda exhaustiva entre múltiples especificaciones y seleccionó:</p>
@@ -848,9 +719,7 @@ Figure 4.2: Funciones ACF y PACF
 <h3>
 <span class="header-section-number">4.4.1</span> Análisis de residuos<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-residuos"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/checkresiduals.html">checkresiduals</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:diagnostico"></span>
 <img src="04-application_files/figure-html/diagnostico-1.png" alt="Diagnóstico de residuos" width="672"><p class="caption">
 Figure 4.3: Diagnóstico de residuos
@@ -910,20 +779,8 @@ Figure 4.3: Diagnóstico de residuos
 <h3>
 <span class="header-section-number">4.4.2</span> Prueba de Ljung-Box<a class="anchor" aria-label="anchor" href="#prueba-de-ljung-box"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">residuos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span></span>
-<span><span class="va">lb_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/box.test.html">Box.test</a></span><span class="op">(</span><span class="va">residuos</span>, lag <span class="op">=</span> <span class="fl">20</span>, type <span class="op">=</span> <span class="st">"Ljung-Box"</span>,</span>
-<span>                    fitdf <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba de Ljung-Box\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba de Ljung-Box</code></pre>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">lb_test</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## P-valor: 1.772645e-07</code></pre>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">lb_test</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&gt;</span> <span class="fl">0.05</span>, </span>
-<span>                          <span class="st">"Residuos SON ruido blanco ✓"</span>, </span>
-<span>                          <span class="st">"Residuos NO son ruido blanco"</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Residuos NO son ruido blanco</code></pre>
 <p><strong>Interpretación de la Prueba de Ljung-Box:</strong></p>
 <p>La prueba de Ljung-Box es un test formal de autocorrelación en los residuos.</p>
@@ -1001,18 +858,7 @@ Figure 4.3: Diagnóstico de residuos
 <h3>
 <span class="header-section-number">4.5.1</span> Generación de pronósticos<a class="anchor" aria-label="anchor" href="#generaci%C3%B3n-de-pron%C3%B3sticos"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Pronósticos para 30 días</span></span>
-<span><span class="va">h</span> <span class="op">&lt;-</span> <span class="fl">30</span></span>
-<span><span class="va">pronos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html">forecast</a></span><span class="op">(</span><span class="va">modelo_auto</span>, h <span class="op">=</span> <span class="va">h</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualizar</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html">autoplot</a></span><span class="op">(</span><span class="va">pronos</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Pronósticos de Log(Precio) AAPL"</span>,</span>
-<span>       subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Horizonte:"</span>, <span class="va">h</span>, <span class="st">"días"</span><span class="op">)</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Observación"</span>, y <span class="op">=</span> <span class="st">"Log(Precio)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:pronosticos"></span>
 <img src="04-application_files/figure-html/pronosticos-1.png" alt="Pronósticos ARIMA" width="672"><p class="caption">
 Figure 4.4: Pronósticos ARIMA
@@ -1084,23 +930,6 @@ Figure 4.4: Pronósticos ARIMA
 <h3>
 <span class="header-section-number">4.5.2</span> Transformación a escala original<a class="anchor" aria-label="anchor" href="#transformaci%C3%B3n-a-escala-original"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Convertir a escala original</span></span>
-<span><span class="va">pronos_precio</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">pronos</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span></span>
-<span><span class="va">li_95</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">pronos</span><span class="op">$</span><span class="va">lower</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">ls_95</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">pronos</span><span class="op">$</span><span class="va">upper</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Tabla de pronósticos</span></span>
-<span><span class="va">tabla_pronos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  Día <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">h</span>,</span>
-<span>  Pronóstico <span class="op">=</span> <span class="va">pronos_precio</span>,</span>
-<span>  LI_95 <span class="op">=</span> <span class="va">li_95</span>,</span>
-<span>  LS_95 <span class="op">=</span> <span class="va">ls_95</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tabla_pronos</span>, <span class="fl">10</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>      caption <span class="op">=</span> <span class="st">"Pronósticos de precio AAPL (primeros 10 días)"</span>,</span>
-<span>      col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Día"</span>, <span class="st">"Pronóstico ($)"</span>, <span class="st">"LI 95% ($)"</span>, <span class="st">"LS 95% ($)"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
 <span id="tab:transformacion-inversa">Table 4.2: </span>Pronósticos de precio AAPL (primeros 10 días)</caption>
@@ -1265,43 +1094,7 @@ Figure 4.4: Pronósticos ARIMA
 <h3>
 <span class="header-section-number">4.5.3</span> Visualización final<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-final"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Últimos 100 días + pronósticos</span></span>
-<span><span class="va">ultimos</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
-<span><span class="va">hist_reciente</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">datos_aapl</span>, <span class="va">ultimos</span><span class="op">)</span></span>
-<span><span class="va">ultima_fecha</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">datos_aapl</span><span class="op">$</span><span class="va">Fecha</span><span class="op">)</span></span>
-<span><span class="va">fechas_futuras</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.Date.html">seq.Date</a></span><span class="op">(</span><span class="va">ultima_fecha</span> <span class="op">+</span> <span class="fl">1</span>, by <span class="op">=</span> <span class="st">"day"</span>, length.out <span class="op">=</span> <span class="va">h</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Combinar datos</span></span>
-<span><span class="va">df_viz</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html">bind_rows</a></span><span class="op">(</span></span>
-<span>  <span class="va">hist_reciente</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">Fecha</span>, <span class="va">Close</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Tipo <span class="op">=</span> <span class="st">"Histórico"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>Fecha <span class="op">=</span> <span class="va">fechas_futuras</span>, Close <span class="op">=</span> <span class="va">pronos_precio</span>, Tipo <span class="op">=</span> <span class="st">"Pronóstico"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">df_limites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  Fecha <span class="op">=</span> <span class="va">fechas_futuras</span>,</span>
-<span>  LI <span class="op">=</span> <span class="va">li_95</span>,</span>
-<span>  LS <span class="op">=</span> <span class="va">ls_95</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Gráfico</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_limites</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Fecha</span>, ymin <span class="op">=</span> <span class="va">LI</span>, ymax <span class="op">=</span> <span class="va">LS</span><span class="op">)</span>,</span>
-<span>              fill <span class="op">=</span> <span class="st">"lightblue"</span>, alpha <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_viz</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Fecha</span>, y <span class="op">=</span> <span class="va">Close</span>, color <span class="op">=</span> <span class="va">Tipo</span>, linetype <span class="op">=</span> <span class="va">Tipo</span><span class="op">)</span>,</span>
-<span>            linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Histórico"</span> <span class="op">=</span> <span class="st">"#2c3e50"</span>, <span class="st">"Pronóstico"</span> <span class="op">=</span> <span class="st">"#e74c3c"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_linetype_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Histórico"</span> <span class="op">=</span> <span class="st">"solid"</span>, <span class="st">"Pronóstico"</span> <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Pronósticos ARIMA para AAPL"</span>,</span>
-<span>       subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Últimos"</span>, <span class="va">ultimos</span>, <span class="st">"días +"</span>, <span class="va">h</span>, <span class="st">"días de pronóstico"</span><span class="op">)</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Fecha"</span>, y <span class="op">=</span> <span class="st">"Precio ($)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
-<pre><code>## Don't know how to automatically pick scale for object of type &lt;ts&gt;. Defaulting
-## to continuous.
-## Don't know how to automatically pick scale for object of type &lt;ts&gt;. Defaulting
-## to continuous.</code></pre>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:viz-final"></span>
 <img src="04-application_files/figure-html/viz-final-1.png" alt="Pronósticos en escala original" width="672"><p class="caption">
 Figure 4.5: Pronósticos en escala original
@@ -1434,43 +1227,6 @@ Figure 4.5: Pronósticos en escala original
 <h2>
 <span class="header-section-number">4.6</span> Aplicación a múltiples activos<a class="anchor" aria-label="anchor" href="#aplicaci%C3%B3n-a-m%C3%BAltiples-activos"><i class="fas fa-link"></i></a>
 </h2>
-<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Procesar todos los activos</span></span>
-<span><span class="va">tickers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Ticker</span><span class="op">)</span></span>
-<span><span class="va">resultados</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">ticker</span> <span class="kw">in</span> <span class="va">tickers</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Preparar datos</span></span>
-<span>  <span class="va">datos_ticker</span> <span class="op">&lt;-</span> <span class="va">datos</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Ticker</span> <span class="op">==</span> <span class="va">ticker</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">Fecha</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>log_Close <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">Close</span><span class="op">)</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Crear serie temporal</span></span>
-<span>  <span class="va">serie_ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html">ts</a></span><span class="op">(</span><span class="va">datos_ticker</span><span class="op">$</span><span class="va">log_Close</span>, frequency <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Ajustar modelo</span></span>
-<span>  <span class="va">modelo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima</a></span><span class="op">(</span><span class="va">serie_ts</span>, seasonal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                       stepwise <span class="op">=</span> <span class="cn">TRUE</span>, approximation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Guardar resultados</span></span>
-<span>  <span class="va">resultados</span><span class="op">[[</span><span class="va">ticker</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
-<span>    modelo <span class="op">=</span> <span class="va">modelo</span>,</span>
-<span>    aic <span class="op">=</span> <span class="va">modelo</span><span class="op">$</span><span class="va">aic</span>,</span>
-<span>    bic <span class="op">=</span> <span class="va">modelo</span><span class="op">$</span><span class="va">bic</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Tabla resumen</span></span>
-<span><span class="va">resumen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  Ticker <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">resultados</span><span class="op">)</span>,</span>
-<span>  Modelo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">resultados</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">modelo</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  AIC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">resultados</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">aic</span><span class="op">)</span>,</span>
-<span>  BIC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">resultados</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">bic</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="va">resumen</span>, digits <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>      caption <span class="op">=</span> <span class="st">"Modelos ARIMA seleccionados para cada activo"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
 <span id="tab:multiples-activos">Table 4.3: </span>Modelos ARIMA seleccionados para cada activo</caption>

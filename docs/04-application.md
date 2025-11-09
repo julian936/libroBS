@@ -1,5 +1,7 @@
 # Metodología Box-Jenkins y Modelos ARIMA {#box-jenkins-arima}
 
+
+
 ## Introducción
 
 En el capítulo anterior exploramos los modelos de suavizamiento exponencial y Holt-Winters para el análisis y pronóstico de series de tiempo. Ahora profundizaremos en la **metodología Box-Jenkins** y los **modelos ARIMA** (AutoRegressive Integrated Moving Average), que constituyen uno de los enfoques más robustos y ampliamente utilizados para el modelado de series temporales.
@@ -213,59 +215,16 @@ Los modelos ARIMA son particularmente efectivos para series que exhiben patrones
 ### Carga y preparación de datos
 
 
-``` r
-# Cargar librerías necesarias
-library(forecast)
-library(tseries)
-library(ggplot2)
-library(dplyr)
-library(readxl)
-library(knitr)
-library(lubridate)
-library(gridExtra)
-
-# Leer datos desde Excel
-datos <- read_excel("datos_yahoo/datasets/datos_completos.xlsx") %>%
-  mutate(Fecha = as.Date(Fecha))
-
-# Información general
-cat("Total de observaciones:", nrow(datos), "\n")
-```
-
 ```
 ## Total de observaciones: 14290
-```
-
-``` r
-cat("Período:", min(datos$Fecha), "a", max(datos$Fecha), "\n")
 ```
 
 ```
 ## Período: 16721 a 20371
 ```
 
-``` r
-cat("Activos:", paste(unique(datos$Ticker), collapse=", "), "\n")
-```
-
 ```
 ## Activos: AAPL, MSFT, TSLA, PFE, MRNA, JNJ
-```
-
-``` r
-# Seleccionar AAPL para análisis detallado
-datos_aapl <- datos %>%
-  filter(Ticker == "AAPL") %>%
-  arrange(Fecha) %>%
-  mutate(log_Close = log(Close))
-
-# Mostrar primeras observaciones
-datos_aapl %>%
-  select(Fecha, Close) %>%
-  head(10) %>%
-  kable(digits = 2,
-        caption = "Muestra de datos de Apple (AAPL)",
-        col.names = c("Fecha", "Precio de Cierre ($)"))
 ```
 
 
@@ -296,24 +255,7 @@ La transformación logarítmica (`log_Close`) se aplica por dos razones fundamen
 
 ### Visualización y transformación
 
-
-``` r
-p1 <- ggplot(datos_aapl, aes(x = Fecha, y = Close)) +
-  geom_line(color = "#2c3e50", linewidth = 0.6) +
-  labs(title = "Serie Original: Precio de AAPL",
-       x = "Fecha", y = "Precio ($)") +
-  theme_minimal()
-
-p2 <- ggplot(datos_aapl, aes(x = Fecha, y = log_Close)) +
-  geom_line(color = "#27ae60", linewidth = 0.6) +
-  labs(title = "Serie Transformada: Log(Precio)",
-       x = "Fecha", y = "Log(Precio)") +
-  theme_minimal()
-
-grid.arrange(p1, p2, ncol = 1)
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="04-application_files/figure-html/visualizacion-series-1.png" alt="Serie original vs transformada logarítmicamente" width="672" />
 <p class="caption">(\#fig:visualizacion-series)Serie original vs transformada logarítmicamente</p>
 </div>
@@ -339,103 +281,36 @@ Al comparar ambas gráficas, observamos diferencias importantes:
 ### Análisis de estacionariedad
 
 
-``` r
-# Crear serie temporal
-log_precio_ts <- ts(datos_aapl$log_Close, frequency = 1)
-
-# Prueba ADF
-adf_result <- adf.test(log_precio_ts)
-cat("Prueba ADF:\n")
-```
-
 ```
 ## Prueba ADF:
-```
-
-``` r
-cat("P-valor:", adf_result$p.value, "\n")
 ```
 
 ```
 ## P-valor: 0.4033387
 ```
 
-``` r
-cat("Conclusión:", ifelse(adf_result$p.value < 0.05, 
-                          "Serie ES estacionaria", 
-                          "Serie NO es estacionaria"), "\n\n")
-```
-
 ```
 ## Conclusión: Serie NO es estacionaria
-```
-
-``` r
-# Prueba KPSS
-kpss_result <- tryCatch({
-  kpss.test(log_precio_ts, null = "Trend")
-}, error = function(e) {
-  list(p.value = 0.1, statistic = 0)
-})
-```
-
-```
-## Warning in kpss.test(log_precio_ts, null = "Trend"): p-value smaller than
-## printed p-value
-```
-
-``` r
-cat("Prueba KPSS:\n")
 ```
 
 ```
 ## Prueba KPSS:
 ```
 
-``` r
-cat("P-valor:", kpss_result$p.value, "\n")
-```
-
 ```
 ## P-valor: 0.01
-```
-
-``` r
-cat("Conclusión:", ifelse(kpss_result$p.value > 0.05, 
-                          "Serie ES estacionaria", 
-                          "Serie NO es estacionaria"), "\n\n")
 ```
 
 ```
 ## Conclusión: Serie NO es estacionaria
 ```
 
-``` r
-# Prueba Phillips-Perron
-pp_result <- tryCatch({
-  PP.test(log_precio_ts)
-}, error = function(e) {
-  list(p.value = 0.5, statistic = 0)
-})
-cat("Prueba PP:\n")
-```
-
 ```
 ## Prueba PP:
 ```
 
-``` r
-cat("P-valor:", pp_result$p.value, "\n")
-```
-
 ```
 ## P-valor: 0.4426644
-```
-
-``` r
-cat("Conclusión:", ifelse(pp_result$p.value < 0.05, 
-                          "Serie ES estacionaria", 
-                          "Serie NO es estacionaria"), "\n")
 ```
 
 ```
@@ -490,14 +365,7 @@ Por lo tanto, en la siguiente fase trabajaremos con la **primera diferencia** de
 
 ### Análisis ACF y PACF
 
-
-``` r
-par(mfrow = c(2, 1), mar = c(4, 4, 3, 2))
-acf(log_precio_ts, lag.max = 40, main = "ACF de Log(Precio)")
-pacf(log_precio_ts, lag.max = 40, main = "PACF de Log(Precio)")
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="04-application_files/figure-html/acf-pacf-1.png" alt="Funciones ACF y PACF" width="672" />
 <p class="caption">(\#fig:acf-pacf)Funciones ACF y PACF</p>
 </div>
@@ -549,29 +417,6 @@ En la siguiente fase, estimaremos estos modelos candidatos y seleccionaremos el 
 ### Estimación de modelos ARIMA
 
 
-``` r
-# Modelo 1: ARIMA(1,1,0)
-mod_110 <- Arima(log_precio_ts, order = c(1, 1, 0))
-
-# Modelo 2: ARIMA(0,1,1)
-mod_011 <- Arima(log_precio_ts, order = c(1, 1, 1))
-
-# Modelo 3: ARIMA(1,1,1)
-mod_111 <- Arima(log_precio_ts, order = c(1, 1, 1))
-
-# Comparación
-comparacion <- data.frame(
-  Modelo = c("ARIMA(1,1,0)", "ARIMA(0,1,1)", "ARIMA(1,1,1)"),
-  AIC = c(mod_110$aic, mod_011$aic, mod_111$aic),
-  BIC = c(mod_110$bic, mod_011$bic, mod_111$bic)
-) %>% arrange(AIC)
-
-kable(comparacion, digits = 2,
-      caption = "Comparación de modelos ARIMA")
-```
-
-
-
 Table: (\#tab:estimacion-modelos)Comparación de modelos ARIMA
 
 |Modelo       |       AIC|       BIC|
@@ -619,21 +464,8 @@ Los tres modelos candidatos fueron estimados mediante **máxima verosimilitud**,
 ### Selección automática
 
 
-``` r
-modelo_auto <- auto.arima(log_precio_ts,
-                          seasonal = FALSE,
-                          stepwise = TRUE,
-                          approximation = TRUE)
-
-cat("Modelo seleccionado:\n")
-```
-
 ```
 ## Modelo seleccionado:
-```
-
-``` r
-print(modelo_auto)
 ```
 
 ```
@@ -649,17 +481,9 @@ print(modelo_auto)
 ## AIC=-12956.67   AICc=-12956.66   BIC=-12939.19
 ```
 
-``` r
-cat("\nAIC:", modelo_auto$aic, "\n")
-```
-
 ```
 ## 
 ## AIC: -12956.67
-```
-
-``` r
-cat("BIC:", modelo_auto$bic, "\n")
 ```
 
 ```
@@ -723,12 +547,7 @@ El modelo automático logró **AIC y BIC ligeramente mejores** que nuestros cand
 
 ### Análisis de residuos
 
-
-``` r
-checkresiduals(modelo_auto)
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="04-application_files/figure-html/diagnostico-1.png" alt="Diagnóstico de residuos" width="672" />
 <p class="caption">(\#fig:diagnostico)Diagnóstico de residuos</p>
 </div>
@@ -789,30 +608,12 @@ Verifica si quedan **autocorrelaciones no capturadas** por el modelo.
 ### Prueba de Ljung-Box
 
 
-``` r
-residuos <- residuals(modelo_auto)
-lb_test <- Box.test(residuos, lag = 20, type = "Ljung-Box",
-                    fitdf = length(coef(modelo_auto)))
-
-cat("Prueba de Ljung-Box\n")
-```
-
 ```
 ## Prueba de Ljung-Box
 ```
 
-``` r
-cat("P-valor:", lb_test$p.value, "\n")
-```
-
 ```
 ## P-valor: 1.772645e-07
-```
-
-``` r
-cat("Conclusión:", ifelse(lb_test$p.value > 0.05, 
-                          "Residuos SON ruido blanco ✓", 
-                          "Residuos NO son ruido blanco"), "\n")
 ```
 
 ```
@@ -860,21 +661,7 @@ El modelo ARIMA(0,1,1) with drift tiene un **ajuste aceptable pero mejorable**. 
 
 ### Generación de pronósticos
 
-
-``` r
-# Pronósticos para 30 días
-h <- 30
-pronos <- forecast(modelo_auto, h = h)
-
-# Visualizar
-autoplot(pronos) +
-  labs(title = "Pronósticos de Log(Precio) AAPL",
-       subtitle = paste("Horizonte:", h, "días"),
-       x = "Observación", y = "Log(Precio)") +
-  theme_minimal()
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="04-application_files/figure-html/pronosticos-1.png" alt="Pronósticos ARIMA" width="672" />
 <p class="caption">(\#fig:pronosticos)Pronósticos ARIMA</p>
 </div>
@@ -913,27 +700,6 @@ autoplot(pronos) +
 - **Intervalos conservadores**: Para series financieras con volatilidad cambiante, estos intervalos pueden subestimar el riesgo real
 
 ### Transformación a escala original
-
-
-``` r
-# Convertir a escala original
-pronos_precio <- exp(pronos$mean)
-li_95 <- exp(pronos$lower[, 2])
-ls_95 <- exp(pronos$upper[, 2])
-
-# Tabla de pronósticos
-tabla_pronos <- data.frame(
-  Día = 1:h,
-  Pronóstico = pronos_precio,
-  LI_95 = li_95,
-  LS_95 = ls_95
-)
-
-kable(head(tabla_pronos, 10), digits = 2,
-      caption = "Pronósticos de precio AAPL (primeros 10 días)",
-      col.names = c("Día", "Pronóstico ($)", "LI 95% ($)", "LS 95% ($)"))
-```
-
 
 
 Table: (\#tab:transformacion-inversa)Pronósticos de precio AAPL (primeros 10 días)
@@ -1014,49 +780,7 @@ En la práctica, eventos imprevistos (earnings reports, anuncios de productos, c
 
 ### Visualización final
 
-
-``` r
-# Últimos 100 días + pronósticos
-ultimos <- 100
-hist_reciente <- tail(datos_aapl, ultimos)
-ultima_fecha <- max(datos_aapl$Fecha)
-fechas_futuras <- seq.Date(ultima_fecha + 1, by = "day", length.out = h)
-
-# Combinar datos
-df_viz <- bind_rows(
-  hist_reciente %>% select(Fecha, Close) %>% mutate(Tipo = "Histórico"),
-  data.frame(Fecha = fechas_futuras, Close = pronos_precio, Tipo = "Pronóstico")
-)
-
-df_limites <- data.frame(
-  Fecha = fechas_futuras,
-  LI = li_95,
-  LS = ls_95
-)
-
-# Gráfico
-ggplot() +
-  geom_ribbon(data = df_limites, aes(x = Fecha, ymin = LI, ymax = LS),
-              fill = "lightblue", alpha = 0.4) +
-  geom_line(data = df_viz, aes(x = Fecha, y = Close, color = Tipo, linetype = Tipo),
-            linewidth = 0.8) +
-  scale_color_manual(values = c("Histórico" = "#2c3e50", "Pronóstico" = "#e74c3c")) +
-  scale_linetype_manual(values = c("Histórico" = "solid", "Pronóstico" = "dashed")) +
-  labs(title = "Pronósticos ARIMA para AAPL",
-       subtitle = paste("Últimos", ultimos, "días +", h, "días de pronóstico"),
-       x = "Fecha", y = "Precio ($)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-```
-
-```
-## Don't know how to automatically pick scale for object of type <ts>. Defaulting
-## to continuous.
-## Don't know how to automatically pick scale for object of type <ts>. Defaulting
-## to continuous.
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="04-application_files/figure-html/viz-final-1.png" alt="Pronósticos en escala original" width="672" />
 <p class="caption">(\#fig:viz-final)Pronósticos en escala original</p>
 </div>
@@ -1134,47 +858,6 @@ ggplot() +
 **Conclusión visual**: El gráfico muestra claramente que mientras los pronósticos ARIMA son útiles para capturar la **dirección general**, subestiman significativamente la **variabilidad** que experimentará el precio real. Esto es una limitación conocida de los modelos ARIMA univariados en series financieras altamente volátiles.
 
 ## Aplicación a múltiples activos
-
-
-``` r
-# Procesar todos los activos
-tickers <- unique(datos$Ticker)
-resultados <- list()
-
-for (ticker in tickers) {
-  # Preparar datos
-  datos_ticker <- datos %>%
-    filter(Ticker == ticker) %>%
-    arrange(Fecha) %>%
-    mutate(log_Close = log(Close))
-  
-  # Crear serie temporal
-  serie_ts <- ts(datos_ticker$log_Close, frequency = 1)
-  
-  # Ajustar modelo
-  modelo <- auto.arima(serie_ts, seasonal = FALSE,
-                       stepwise = TRUE, approximation = TRUE)
-  
-  # Guardar resultados
-  resultados[[ticker]] <- list(
-    modelo = modelo,
-    aic = modelo$aic,
-    bic = modelo$bic
-  )
-}
-
-# Tabla resumen
-resumen <- data.frame(
-  Ticker = names(resultados),
-  Modelo = sapply(resultados, function(x) as.character(x$modelo)),
-  AIC = sapply(resultados, function(x) x$aic),
-  BIC = sapply(resultados, function(x) x$bic)
-)
-
-kable(resumen, digits = 2,
-      caption = "Modelos ARIMA seleccionados para cada activo")
-```
-
 
 
 Table: (\#tab:multiples-activos)Modelos ARIMA seleccionados para cada activo
