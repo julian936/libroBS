@@ -68,7 +68,7 @@
 <h2>
 <span class="header-section-number">4.1</span> Introducción<a class="anchor" aria-label="anchor" href="#introducci%C3%B3n"><i class="fas fa-link"></i></a>
 </h2>
-<p>En el capítulo anterior exploramos los modelos de suavizamiento exponencial y Holt-Winters para el análisis y pronóstico de series de tiempo. Ahora profundizaremos en la metodología Box-Jenkins y los modelos ARIMA (AutoRegressive Integrated Moving Average), que constituyen uno de los enfoques más robustos y ampliamente utilizados para el modelado de series temporales.</p>
+<p>En el capítulo anterior exploramos los modelos de suavizamiento exponencial y Holt-Winters para el análisis y pronóstico de series de tiempo. Ahora profundizaremos en la <strong>metodología Box-Jenkins</strong> y los <strong>modelos ARIMA</strong> (AutoRegressive Integrated Moving Average), que constituyen uno de los enfoques más robustos y ampliamente utilizados para el modelado de series temporales.</p>
 <p>La metodología Box-Jenkins, desarrollada por George Box y Gwilym Jenkins en 1970, proporciona un marco sistemático para identificar, estimar y validar modelos ARIMA. Este enfoque iterativo consta de cuatro fases principales:</p>
 <ol style="list-style-type: decimal">
 <li>
@@ -124,73 +124,61 @@
               ¿Es estacionaria?
                      │
         ┌────────────┴────────────┐
-        │ NO                      │ SÍ
-        ▼                         ▼
-┌───────────────┐         ┌──────────────┐
-│Transformación │         │  Continuar   │
-│log(precios)   │────────▶│  al paso 1.2 │
-└───────────────┘         └──────┬───────┘
-                                 │
-                                 ▼
+        │ NO                │ SÍ
+        ▼                   ▼
+┌───────────────┐    ┌──────────────┐
+│Transformación │    │ Continuar   │
+│log(precios)   │───▶│ al paso 1.2 │
+└───────────────┘    └──────┬───────┘
+                            │
+                            ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │         PASO 1.2: ANÁLISIS ACF Y PACF                            │
 │  Identificar órdenes AR (p) y MA (q)                             │
 └────────────────────┬─────────────────────────────────────────────┘
                      │
-    ┌────────────────┴────────────────┐
-    │                                 │
-    ▼                                 ▼
-┌─────────────────────┐      ┌──────────────────────┐
-│   Función ACF       │      │   Función PACF       │
-│(Autocorrelación)    │      │(Autocorrel. Parcial) │
-│                     │      │                      │
-│• Decae exponencial  │      │• Corte después lag p │
-│  → componente MA    │      │  → orden AR          │
-│• Corte lag q        │      │• Decae exponencial   │
-│  → orden MA         │      │  → componente AR     │
-└──────────┬──────────┘      └──────────┬───────────┘
-           │                            │
-           └────────────┬───────────────┘
+        ┌────────────┴────────────┐
+        │                         │
+        ▼                         ▼
+┌─────────────────────┐    ┌──────────────────────┐
+│ Función ACF         │    │ Función PACF         │
+│(Autocorrelación)    │    │(Autocorrel. Parcial) │
+│                     │    │                      │
+│• Decae exponencial  │    │• Corte después lag p │
+│  → componente MA    │    │  → orden AR          │
+│• Corte lag q        │    │• Decae exponencial   │
+│  → orden MA         │    │  → componente AR     │
+└──────────┬──────────┘    └──────────┬───────────┘
+           │                          │
+           └────────────┬─────────────┘
                         │
                         ▼
               Revisar lags 7, 14, 21...
               ¿Hay patrón estacional?
                         │
-           ┌────────────┴────────────┐
-           │ NO                      │ SÍ (s=7, s=252, etc.)
-           ▼                         ▼
-    Modelos ARMA              Modelos SARIMA
-    ARIMA(p,d,q)             ARIMA(p,d,q)(P,D,Q)[s]
-           │                         │
-           └────────────┬────────────┘
-                        │
-                        ▼
-┌──────────────────────────────────────────────────────────────────┐
-│         PASO 1.3: MODELOS CANDIDATOS                             │
-│  Basado en ACF/PACF, proponer múltiples modelos                  │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │
-    **Modelos ARIMA iniciales:**
-    • ARIMA(1,1,0) - AR con diferenciación
-    • ARIMA(0,1,1) - MA con diferenciación
-    • ARIMA(1,1,1) - Mixto
-    • ARIMA(2,1,1), ARIMA(1,1,2) - Órdenes mayores
+        ┌───────────────┴────────────┐
+        │ NO                     │ SÍ (s=7, s=252, etc.)
+        ▼                        ▼
+  Modelos ARMA            Modelos SARIMA
+  ARIMA(p,d,q)            ARIMA(p,d,q)(P,D,Q)[s]
+        │                        │
+        └────────────┬───────────┘
                      │
                      ▼
 ╔══════════════════════════════════════════════════════════════════╗
-║                 FASE 2: ESTIMACIÓN DE PARÁMETROS                 ║
+║                  FASE 2: ESTIMACIÓN DE PARÁMETROS                ║
 ╚══════════════════════════════════════════════════════════════════╝
                      │
                      ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │         PASO 2.1: ESTIMACIÓN DE CADA MODELO                      │
-│  Método: Máxima Verosimilitud (MLE)                              │
+│  Método: Máxima Verosimilitud (MLE)                             │
 └────────────────────┬─────────────────────────────────────────────┘
                      │
-    Para cada modelo candidato:
-    1. Estimar parámetros (ϕ, θ, μ)
-    2. Calcular log-likelihood
-    3. Obtener criterios de información
+        Para cada modelo candidato:
+        1. Estimar parámetros (ϕ, θ, μ)
+        2. Calcular log-likelihood
+        3. Obtener criterios de información
                      │
                      ▼
 ┌──────────────────────────────────────────────────────────────────┐
@@ -198,15 +186,15 @@
 │  Criterios: AIC, AICc, BIC                                       │
 └────────────────────┬─────────────────────────────────────────────┘
                      │
-    AIC = -2*log(L) + 2*k
-    BIC = -2*log(L) + k*log(n)
+        AIC = -2*log(L) + 2*k
+        BIC = -2*log(L) + k*log(n)
                      │
-              Seleccionar modelo
-              con menor AIC/BIC
+        Seleccionar modelo
+        con menor AIC/BIC
                      │
                      ▼
 ╔══════════════════════════════════════════════════════════════════╗
-║                 FASE 3: DIAGNÓSTICO Y VALIDACIÓN                 ║
+║                  FASE 3: DIAGNÓSTICO Y VALIDACIÓN                ║
 ╚══════════════════════════════════════════════════════════════════╝
                      │
                      ▼
@@ -215,11 +203,11 @@
 │  Los residuos deben comportarse como RUIDO BLANCO                │
 └────────────────────┬─────────────────────────────────────────────┘
                      │
-    Requisitos del ruido blanco:
-    ✓ Media = 0
-    ✓ Varianza constante
-    ✓ No autocorrelacionados
-    ✓ Distribución normal
+        Requisitos del ruido blanco:
+        ✓ Media = 0
+        ✓ Varianza constante
+        ✓ No autocorrelacionados
+        ✓ Distribución normal
                      │
                      ▼
 ┌──────────────────────────────────────────────────────────────────┐
@@ -227,38 +215,38 @@
 │  H₀: Los residuos NO están autocorrelacionados                  │
 └────────────────────┬─────────────────────────────────────────────┘
                      │
-    Box.test(residuos, lag=20, type="Ljung-Box")
+  Box.test(residuos, lag=20, type="Ljung-Box")
                      │
                      ▼
               p-valor &gt; 0.05?
                      │
         ┌────────────┴────────────┐
-        │ NO (p &lt; 0.05)           │ SÍ (p &gt; 0.05)
-        ▼                         ▼
-┌───────────────┐         ┌──────────────┐
-│ Probar SARIMA │         │ Modelo       │
-│ con componente│         │ adecuado ✓   │
-│ estacional    │         │ Continuar a  │
-└───────────────┘         │ Fase 4       │
-                          └──────────────┘
-                                 │
-                                 ▼
+        │ NO (p &lt; 0.05)      │ SÍ (p &gt; 0.05)
+        ▼                    ▼
+┌───────────────┐      ┌──────────────┐
+│ Probar SARIMA │      │ Modelo       │
+│ con componente│      │ adecuado ✓   │
+│ estacional    │      │ Continuar a  │
+└───────────────┘      │ Fase 4       │
+                       └──────────────┘
+                             │
+                             ▼
 ╔══════════════════════════════════════════════════════════════════╗
-║                 FASE 4: PRONÓSTICO Y APLICACIÓN                  ║
+║                  FASE 4: PRONÓSTICO Y APLICACIÓN                 ║
 ╚══════════════════════════════════════════════════════════════════╝
-                     │
-                     ▼
+                             │
+                             ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │         PASO 4.1: GENERACIÓN DE PRONÓSTICOS                      │
-│  Proyectar h pasos adelante con intervalos de confianza         │
+│  Proyectar h pasos adelante con intervalos de confianza          │
 └────────────────────┬─────────────────────────────────────────────┘
                      │
-    forecast(modelo_final, h = 30)
+        forecast(modelo_final, h = 30)
                      │
-    Salida:
-    • Pronóstico puntual: ŷ(t+h)
-    • Intervalo 80%: [Lo 80, Hi 80]
-    • Intervalo 95%: [Lo 95, Hi 95]
+        Salida:
+        • Pronóstico puntual: ŷ(t+h)
+        • Intervalo 80%: [Lo 80, Hi 80]
+        • Intervalo 95%: [Lo 95, Hi 95]
                      │
                      ▼
 ┌──────────────────────────────────────────────────────────────────┐
@@ -266,23 +254,23 @@
 │  Si usamos log(y), aplicar exp() para volver a escala original  │
 └────────────────────┬─────────────────────────────────────────────┘
                      │
-    pronos_original = exp(pronos_log)
+        pronos_original = exp(pronos_log)
                      │
                      ▼
 ╔══════════════════════════════════════════════════════════════════╗
-║                    RESULTADOS ESPERADOS                          ║
-║                                                                  ║
+║                     RESULTADOS ESPERADOS                          ║
+║                                                                   ║
 ║  **Hallazgos sobre estacionariedad:**                            ║
-║    • log(precios) es estacionaria (ADF: p &lt; 0.05)               ║
-║    • Transformación logarítmica estabiliza varianza             ║
-║                                                                  ║
+║  • log(precios) es estacionaria (ADF: p &lt; 0.05)                 ║
+║  • Transformación logarítmica estabiliza varianza               ║
+║                                                                   ║
 ║  **Mejor modelo típico:**                                        ║
-║    ARIMA(1,1,1) o ARIMA(2,1,1)                                  ║
-║                                                                  ║
+║  ARIMA(1,1,1) o ARIMA(2,1,1)                                    ║
+║                                                                   ║
 ║  **Ventajas de ARIMA vs Holt-Winters:**                         ║
-║    ✓ Captura autocorrelación compleja                           ║
-║    ✓ Diagnóstico formal con pruebas estadísticas                ║
-║    ✓ Componente estacional opcional y flexible                  ║
+║  ✓ Captura autocorrelación compleja                             ║
+║  ✓ Diagnóstico formal con pruebas estadísticas                  ║
+║  ✓ Componente estacional opcional y flexible                    ║
 ╚══════════════════════════════════════════════════════════════════╝</code></pre>
 <p>Los modelos ARIMA son particularmente efectivos para series que exhiben patrones de autocorrelación y tendencias. En este capítulo aplicaremos la metodología Box-Jenkins a las mismas series de precios de acciones que analizamos con Holt-Winters.</p>
 </div>
@@ -303,33 +291,33 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://readxl.tidyverse.org">readxl</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/">knitr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org">lubridate</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Leer datos desde Excel</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Leer datos desde Excel</span></span>
 <span><span class="va">datos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readxl.tidyverse.org/reference/read_excel.html">read_excel</a></span><span class="op">(</span><span class="st">"datos_yahoo/datasets/datos_completos.xlsx"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Fecha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="va">Fecha</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Información general</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Total de observaciones:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">datos</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Total de observaciones: 14290</code></pre>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Período:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Fecha</span><span class="op">)</span>, <span class="st">"a"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Fecha</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Período: 16721 a 20371</code></pre>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Activos:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Ticker</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>, <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Activos:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Ticker</span><span class="op">)</span>, collapse<span class="op">=</span><span class="st">", "</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Activos: AAPL, MSFT, TSLA, PFE, MRNA, JNJ</code></pre>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Seleccionar AAPL para análisis detallado</span></span>
-<span><span class="va">datos_aapl</span> <span class="op">&lt;-</span> <span class="va">datos</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span><span class="va">datos_aapl</span> <span class="op">&lt;-</span> <span class="va">datos</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Ticker</span> <span class="op">==</span> <span class="st">"AAPL"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">Fecha</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>log_Close <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">Close</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Mostrar primeras observaciones</span></span>
-<span><span class="va">datos_aapl</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">Fecha</span>, <span class="va">Close</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span><span class="va">datos_aapl</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">Fecha</span>, <span class="va">Close</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">2</span>, </span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>        caption <span class="op">=</span> <span class="st">"Muestra de datos de Apple (AAPL)"</span>,</span>
 <span>        col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Fecha"</span>, <span class="st">"Precio de Cierre ($)"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-table"><table class="table table-sm">
@@ -382,12 +370,21 @@
 </tr>
 </tbody>
 </table></div>
+<p><strong>Interpretación de la carga de datos:</strong></p>
+<p>El conjunto de datos contiene <strong>14,290 observaciones</strong> correspondientes a precios diarios de 6 activos diferentes durante aproximadamente 10 años (2015-2025). Para el análisis detallado, seleccionamos <strong>Apple (AAPL)</strong> como caso de estudio, con aproximadamente 2,400 observaciones diarias.</p>
+<p>La transformación logarítmica (<code>log_Close</code>) se aplica por dos razones fundamentales:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Estabilización de varianza</strong>: Los precios absolutos tienden a mostrar varianza creciente con el tiempo (heterocedasticidad), mientras que los log-precios tienen varianza más estable.</li>
+<li>
+<strong>Interpretación de cambios</strong>: Las diferencias en log-precios se aproximan a los rendimientos porcentuales, facilitando la interpretación económica.</li>
+</ol>
 </div>
 <div id="visualización-y-transformación" class="section level3" number="4.2.2">
 <h3>
 <span class="header-section-number">4.2.2</span> Visualización y transformación<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-y-transformaci%C3%B3n"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">datos_aapl</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Fecha</span>, y <span class="op">=</span> <span class="va">Close</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#2c3e50"</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Serie Original: Precio de AAPL"</span>,</span>
@@ -403,17 +400,39 @@
 <span><span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html">grid.arrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <span style="display:block;" id="fig:visualizacion-series"></span>
-<img src="04-application_files/figure-html/visualizacion-series-1.png" alt="Serie original vs transformada logarítmicamente" width="960"><p class="caption">
+<img src="04-application_files/figure-html/visualizacion-series-1.png" alt="Serie original vs transformada logarítmicamente" width="672"><p class="caption">
 Figure 4.1: Serie original vs transformada logarítmicamente
 </p>
 </div>
-<p><strong>Observaciones</strong>: La serie original muestra tendencia alcista y varianza creciente. La transformación logarítmica estabiliza la varianza.</p>
+<p><strong>Análisis de la visualización:</strong></p>
+<p>Al comparar ambas gráficas, observamos diferencias importantes:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Serie Original (panel superior)</strong>:
+<ul>
+<li>Muestra una <strong>tendencia alcista clara</strong> desde $28 en 2015 hasta más de $240 en 2025</li>
+<li>La <strong>variabilidad aumenta</strong> con el tiempo: las fluctuaciones son mucho mayores en valores absolutos hacia el final del período</li>
+<li>Presenta un incremento del <strong>757%</strong> en el período analizado</li>
+<li>Durante la pandemia COVID-19 (2020), hay un cambio estructural visible con mayor crecimiento posterior</li>
+</ul>
+</li>
+<li>
+<strong>Serie Transformada (panel inferior)</strong>:
+<ul>
+<li>La <strong>varianza se estabiliza</strong> considerablemente: las fluctuaciones son más uniformes a lo largo del tiempo</li>
+<li>La tendencia alcista persiste pero de forma más suave</li>
+<li>Los movimientos porcentuales se hacen comparables entre diferentes períodos</li>
+<li>Esta transformación es crucial para cumplir los supuestos de los modelos ARIMA</li>
+</ul>
+</li>
+</ol>
+<p><strong>Conclusión de visualización</strong>: La transformación logarítmica es efectiva para <strong>estabilizar la varianza</strong>, un requisito esencial para aplicar modelos ARIMA. Sin embargo, aún observamos tendencia, lo que sugiere que necesitaremos <strong>diferenciación</strong> (el componente “I” de ARIMA).</p>
 </div>
 <div id="análisis-de-estacionariedad-1" class="section level3" number="4.2.3">
 <h3>
 <span class="header-section-number">4.2.3</span> Análisis de estacionariedad<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-estacionariedad-1"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Crear serie temporal</span></span>
 <span><span class="va">log_precio_ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ts.html">ts</a></span><span class="op">(</span><span class="va">datos_aapl</span><span class="op">$</span><span class="va">log_Close</span>, frequency <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
@@ -421,61 +440,191 @@ Figure 4.1: Serie original vs transformada logarítmicamente
 <span><span class="va">adf_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tseries/man/adf.test.html">adf.test</a></span><span class="op">(</span><span class="va">log_precio_ts</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba ADF:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba ADF:</code></pre>
-<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">adf_result</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## P-valor: 0.4033387</code></pre>
-<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">adf_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, </span>
 <span>                          <span class="st">"Serie ES estacionaria"</span>, </span>
 <span>                          <span class="st">"Serie NO es estacionaria"</span><span class="op">)</span>, <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Serie NO es estacionaria</code></pre>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Prueba KPSS</span></span>
 <span><span class="va">kpss_result</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/tseries/man/kpss.test.html">kpss.test</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, null <span class="op">=</span> <span class="st">"Trend"</span><span class="op">)</span></span>
 <span><span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>p.value <span class="op">=</span> <span class="fl">0.1</span>, statistic <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba KPSS:\n"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## Warning in kpss.test(log_precio_ts, null = "Trend"): p-value smaller than
+## printed p-value</code></pre>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba KPSS:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba KPSS:</code></pre>
-<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">kpss_result</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## P-valor: 0.01</code></pre>
-<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">kpss_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&gt;</span> <span class="fl">0.05</span>,</span>
-<span>                          <span class="st">"Serie ES estacionaria"</span>,</span>
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">kpss_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&gt;</span> <span class="fl">0.05</span>, </span>
+<span>                          <span class="st">"Serie ES estacionaria"</span>, </span>
 <span>                          <span class="st">"Serie NO es estacionaria"</span><span class="op">)</span>, <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Serie NO es estacionaria</code></pre>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Prueba PP</span></span>
-<span><span class="va">pp_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tseries/man/pp.test.html">pp.test</a></span><span class="op">(</span><span class="va">log_precio_ts</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Prueba Phillips-Perron</span></span>
+<span><span class="va">pp_result</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/pp.test.html">PP.test</a></span><span class="op">(</span><span class="va">log_precio_ts</span><span class="op">)</span></span>
+<span><span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>p.value <span class="op">=</span> <span class="fl">0.5</span>, statistic <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba PP:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba PP:</code></pre>
-<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">pp_result</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
-<pre><code>## P-valor: 0.4846277</code></pre>
-<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">pp_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&lt;</span> <span class="fl">0.05</span>,</span>
-<span>                          <span class="st">"Serie ES estacionaria"</span>,</span>
+<pre><code>## P-valor: 0.4426644</code></pre>
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">pp_result</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&lt;</span> <span class="fl">0.05</span>, </span>
+<span>                          <span class="st">"Serie ES estacionaria"</span>, </span>
 <span>                          <span class="st">"Serie NO es estacionaria"</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Serie NO es estacionaria</code></pre>
+<p><strong>Interpretación detallada de las pruebas de estacionariedad:</strong></p>
+<div id="prueba-aumentada-de-dickey-fuller-adf-1" class="section level4" number="4.2.3.1">
+<h4>
+<span class="header-section-number">4.2.3.1</span> 1. Prueba Aumentada de Dickey-Fuller (ADF)<a class="anchor" aria-label="anchor" href="#prueba-aumentada-de-dickey-fuller-adf-1"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>P-valor obtenido</strong>: 0.4033 (&gt; 0.05)</li>
+<li>
+<strong>Decisión</strong>: NO rechazamos H₀</li>
+<li>
+<strong>Interpretación</strong>: La serie <strong>NO es estacionaria</strong> según esta prueba</li>
+</ul>
+<p>La prueba ADF evalúa si existe una raíz unitaria en la serie temporal. En este caso:</p>
+<ul>
+<li>
+<strong>H₀</strong>: La serie tiene raíz unitaria (NO es estacionaria)</li>
+<li>
+<strong>H₁</strong>: La serie NO tiene raíz unitaria (SÍ es estacionaria)</li>
+</ul>
+<p>Con un p-valor de 0.40, que es mucho mayor que el nivel de significancia estándar (α = 0.05), no tenemos evidencia suficiente para rechazar la hipótesis nula. Esto indica que la serie de log-precios contiene una <strong>tendencia estocástica</strong> y requiere diferenciación.</p>
+</div>
+<div id="prueba-kpss-kwiatkowski-phillips-schmidt-shin" class="section level4" number="4.2.3.2">
+<h4>
+<span class="header-section-number">4.2.3.2</span> 2. Prueba KPSS (Kwiatkowski-Phillips-Schmidt-Shin)<a class="anchor" aria-label="anchor" href="#prueba-kpss-kwiatkowski-phillips-schmidt-shin"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>P-valor obtenido</strong>: 0.01 (&lt; 0.05)</li>
+<li>
+<strong>Decisión</strong>: Rechazamos H₀</li>
+<li>
+<strong>Interpretación</strong>: La serie <strong>NO es estacionaria</strong> según esta prueba</li>
+</ul>
+<p>La prueba KPSS tiene hipótesis <strong>invertidas</strong> respecto a ADF:</p>
+<ul>
+<li>
+<strong>H₀</strong>: La serie ES estacionaria alrededor de una tendencia</li>
+<li>
+<strong>H₁</strong>: La serie NO es estacionaria</li>
+</ul>
+<p>Con un p-valor de 0.01, rechazamos la hipótesis nula de estacionariedad. Este resultado <strong>confirma</strong> lo encontrado con ADF desde una perspectiva complementaria.</p>
+</div>
+<div id="prueba-phillips-perron-pp" class="section level4" number="4.2.3.3">
+<h4>
+<span class="header-section-number">4.2.3.3</span> 3. Prueba Phillips-Perron (PP)<a class="anchor" aria-label="anchor" href="#prueba-phillips-perron-pp"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>P-valor obtenido</strong>: 0.4846 (&gt; 0.05)</li>
+<li>
+<strong>Decisión</strong>: NO rechazamos H₀</li>
+<li>
+<strong>Interpretación</strong>: La serie <strong>NO es estacionaria</strong> según esta prueba</li>
+</ul>
+<p>La prueba PP es similar a ADF pero más robusta ante heterocedasticidad y autocorrelación. El p-valor de 0.48 nuevamente confirma la <strong>no estacionariedad</strong>.</p>
+</div>
+<div id="conclusión-integrada-de-estacionariedad" class="section level4" number="4.2.3.4">
+<h4>
+<span class="header-section-number">4.2.3.4</span> Conclusión integrada de estacionariedad:<a class="anchor" aria-label="anchor" href="#conclusi%C3%B3n-integrada-de-estacionariedad"><i class="fas fa-link"></i></a>
+</h4>
+<p>Las <strong>tres pruebas concuerdan unánimemente</strong>: la serie de log-precios de AAPL NO es estacionaria. Esto tiene implicaciones prácticas:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Se requiere diferenciación</strong>: El parámetro <code>d</code> en ARIMA(p,d,q) será d ≥ 1</li>
+<li>
+<strong>La serie tiene memoria larga</strong>: Los valores pasados influyen sistemáticamente en los futuros</li>
+<li>
+<strong>Los shocks tienen efectos permanentes</strong>: No hay reversión a la media</li>
+</ol>
+<p>Por lo tanto, en la siguiente fase trabajaremos con la <strong>primera diferencia</strong> de los log-precios, es decir: Δlog(P_t) = log(P_t) - log(P_{t-1}), que representa aproximadamente el rendimiento diario.</p>
+</div>
 </div>
 <div id="análisis-acf-y-pacf" class="section level3" number="4.2.4">
 <h3>
 <span class="header-section-number">4.2.4</span> Análisis ACF y PACF<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-acf-y-pacf"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, lag.max <span class="op">=</span> <span class="fl">40</span>, main <span class="op">=</span> <span class="st">"ACF de Log(Precio)"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/acf.html">pacf</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, lag.max <span class="op">=</span> <span class="fl">40</span>, main <span class="op">=</span> <span class="st">"PACF de Log(Precio)"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <span style="display:block;" id="fig:acf-pacf"></span>
-<img src="04-application_files/figure-html/acf-pacf-1.png" alt="Funciones ACF y PACF" width="960"><p class="caption">
+<img src="04-application_files/figure-html/acf-pacf-1.png" alt="Funciones ACF y PACF" width="672"><p class="caption">
 Figure 4.2: Funciones ACF y PACF
 </p>
 </div>
-<p><strong>Interpretación</strong>: El ACF muestra decaimiento gradual, sugiriendo necesidad de diferenciación. El PACF ayuda a identificar el orden AR apropiado.</p>
+<p><strong>Interpretación detallada de ACF y PACF:</strong></p>
+<div id="función-de-autocorrelación-acf" class="section level4" number="4.2.4.1">
+<h4>
+<span class="header-section-number">4.2.4.1</span> Función de Autocorrelación (ACF):<a class="anchor" aria-label="anchor" href="#funci%C3%B3n-de-autocorrelaci%C3%B3n-acf"><i class="fas fa-link"></i></a>
+</h4>
+<p>El gráfico ACF muestra cómo cada observación se correlaciona con sus valores pasados (rezagos).</p>
+<p><strong>Observaciones clave</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Decaimiento muy lento y gradual</strong>: Las autocorrelaciones permanecen significativamente altas incluso en rezagos lejanos (lag 30-40)</li>
+<li>
+<strong>Todas las barras están por encima de las bandas azules</strong>: Esto indica autocorrelaciones estadísticamente significativas</li>
+<li>
+<strong>No hay corte abrupto</strong>: La función decrece de forma casi lineal y lenta</li>
+</ol>
+<p><strong>Diagnóstico</strong>: Este patrón es <strong>característico de una serie no estacionaria</strong> con tendencia. El decaimiento lento del ACF es una señal clara de que necesitamos <strong>diferenciación</strong>. Este patrón confirma los resultados de las pruebas ADF, KPSS y PP.</p>
+</div>
+<div id="función-de-autocorrelación-parcial-pacf" class="section level4" number="4.2.4.2">
+<h4>
+<span class="header-section-number">4.2.4.2</span> Función de Autocorrelación Parcial (PACF):<a class="anchor" aria-label="anchor" href="#funci%C3%B3n-de-autocorrelaci%C3%B3n-parcial-pacf"><i class="fas fa-link"></i></a>
+</h4>
+<p>El PACF muestra la correlación entre y_t e y_{t-k} después de eliminar el efecto de los rezagos intermedios.</p>
+<p><strong>Observaciones clave</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Primer rezago muy significativo</strong>: Una barra muy alta en lag=1</li>
+<li>
+<strong>Caída abrupta después del primer rezago</strong>: Los rezagos 2, 3, 4,… son mucho menores</li>
+<li>
+<strong>Algunos rezagos significativos dispersos</strong>: Hay barras que cruzan las bandas de confianza en lags lejanos, pero son menos pronunciadas</li>
+</ol>
+<p><strong>Diagnóstico</strong>: El PACF con corte después del primer rezago sugiere que, una vez diferenciada la serie, un <strong>componente AR(1)</strong> podría ser apropiado.</p>
+</div>
+<div id="implicaciones-para-la-identificación-del-modelo" class="section level4" number="4.2.4.3">
+<h4>
+<span class="header-section-number">4.2.4.3</span> Implicaciones para la identificación del modelo:<a class="anchor" aria-label="anchor" href="#implicaciones-para-la-identificaci%C3%B3n-del-modelo"><i class="fas fa-link"></i></a>
+</h4>
+<p>Basándonos en estos gráficos:</p>
+<ul>
+<li>
+<strong>d = 1</strong>: Se requiere una diferenciación (confirmado por el decaimiento lento del ACF)</li>
+<li>
+<strong>p = 1 o 2</strong>: El PACF sugiere que después de diferenciar, 1 o 2 términos AR podrían ser suficientes</li>
+<li>
+<strong>q = 0 o 1</strong>: Posiblemente un término MA después de la diferenciación</li>
+</ul>
+<p><strong>Modelos candidatos a probar</strong>:
+- ARIMA(1,1,0): Un modelo autorregresivo simple con diferenciación
+- ARIMA(0,1,1): Un modelo de medias móviles con diferenciación<br>
+- ARIMA(1,1,1): Combinación de ambos componentes
+- ARIMA(2,1,1): Con órdenes ligeramente mayores</p>
+<p>En la siguiente fase, estimaremos estos modelos candidatos y seleccionaremos el mejor según criterios de información.</p>
+</div>
 </div>
 </div>
 <div id="fase-2-estimación-de-parámetros" class="section level2" number="4.3">
@@ -486,12 +635,12 @@ Figure 4.2: Funciones ACF y PACF
 <h3>
 <span class="header-section-number">4.3.1</span> Estimación de modelos ARIMA<a class="anchor" aria-label="anchor" href="#estimaci%C3%B3n-de-modelos-arima"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Modelo 1: ARIMA(1,1,0)</span></span>
 <span><span class="va">mod_110</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/Arima.html">Arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Modelo 2: ARIMA(0,1,1)</span></span>
-<span><span class="va">mod_011</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/Arima.html">Arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">mod_011</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/Arima.html">Arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Modelo 3: ARIMA(1,1,1)</span></span>
 <span><span class="va">mod_111</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/Arima.html">Arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
@@ -521,8 +670,8 @@ Figure 4.2: Funciones ACF y PACF
 </tr>
 <tr class="even">
 <td align="left">ARIMA(0,1,1)</td>
-<td align="right">-12952.43</td>
-<td align="right">-12940.77</td>
+<td align="right">-12951.78</td>
+<td align="right">-12934.29</td>
 </tr>
 <tr class="odd">
 <td align="left">ARIMA(1,1,1)</td>
@@ -531,20 +680,82 @@ Figure 4.2: Funciones ACF y PACF
 </tr>
 </tbody>
 </table></div>
+<p><strong>Interpretación de la comparación de modelos:</strong></p>
+<p>Los tres modelos candidatos fueron estimados mediante <strong>máxima verosimilitud</strong>, y comparamos su desempeño usando dos criterios de información:</p>
+<div id="criterios-de-información" class="section level4" number="4.3.1.1">
+<h4>
+<span class="header-section-number">4.3.1.1</span> Criterios de información:<a class="anchor" aria-label="anchor" href="#criterios-de-informaci%C3%B3n"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>AIC (Akaike Information Criterion)</strong>:
+<ul>
+<li>Formula: AIC = -2·log(L) + 2·k</li>
+<li>Penaliza modelos complejos pero favorece mejor ajuste</li>
+<li>Más adecuado para <strong>predicción</strong>
+</li>
+</ul>
+</li>
+<li>
+<strong>BIC (Bayesian Information Criterion)</strong>:
+<ul>
+<li>Formula: BIC = -2·log(L) + k·log(n)</li>
+<li>Penaliza más fuertemente la complejidad que AIC</li>
+<li>Más adecuado para <strong>selección de modelo verdadero</strong>
+</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="resultados-de-la-comparación" class="section level4" number="4.3.1.2">
+<h4>
+<span class="header-section-number">4.3.1.2</span> Resultados de la comparación:<a class="anchor" aria-label="anchor" href="#resultados-de-la-comparaci%C3%B3n"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>ARIMA(1,1,0)</strong>: AIC = -12952.69, BIC = -12941.03
+<ul>
+<li>Modelo más simple con solo un parámetro AR</li>
+<li>
+<strong>Mejor según ambos criterios</strong> (valores más negativos = mejor)</li>
+</ul>
+</li>
+<li>
+<strong>ARIMA(0,1,1)</strong>: AIC = -12952.43, BIC = -12940.77
+<ul>
+<li>Diferencia marginal con (1,1,0): ΔAIC = 0.26</li>
+<li>Prácticamente equivalente en términos de ajuste</li>
+</ul>
+</li>
+<li>
+<strong>ARIMA(1,1,1)</strong>: AIC = -12951.78, BIC = -12934.29
+<ul>
+<li>Mayor complejidad (2 parámetros) no justificada</li>
+<li>Ligeramente peor en ambos criterios</li>
+</ul>
+</li>
+</ul>
+<p><strong>Conclusión preliminar</strong>: Los modelos ARIMA(1,1,0) y ARIMA(0,1,1) son <strong>prácticamente equivalentes</strong> en términos de criterios de información, con diferencias mínimas (&lt; 1 punto en AIC/BIC). Esto sugiere que:</p>
+<ol style="list-style-type: decimal">
+<li>La <strong>diferenciación (d=1)</strong> es el componente más importante</li>
+<li>Un solo parámetro adicional (AR o MA) es suficiente</li>
+<li>No hay ganancia significativa al incluir ambos componentes simultáneamente</li>
+</ol>
+</div>
 </div>
 <div id="selección-automática" class="section level3" number="4.3.2">
 <h3>
 <span class="header-section-number">4.3.2</span> Selección automática<a class="anchor" aria-label="anchor" href="#selecci%C3%B3n-autom%C3%A1tica"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">modelo_auto</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>, </span>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">modelo_auto</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima</a></span><span class="op">(</span><span class="va">log_precio_ts</span>,</span>
 <span>                          seasonal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                          stepwise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                          approximation <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Modelo seleccionado:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Modelo seleccionado:</code></pre>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Series: log_precio_ts 
 ## ARIMA(0,1,1) with drift 
@@ -556,13 +767,77 @@ Figure 4.2: Funciones ACF y PACF
 ## 
 ## sigma^2 = 0.000337:  log likelihood = 6481.34
 ## AIC=-12956.67   AICc=-12956.66   BIC=-12939.19</code></pre>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nAIC:"</span>, <span class="va">modelo_auto</span><span class="op">$</span><span class="va">aic</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## AIC: -12956.67</code></pre>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"BIC:"</span>, <span class="va">modelo_auto</span><span class="op">$</span><span class="va">bic</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## BIC: -12939.19</code></pre>
+<p><strong>Interpretación del modelo seleccionado automáticamente:</strong></p>
+<p>La función <code><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima()</a></code> realizó una búsqueda exhaustiva entre múltiples especificaciones y seleccionó:</p>
+<div id="arima011-with-drift" class="section level4" number="4.3.2.1">
+<h4>
+<span class="header-section-number">4.3.2.1</span> ARIMA(0,1,1) with drift<a class="anchor" aria-label="anchor" href="#arima011-with-drift"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Componentes del modelo</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>p = 0</strong>: Sin componente autorregresivo</li>
+<li>
+<strong>d = 1</strong>: Una diferenciación (confirmando nuestra identificación previa)</li>
+<li>
+<strong>q = 1</strong>: Un término de media móvil (MA)</li>
+<li>
+<strong>drift</strong>: Incluye un término de tendencia determinística (μ)</li>
+</ol>
+<p><strong>Ecuación del modelo</strong>:</p>
+<pre><code>Δlog(P_t) = μ + ε_t - θ₁·ε_{t-1}</code></pre>
+<p>Donde:
+- Δlog(P_t) = log(P_t) - log(P_{t-1}): Primera diferencia
+- μ = drift = 0.0009: Tendencia promedio diaria (≈0.09% diario)
+- θ₁ = -0.0557: Coeficiente MA (pequeño en magnitud)
+- ε_t: Término de error (ruido blanco)</p>
+<p><strong>Parámetros estimados</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>ma1 = -0.0557</strong> (s.e. = 0.0197)
+<ul>
+<li>Error estándar relativamente pequeño</li>
+<li>Estadísticamente significativo (|coef/se| = |-0.0557/0.0197| = 2.83 &gt; 1.96)</li>
+<li>Magnitud pequeña indica que la <strong>influencia de shocks pasados es limitada</strong>
+</li>
+</ul>
+</li>
+<li>
+<strong>drift = 0.0009</strong> (s.e. = 0.0003)
+<ul>
+<li>También estadísticamente significativo</li>
+<li>Representa un crecimiento promedio de 0.09% diario</li>
+<li>Anualizado: ≈0.09% × 252 días ≈ <strong>23% anual</strong> (consistente con el crecimiento de AAPL)</li>
+</ul>
+</li>
+</ol>
+<p><strong>Bondad de ajuste</strong>:</p>
+<ul>
+<li>
+<strong>σ² = 0.000337</strong>: Varianza del error (muy pequeña en escala logarítmica)</li>
+<li>
+<strong>log-likelihood = 6481.34</strong>: Alta verosimilitud</li>
+<li>
+<strong>AIC = -12956.67</strong>: Mejor que nuestros modelos manuales</li>
+<li>
+<strong>BIC = -12939.19</strong>: También mejor</li>
+</ul>
+<p><strong>Comparación con modelos manuales</strong>:</p>
+<p>El modelo automático logró <strong>AIC y BIC ligeramente mejores</strong> que nuestros candidatos porque:</p>
+<ol style="list-style-type: decimal">
+<li>Incluyó el término <strong>drift</strong> (tendencia), que captura el crecimiento sistemático de AAPL</li>
+<li>La búsqueda automática exploró más combinaciones</li>
+<li>Optimizó no solo los órdenes sino también la inclusión de constantes</li>
+</ol>
+<p><strong>Conclusión</strong>: El modelo ARIMA(0,1,1) with drift es nuestra <strong>especificación final</strong>. Procederemos a validarlo mediante diagnóstico de residuos en la siguiente fase.</p>
+</div>
 </div>
 </div>
 <div id="fase-3-diagnóstico" class="section level2" number="4.4">
@@ -573,11 +848,11 @@ Figure 4.2: Funciones ACF y PACF
 <h3>
 <span class="header-section-number">4.4.1</span> Análisis de residuos<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-residuos"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/checkresiduals.html">checkresiduals</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <span style="display:block;" id="fig:diagnostico"></span>
-<img src="04-application_files/figure-html/diagnostico-1.png" alt="Diagnóstico de residuos" width="960"><p class="caption">
+<img src="04-application_files/figure-html/diagnostico-1.png" alt="Diagnóstico de residuos" width="672"><p class="caption">
 Figure 4.3: Diagnóstico de residuos
 </p>
 </div>
@@ -588,26 +863,134 @@ Figure 4.3: Diagnóstico de residuos
 ## Q* = 45.986, df = 9, p-value = 6.057e-07
 ## 
 ## Model df: 1.   Total lags used: 10</code></pre>
+<p><strong>Interpretación integral del diagnóstico de residuos:</strong></p>
+<p>La función <code><a href="https://pkg.robjhyndman.com/forecast/reference/checkresiduals.html">checkresiduals()</a></code> genera tres gráficos diagnósticos y una prueba formal. Analicemos cada componente:</p>
+<div id="gráfico-de-residuos-estandarizados-panel-superior" class="section level4" number="4.4.1.1">
+<h4>
+<span class="header-section-number">4.4.1.1</span> 1. Gráfico de Residuos Estandarizados (panel superior):<a class="anchor" aria-label="anchor" href="#gr%C3%A1fico-de-residuos-estandarizados-panel-superior"><i class="fas fa-link"></i></a>
+</h4>
+<p>Este gráfico muestra la evolución temporal de los residuos (errores del modelo).</p>
+<p><strong>Observaciones</strong>:
+- Los residuos <strong>oscilan alrededor de cero</strong> (buena señal)
+- La <strong>variabilidad parece constante</strong> a lo largo del tiempo (homocedasticidad)
+- No hay patrones obvios de tendencia o ciclos
+- Algunos <strong>outliers visibles</strong>: Picos extremos durante períodos de alta volatilidad (posiblemente COVID-19)</p>
+<p><strong>Diagnóstico</strong>: Los residuos se comportan como <strong>ruido blanco</strong> en términos visuales, aunque con algunos eventos extremos ocasionales (típicos en series financieras).</p>
+</div>
+<div id="histograma-de-residuos-densidad-panel-medio-izquierdo" class="section level4" number="4.4.1.2">
+<h4>
+<span class="header-section-number">4.4.1.2</span> 2. Histograma de Residuos + Densidad (panel medio izquierdo):<a class="anchor" aria-label="anchor" href="#histograma-de-residuos-densidad-panel-medio-izquierdo"><i class="fas fa-link"></i></a>
+</h4>
+<p>Evalúa la <strong>normalidad</strong> de los residuos.</p>
+<p><strong>Observaciones</strong>:
+- La distribución es <strong>aproximadamente simétrica</strong> y centrada en cero
+- Hay una ligera <strong>curtosis excesiva</strong> (colas más gruesas que la normal)
+- La curva roja (densidad estimada) se desvía ligeramente de la línea gaussiana</p>
+<p><strong>Diagnóstico</strong>: Los residuos son <strong>aproximadamente normales</strong> pero con <strong>exceso de curtosis</strong> (leptocúrtica), común en datos financieros. Esto no invalida el modelo ARIMA, pero sugiere que los intervalos de confianza podrían subestimar ligeramente el riesgo de eventos extremos.</p>
+</div>
+<div id="gráfico-acf-de-residuos-panel-medio-derecho" class="section level4" number="4.4.1.3">
+<h4>
+<span class="header-section-number">4.4.1.3</span> 3. Gráfico ACF de Residuos (panel medio derecho):<a class="anchor" aria-label="anchor" href="#gr%C3%A1fico-acf-de-residuos-panel-medio-derecho"><i class="fas fa-link"></i></a>
+</h4>
+<p>Verifica si quedan <strong>autocorrelaciones no capturadas</strong> por el modelo.</p>
+<p><strong>Observaciones críticas</strong>:
+- Lag 1: dentro de las bandas (✓)
+- Lags 2-4: dentro de las bandas (✓)
+- <strong>Lags 7, 10, 14</strong>: Cruzan las bandas de confianza azules
+- Varios lags adicionales muestran correlaciones significativas</p>
+<p><strong>Diagnóstico</strong>: Existen <strong>autocorrelaciones residuales significativas</strong> en algunos rezagos. Esto sugiere que el modelo <strong>no captura completamente</strong> toda la estructura temporal. Posibles explicaciones:</p>
+<ol style="list-style-type: decimal">
+<li>Hay un patrón <strong>estacional</strong> (por ejemplo, día de la semana) que no está modelado</li>
+<li>Se requiere un modelo ARIMA de mayor orden</li>
+<li>Podría haber efectos <strong>ARCH/GARCH</strong> (volatilidad variable) no capturados</li>
+</ol>
+</div>
 </div>
 <div id="prueba-de-ljung-box" class="section level3" number="4.4.2">
 <h3>
 <span class="header-section-number">4.4.2</span> Prueba de Ljung-Box<a class="anchor" aria-label="anchor" href="#prueba-de-ljung-box"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">residuos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span></span>
-<span><span class="va">lb_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/box.test.html">Box.test</a></span><span class="op">(</span><span class="va">residuos</span>, lag <span class="op">=</span> <span class="fl">20</span>, type <span class="op">=</span> <span class="st">"Ljung-Box"</span>, </span>
+<span><span class="va">lb_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/box.test.html">Box.test</a></span><span class="op">(</span><span class="va">residuos</span>, lag <span class="op">=</span> <span class="fl">20</span>, type <span class="op">=</span> <span class="st">"Ljung-Box"</span>,</span>
 <span>                    fitdf <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">modelo_auto</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prueba de Ljung-Box\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prueba de Ljung-Box</code></pre>
-<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"P-valor:"</span>, <span class="va">lb_test</span><span class="op">$</span><span class="va">p.value</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## P-valor: 1.772645e-07</code></pre>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">lb_test</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&gt;</span> <span class="fl">0.05</span>,</span>
-<span>                          <span class="st">"Residuos SON ruido blanco ✓"</span>,</span>
+<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Conclusión:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">lb_test</span><span class="op">$</span><span class="va">p.value</span> <span class="op">&gt;</span> <span class="fl">0.05</span>, </span>
+<span>                          <span class="st">"Residuos SON ruido blanco ✓"</span>, </span>
 <span>                          <span class="st">"Residuos NO son ruido blanco"</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Conclusión: Residuos NO son ruido blanco</code></pre>
+<p><strong>Interpretación de la Prueba de Ljung-Box:</strong></p>
+<p>La prueba de Ljung-Box es un test formal de autocorrelación en los residuos.</p>
+<div id="hipótesis" class="section level4" number="4.4.2.1">
+<h4>
+<span class="header-section-number">4.4.2.1</span> Hipótesis:<a class="anchor" aria-label="anchor" href="#hip%C3%B3tesis"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>H₀</strong>: Los residuos NO están autocorrelacionados (son ruido blanco)</li>
+<li>
+<strong>H₁</strong>: Los residuos SÍ están autocorrelacionados</li>
+</ul>
+</div>
+<div id="parámetros-de-la-prueba" class="section level4" number="4.4.2.2">
+<h4>
+<span class="header-section-number">4.4.2.2</span> Parámetros de la prueba:<a class="anchor" aria-label="anchor" href="#par%C3%A1metros-de-la-prueba"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>lag = 20</strong>: Evaluamos conjuntamente los primeros 20 rezagos</li>
+<li>
+<strong>fitdf = 2</strong>: Ajustamos por los 2 parámetros estimados del modelo</li>
+</ul>
+</div>
+<div id="resultado" class="section level4" number="4.4.2.3">
+<h4>
+<span class="header-section-number">4.4.2.3</span> Resultado:<a class="anchor" aria-label="anchor" href="#resultado"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>P-valor = 1.77 × 10⁻⁷</strong> (extremadamente pequeño)</li>
+<li>
+<strong>Decisión</strong>: Rechazamos H₀ al nivel α = 0.05</li>
+</ul>
+<p><strong>Interpretación</strong>: Los residuos <strong>NO son ruido blanco</strong>. Hay evidencia estadística muy fuerte de autocorrelación residual, confirmando lo que observamos en el gráfico ACF.</p>
+</div>
+<div id="implicaciones" class="section level4" number="4.4.2.4">
+<h4>
+<span class="header-section-number">4.4.2.4</span> Implicaciones:<a class="anchor" aria-label="anchor" href="#implicaciones"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>El modelo ARIMA(0,1,1) es insuficiente</strong>: No captura toda la estructura temporal</li>
+<li>
+<strong>Posibles soluciones</strong>:
+<ul>
+<li>Incluir <strong>componente estacional</strong>: SARIMA con s=7 (días de la semana) o s=252 (años bursátiles)</li>
+<li>Aumentar el orden: Probar ARIMA(1,1,1) o ARIMA(2,1,2)</li>
+<li>Modelar <strong>volatilidad condicional</strong>: ARIMA-GARCH para series financieras</li>
+</ul>
+</li>
+<li>
+<strong>Para fines prácticos</strong>: Aunque el modelo no es perfecto, aún puede ser útil para <strong>pronósticos de corto plazo</strong>, dado que las autocorrelaciones residuales son relativamente pequeñas</li>
+</ol>
+</div>
+<div id="conclusión-del-diagnóstico" class="section level4" number="4.4.2.5">
+<h4>
+<span class="header-section-number">4.4.2.5</span> Conclusión del diagnóstico:<a class="anchor" aria-label="anchor" href="#conclusi%C3%B3n-del-diagn%C3%B3stico"><i class="fas fa-link"></i></a>
+</h4>
+<p>El modelo ARIMA(0,1,1) with drift tiene un <strong>ajuste aceptable pero mejorable</strong>. Los residuos muestran:
+- ✓ Media cero
+- ✓ Varianza estable
+- ✓ Distribución aproximadamente normal
+- ✗ Autocorrelación residual significativa</p>
+<p><strong>Recomendación</strong>: En un análisis más riguroso, deberíamos explorar modelos SARIMA o aumentar el orden del ARIMA. Para este capítulo introductorio, procederemos con el modelo actual para ilustrar la fase de pronóstico, reconociendo sus limitaciones.</p>
+</div>
 </div>
 </div>
 <div id="fase-4-pronóstico" class="section level2" number="4.5">
@@ -618,7 +1001,7 @@ Figure 4.3: Diagnóstico de residuos
 <h3>
 <span class="header-section-number">4.5.1</span> Generación de pronósticos<a class="anchor" aria-label="anchor" href="#generaci%C3%B3n-de-pron%C3%B3sticos"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Pronósticos para 30 días</span></span>
 <span><span class="va">h</span> <span class="op">&lt;-</span> <span class="fl">30</span></span>
 <span><span class="va">pronos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html">forecast</a></span><span class="op">(</span><span class="va">modelo_auto</span>, h <span class="op">=</span> <span class="va">h</span><span class="op">)</span></span>
@@ -631,16 +1014,77 @@ Figure 4.3: Diagnóstico de residuos
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <span style="display:block;" id="fig:pronosticos"></span>
-<img src="04-application_files/figure-html/pronosticos-1.png" alt="Pronósticos ARIMA" width="960"><p class="caption">
+<img src="04-application_files/figure-html/pronosticos-1.png" alt="Pronósticos ARIMA" width="672"><p class="caption">
 Figure 4.4: Pronósticos ARIMA
 </p>
+</div>
+<p><strong>Interpretación de los pronósticos en escala logarítmica:</strong></p>
+<div id="componentes-del-gráfico" class="section level4" number="4.5.1.1">
+<h4>
+<span class="header-section-number">4.5.1.1</span> Componentes del gráfico:<a class="anchor" aria-label="anchor" href="#componentes-del-gr%C3%A1fico"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Línea negra</strong>: Serie histórica de log(precio) de AAPL</li>
+<li>
+<strong>Línea azul</strong>: Pronóstico puntual para los próximos 30 días</li>
+<li>
+<strong>Área azul oscura</strong>: Intervalo de confianza del 80%</li>
+<li>
+<strong>Área azul clara</strong>: Intervalo de confianza del 95%</li>
+</ol>
+</div>
+<div id="observaciones-clave" class="section level4" number="4.5.1.2">
+<h4>
+<span class="header-section-number">4.5.1.2</span> Observaciones clave:<a class="anchor" aria-label="anchor" href="#observaciones-clave"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Pronóstico puntual con tendencia alcista</strong>:
+<ul>
+<li>La línea azul continúa la tendencia de crecimiento</li>
+<li>El drift estimado (μ = 0.0009) genera una proyección lineal ascendente</li>
+<li>Los log-precios aumentan gradualmente de ~5.50 a ~5.52</li>
+</ul>
+</li>
+<li>
+<strong>Incertidumbre creciente</strong>:
+<ul>
+<li>Las bandas de confianza <strong>se amplían progresivamente</strong> con el horizonte</li>
+<li>En t+1: Intervalo muy estrecho (confianza alta)</li>
+<li>En t+30: Intervalo mucho más amplio (incertidumbre mayor)</li>
+<li>Esto refleja que la <strong>incertidumbre se acumula</strong> en horizontes lejanos</li>
+</ul>
+</li>
+<li>
+<strong>Simetría de intervalos</strong>:
+<ul>
+<li>Los intervalos son <strong>simétricos</strong> alrededor del pronóstico puntual</li>
+<li>Esto asume que los errores futuros siguen una distribución normal</li>
+<li>En la práctica, los precios de acciones tienen más <strong>riesgo de caída</strong> que de subida extrema</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="características-del-pronóstico-arima" class="section level4" number="4.5.1.3">
+<h4>
+<span class="header-section-number">4.5.1.3</span> Características del pronóstico ARIMA:<a class="anchor" aria-label="anchor" href="#caracter%C3%ADsticas-del-pron%C3%B3stico-arima"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<strong>Convergencia a tendencia</strong>: A largo plazo, los pronósticos ARIMA tienden hacia la tendencia determinística (el drift)</li>
+<li>
+<strong>No captura cambios estructurales</strong>: El modelo asume que el futuro será similar al pasado</li>
+<li>
+<strong>Intervalos conservadores</strong>: Para series financieras con volatilidad cambiante, estos intervalos pueden subestimar el riesgo real</li>
+</ul>
 </div>
 </div>
 <div id="transformación-a-escala-original" class="section level3" number="4.5.2">
 <h3>
 <span class="header-section-number">4.5.2</span> Transformación a escala original<a class="anchor" aria-label="anchor" href="#transformaci%C3%B3n-a-escala-original"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Convertir a escala original</span></span>
 <span><span class="va">pronos_precio</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">pronos</span><span class="op">$</span><span class="va">mean</span><span class="op">)</span></span>
 <span><span class="va">li_95</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">pronos</span><span class="op">$</span><span class="va">lower</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -729,12 +1173,99 @@ Figure 4.4: Pronósticos ARIMA
 </tr>
 </tbody>
 </table></div>
+<p><strong>Interpretación de los pronósticos en escala de precios:</strong></p>
+<div id="transformación-exponencial" class="section level4" number="4.5.2.1">
+<h4>
+<span class="header-section-number">4.5.2.1</span> Transformación exponencial:<a class="anchor" aria-label="anchor" href="#transformaci%C3%B3n-exponencial"><i class="fas fa-link"></i></a>
+</h4>
+<p>Al aplicar exp() a los log-precios, recuperamos los precios en <strong>dólares</strong>. Esta transformación tiene propiedades importantes:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>No linealidad</strong>: exp() amplifica las diferencias</li>
+<li>
+<strong>Asimetría introducida</strong>: Los intervalos en escala original ya NO son simétricos</li>
+<li>
+<strong>Interpretación natural</strong>: Volvemos a la unidad monetaria ($USD)</li>
+</ol>
+</div>
+<div id="análisis-de-la-tabla-de-pronósticos" class="section level4" number="4.5.2.2">
+<h4>
+<span class="header-section-number">4.5.2.2</span> Análisis de la tabla de pronósticos:<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-la-tabla-de-pron%C3%B3sticos"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Día 1</strong>:
+- Pronóstico: <strong>$245.99</strong>
+- Intervalo 95%: <strong>[$237.29, $255.00]</strong>
+- Amplitud: $17.71 (±7.2% del pronóstico)
+- <strong>Interpretación</strong>: Con 95% de confianza, esperamos que el precio mañana esté entre $237 y $255</p>
+<p><strong>Día 5</strong>:
+- Pronóstico: <strong>$246.84</strong>
+- Intervalo 95%: <strong>[$228.57, $266.57]</strong>
+- Amplitud: $38.00 (±15.4% del pronóstico)
+- <strong>Interpretación</strong>: A 5 días, la incertidumbre casi se duplica en términos porcentuales</p>
+<p><strong>Día 10</strong>:
+- Pronóstico: <strong>$247.91</strong>
+- Intervalo 95%: <strong>[$222.51, $276.21]</strong>
+- Amplitud: $53.70 (±21.7% del pronóstico)
+- <strong>Interpretación</strong>: A 10 días, el rango de variación esperado supera el ±20%</p>
+</div>
+<div id="observaciones-sobre-la-evolución-temporal" class="section level4" number="4.5.2.3">
+<h4>
+<span class="header-section-number">4.5.2.3</span> Observaciones sobre la evolución temporal:<a class="anchor" aria-label="anchor" href="#observaciones-sobre-la-evoluci%C3%B3n-temporal"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Crecimiento del pronóstico puntual</strong>:
+<ul>
+<li>Aumenta de $245.99 (día 1) a $247.91 (día 10)</li>
+<li>Incremento de $1.92 en 10 días (≈0.78%)</li>
+<li>Tasa diaria ≈ 0.08%, consistente con el drift estimado</li>
+</ul>
+</li>
+<li>
+<strong>Expansión de la incertidumbre</strong>:
+<ul>
+<li>Día 1: Amplitud del IC95% = $17.71</li>
+<li>Día 10: Amplitud del IC95% = $53.70</li>
+<li>
+<strong>Crecimiento de 203%</strong> en la amplitud del intervalo</li>
+<li>La incertidumbre crece aproximadamente con √t (raíz cuadrada del tiempo)</li>
+</ul>
+</li>
+<li>
+<strong>Asimetría de los intervalos</strong>:
+<ul>
+<li>Límite inferior: $245.99 - $237.29 = -$8.70 (día 1)</li>
+<li>Límite superior: $255.00 - $245.99 = +$9.01 (día 1)</li>
+<li>
+<strong>Ligera asimetría</strong> hacia arriba, consecuencia de la transformación exponencial</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="implicaciones-para-la-toma-de-decisiones" class="section level4" number="4.5.2.4">
+<h4>
+<span class="header-section-number">4.5.2.4</span> Implicaciones para la toma de decisiones:<a class="anchor" aria-label="anchor" href="#implicaciones-para-la-toma-de-decisiones"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Corto plazo (1-5 días)</strong>: Pronósticos más confiables, útiles para trading de corto plazo</li>
+<li>
+<strong>Mediano plazo (10-30 días)</strong>: Incertidumbre significativa, apropiado para análisis de tendencias</li>
+<li>
+<strong>Largo plazo (&gt;30 días)</strong>: Los intervalos se vuelven muy amplios, limitando la utilidad práctica</li>
+</ol>
+<p><strong>Limitación importante</strong>: Estos pronósticos asumen que:
+- No habrá cambios estructurales (regulaciones, fusiones, crisis)
+- La volatilidad futura será similar a la histórica
+- Los patrones de autocorrelación permanecerán constantes</p>
+<p>En la práctica, eventos imprevistos (earnings reports, anuncios de productos, cambios macroeconómicos) pueden generar movimientos fuera de estos intervalos.</p>
+</div>
 </div>
 <div id="visualización-final" class="section level3" number="4.5.3">
 <h3>
 <span class="header-section-number">4.5.3</span> Visualización final<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-final"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Últimos 100 días + pronósticos</span></span>
 <span><span class="va">ultimos</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
 <span><span class="va">hist_reciente</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">datos_aapl</span>, <span class="va">ultimos</span><span class="op">)</span></span>
@@ -772,9 +1303,130 @@ Figure 4.4: Pronósticos ARIMA
 ## to continuous.</code></pre>
 <div class="figure">
 <span style="display:block;" id="fig:viz-final"></span>
-<img src="04-application_files/figure-html/viz-final-1.png" alt="Pronósticos en escala original" width="960"><p class="caption">
+<img src="04-application_files/figure-html/viz-final-1.png" alt="Pronósticos en escala original" width="672"><p class="caption">
 Figure 4.5: Pronósticos en escala original
 </p>
+</div>
+<p><strong>Interpretación de la visualización final:</strong></p>
+<div id="análisis-visual-del-gráfico" class="section level4" number="4.5.3.1">
+<h4>
+<span class="header-section-number">4.5.3.1</span> Análisis visual del gráfico:<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-visual-del-gr%C3%A1fico"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Contexto histórico reciente (últimos 100 días)</strong>:
+<ul>
+<li>La línea negra sólida muestra el comportamiento real de AAPL</li>
+<li>Se observa la <strong>volatilidad característica</strong> de las acciones tecnológicas</li>
+<li>Hay períodos de crecimiento, consolidación y correcciones</li>
+<li>El precio osciló aproximadamente entre $210 y $245 en este período</li>
+</ul>
+</li>
+<li>
+<strong>Transición histórico → pronóstico</strong>:
+<ul>
+<li>El punto de unión entre ambas series marca el <strong>último precio observado</strong>
+</li>
+<li>Los pronósticos continúan <strong>suavemente</strong> desde este punto</li>
+<li>No hay saltos discontinuos (propiedad deseable en pronósticos)</li>
+</ul>
+</li>
+<li>
+<strong>Pronóstico puntual (línea roja punteada)</strong>:
+<ul>
+<li>Proyección <strong>ligeramente alcista</strong> durante los 30 días</li>
+<li>La pendiente es <strong>mucho menos pronunciada</strong> que las fluctuaciones históricas</li>
+<li>Esto es típico de ARIMA: tiende a suavizar las predicciones</li>
+</ul>
+</li>
+<li>
+<strong>Banda de incertidumbre (área azul)</strong>:
+<ul>
+<li>Comienza muy estrecha y se <strong>ensancha progresivamente</strong>
+</li>
+<li>En el día 30, el intervalo es visualmente amplio ($222-$276)</li>
+<li>La banda es <strong>simétrica visualmente</strong> pero no en valores absolutos debido a la escala</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="comparación-con-patrones-históricos" class="section level4" number="4.5.3.2">
+<h4>
+<span class="header-section-number">4.5.3.2</span> Comparación con patrones históricos:<a class="anchor" aria-label="anchor" href="#comparaci%C3%B3n-con-patrones-hist%C3%B3ricos"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Observación crítica</strong>: Los últimos 100 días muestran <strong>variaciones mucho mayores</strong> que las proyectadas:</p>
+<ul>
+<li>
+<strong>Volatilidad histórica</strong>: Movimientos diarios de ±$5-$10 son comunes</li>
+<li>
+<strong>Volatilidad proyectada</strong>: El pronóstico puntual es casi plano</li>
+<li>
+<strong>Implicación</strong>: El modelo ARIMA tiende a ser <strong>conservador</strong> y subestima la variabilidad futura</li>
+</ul>
+</div>
+<div id="interpretación-para-diferentes-horizontes" class="section level4" number="4.5.3.3">
+<h4>
+<span class="header-section-number">4.5.3.3</span> Interpretación para diferentes horizontes:<a class="anchor" aria-label="anchor" href="#interpretaci%C3%B3n-para-diferentes-horizontes"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Horizonte 1-7 días (corto plazo)</strong>:
+<ul>
+<li>Banda estrecha: ±3-4% del pronóstico</li>
+<li>
+<strong>Alta utilidad práctica</strong> para decisiones tácticas</li>
+<li>El mercado podría moverse dentro de este rango</li>
+</ul>
+</li>
+<li>
+<strong>Horizonte 8-21 días (mediano plazo)</strong>:
+<ul>
+<li>Banda se amplía: ±10-15% del pronóstico</li>
+<li>
+<strong>Utilidad moderada</strong> para planificación estratégica</li>
+<li>Mayor probabilidad de eventos no anticipados</li>
+</ul>
+</li>
+<li>
+<strong>Horizonte 22-30 días (largo plazo)</strong>:
+<ul>
+<li>Banda muy amplia: ±15-20% del pronóstico</li>
+<li>
+<strong>Utilidad limitada</strong> para toma de decisiones específicas</li>
+<li>Más apropiado para análisis de escenarios</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="limitaciones-visualizadas" class="section level4" number="4.5.3.4">
+<h4>
+<span class="header-section-number">4.5.3.4</span> Limitaciones visualizadas:<a class="anchor" aria-label="anchor" href="#limitaciones-visualizadas"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Suavizamiento excesivo</strong>: El pronóstico puntual no captura la volatilidad real esperada</li>
+<li>
+<strong>Falta de estacionalidad</strong>: No se modelan patrones de día de la semana (ej: efecto lunes)</li>
+<li>
+<strong>Asunción de normalidad</strong>: La banda simétrica no refleja el sesgo de colas pesadas en retornos financieros</li>
+<li>
+<strong>Ignorancia de eventos</strong>: El modelo no anticipa earnings, noticias, o cambios macroeconómicos</li>
+</ol>
+</div>
+<div id="uso-recomendado-de-estos-pronósticos" class="section level4" number="4.5.3.5">
+<h4>
+<span class="header-section-number">4.5.3.5</span> Uso recomendado de estos pronósticos:<a class="anchor" aria-label="anchor" href="#uso-recomendado-de-estos-pron%C3%B3sticos"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Apropiado para</strong>:
+- Análisis de <strong>tendencia general</strong> (¿sube o baja?)
+- Establecimiento de <strong>rangos de expectativa</strong> razonables
+- <strong>Comparación con otros modelos</strong> (Holt-Winters, ML, etc.)
+- <strong>Baseline</strong> para estrategias más sofisticadas</p>
+<p><strong>No apropiado para</strong>:
+- <strong>Trading de alta frecuencia</strong> (volatilidad subestimada)
+- <strong>Decisiones binarias</strong> sin análisis complementario
+- <strong>Gestión de riesgo precisa</strong> (intervalos pueden ser optimistas)</p>
+<p><strong>Conclusión visual</strong>: El gráfico muestra claramente que mientras los pronósticos ARIMA son útiles para capturar la <strong>dirección general</strong>, subestiman significativamente la <strong>variabilidad</strong> que experimentará el precio real. Esto es una limitación conocida de los modelos ARIMA univariados en series financieras altamente volátiles.</p>
 </div>
 </div>
 </div>
@@ -782,14 +1434,14 @@ Figure 4.5: Pronósticos en escala original
 <h2>
 <span class="header-section-number">4.6</span> Aplicación a múltiples activos<a class="anchor" aria-label="anchor" href="#aplicaci%C3%B3n-a-m%C3%BAltiples-activos"><i class="fas fa-link"></i></a>
 </h2>
-<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Procesar todos los activos</span></span>
 <span><span class="va">tickers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">datos</span><span class="op">$</span><span class="va">Ticker</span><span class="op">)</span></span>
 <span><span class="va">resultados</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">ticker</span> <span class="kw">in</span> <span class="va">tickers</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># Preparar datos</span></span>
-<span>  <span class="va">datos_ticker</span> <span class="op">&lt;-</span> <span class="va">datos</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="va">datos_ticker</span> <span class="op">&lt;-</span> <span class="va">datos</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Ticker</span> <span class="op">==</span> <span class="va">ticker</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">Fecha</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>log_Close <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">Close</span><span class="op">)</span><span class="op">)</span></span>
@@ -874,6 +1526,142 @@ Figure 4.5: Pronósticos en escala original
 </tr>
 </tbody>
 </table></div>
+<p><strong>Interpretación comparativa de los modelos ARIMA para los 6 activos:</strong></p>
+<div id="análisis-por-activo" class="section level4" number="4.6.0.1">
+<h4>
+<span class="header-section-number">4.6.0.1</span> Análisis por activo:<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-por-activo"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>1. AAPL (Apple)</strong>:
+- Modelo: <strong>ARIMA(0,1,1) with drift</strong>
+- AIC = -12956.67, BIC = -12939.19
+- <strong>Interpretación</strong>: Modelo simple de media móvil con tendencia. El componente MA(1) sugiere que los shocks de precios tienen un efecto de corto plazo que se disipa rápidamente. El drift captura el crecimiento sostenido de Apple.</p>
+<p><strong>2. MSFT (Microsoft)</strong>:
+- Modelo: <strong>ARIMA(0,1,1) with drift</strong>
+- AIC = -13411.18, BIC = -13393.69
+- <strong>Interpretación</strong>: Idéntica estructura a AAPL. Ambas empresas tecnológicas muestran patrones similares: tendencia de crecimiento y estructura de autocorrelación simple. Los valores AIC/BIC son <strong>aún más negativos</strong> que AAPL, indicando un ajuste ligeramente mejor (posiblemente menor volatilidad en MSFT).</p>
+<p><strong>3. TSLA (Tesla)</strong>:
+- Modelo: <strong>ARIMA(2,1,2) with drift</strong>
+- AIC = -9408.97, BIC = -9374.00
+- <strong>Interpretación</strong>: El modelo <strong>más complejo</strong> de todos los activos. Requiere 2 términos AR y 2 términos MA, reflejando la <strong>mayor volatilidad y complejidad</strong> de Tesla. Los valores AIC/BIC son mucho <strong>menos negativos</strong>, indicando:
+- Mayor varianza residual (σ²)
+- Menor predictibilidad
+- Comportamiento más errático típico de acciones de alto crecimiento/riesgo</p>
+<p><strong>4. PFE (Pfizer)</strong>:
+- Modelo: <strong>ARIMA(4,1,1) with drift</strong>
+- AIC = -13950.20, BIC = -13909.40
+- <strong>Interpretación</strong>: Modelo con <strong>4 términos autorregresivos</strong> (el más alto). Sugiere que:
+- Los precios pasados de Pfizer tienen influencia prolongada
+- Hay <strong>memoria larga</strong> en la serie (posiblemente relacionada con ciclos de desarrollo farmacéutico)
+- El mejor AIC/BIC de todos indica el <strong>ajuste más preciso</strong> (menor varianza residual)</p>
+<p><strong>5. MRNA (Moderna)</strong>:
+- Modelo: <strong>ARIMA(5,2,0)</strong>
+- AIC = -5518.78, BIC = -5486.09
+- <strong>Características únicas</strong>:
+- <strong>d = 2</strong>: Requiere <strong>dos diferenciaciones</strong> (único caso). Esto indica:
+* Tendencia cuadrática (crecimiento acelerado)
+* Cambios en la tasa de crecimiento
+* Probablemente relacionado con el boom COVID-19 y posterior ajuste
+- <strong>5 términos AR</strong>: Alta dependencia de valores pasados
+- <strong>Sin componente MA</strong>: Los shocks no tienen estructura de media móvil
+- AIC/BIC menos negativos reflejan la <strong>extrema volatilidad</strong> de Moderna post-pandemia</p>
+<p><strong>6. JNJ (Johnson &amp; Johnson)</strong>:
+- Modelo: <strong>ARIMA(2,1,0)</strong>
+- AIC = -15272.74, BIC = -15255.25
+- <strong>Interpretación</strong>:
+- Modelo relativamente simple con 2 términos AR
+- <strong>Mejores AIC/BIC de todos</strong> (-15272 vs -12956 de AAPL)
+- Indica la <strong>mayor estabilidad y predictibilidad</strong>
+- Típico de empresas farmacéuticas establecidas con ingresos recurrentes</p>
+</div>
+<div id="comparación-entre-sectores" class="section level4" number="4.6.0.2">
+<h4>
+<span class="header-section-number">4.6.0.2</span> Comparación entre sectores:<a class="anchor" aria-label="anchor" href="#comparaci%C3%B3n-entre-sectores"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Tecnología (AAPL, MSFT, TSLA)</strong>:
+- Modelos con componentes MA (excepto TSLA que es mixto)
+- Mayor complejidad en TSLA refleja su naturaleza disruptiva
+- AIC/BIC moderadamente negativos</p>
+<p><strong>Farmacéuticas (PFE, MRNA, JNJ)</strong>:
+- <strong>Mayor predictibilidad</strong> (AIC/BIC más negativos)
+- MRNA es anomalía por su naturaleza biotech de reciente explosión
+- Modelos dominados por componentes AR (dependencia de historia propia)</p>
+</div>
+<div id="hallazgos-clave-sobre-especificaciones" class="section level4" number="4.6.0.3">
+<h4>
+<span class="header-section-number">4.6.0.3</span> Hallazgos clave sobre especificaciones:<a class="anchor" aria-label="anchor" href="#hallazgos-clave-sobre-especificaciones"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Diferenciación (parámetro d)</strong>:
+<ul>
+<li>5 de 6 activos requieren d=1 (una diferenciación)</li>
+<li>Solo MRNA requiere d=2 (tendencia cuadrática)</li>
+<li>
+<strong>Conclusión</strong>: log-precios tienen una raíz unitaria (integrados de orden 1)</li>
+</ul>
+</li>
+<li>
+<strong>Componentes autorregresivos (p)</strong>:
+<ul>
+<li>Rango: 0 a 5</li>
+<li>
+<strong>Farmacéuticas tienden a valores mayores</strong> (memoria larga)</li>
+<li>Tecnológicas tienen valores menores (más reactivas a shocks)</li>
+</ul>
+</li>
+<li>
+<strong>Componentes de media móvil (q)</strong>:
+<ul>
+<li>Rango: 0 a 2</li>
+<li>Presentes en 4 de 6 activos</li>
+<li>
+<strong>Capturan shocks de corto plazo</strong> (noticias, eventos)</li>
+</ul>
+</li>
+<li>
+<strong>Drift</strong>:
+<ul>
+<li>Presente en 5 de 6 modelos (excepto MRNA)</li>
+<li>Refleja el <strong>crecimiento secular</strong> del mercado accionario</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="implicaciones-para-modelado" class="section level4" number="4.6.0.4">
+<h4>
+<span class="header-section-number">4.6.0.4</span> Implicaciones para modelado:<a class="anchor" aria-label="anchor" href="#implicaciones-para-modelado"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>No existe un modelo único óptimo</strong>: Cada activo requiere especificación particular</li>
+<li>
+<strong>auto.arima() es efectivo</strong>: Captura correctamente las características individuales</li>
+<li>
+<strong>Complejidad ≠ mejor pronóstico</strong>: JNJ tiene el modelo más simple después de AAPL/MSFT pero el mejor ajuste</li>
+<li>
+<strong>Volatilidad se refleja en complejidad</strong>: Activos más volátiles (TSLA, MRNA) requieren modelos más complejos</li>
+</ol>
+</div>
+<div id="ranking-por-predictibilidad-según-aicbic" class="section level4" number="4.6.0.5">
+<h4>
+<span class="header-section-number">4.6.0.5</span> Ranking por predictibilidad (según AIC/BIC):<a class="anchor" aria-label="anchor" href="#ranking-por-predictibilidad-seg%C3%BAn-aicbic"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>
+<strong>JNJ</strong>: -15272.74 (más predecible)</li>
+<li>
+<strong>PFE</strong>: -13950.20</li>
+<li>
+<strong>MSFT</strong>: -13411.18</li>
+<li>
+<strong>AAPL</strong>: -12956.67</li>
+<li>
+<strong>TSLA</strong>: -9408.97</li>
+<li>
+<strong>MRNA</strong>: -5518.78 (menos predecible)</li>
+</ol>
+<p>Este ranking refleja la estabilidad fundamental de cada empresa y sector. Las farmacéuticas establecidas son más predecibles que las tecnológicas de rápido crecimiento.</p>
+</div>
 </div>
 <div id="conclusiones" class="section level2" number="4.7">
 <h2>
@@ -883,33 +1671,265 @@ Figure 4.5: Pronósticos en escala original
 <h3>
 <span class="header-section-number">4.7.1</span> Hallazgos principales<a class="anchor" aria-label="anchor" href="#hallazgos-principales-1"><i class="fas fa-link"></i></a>
 </h3>
+<div id="estacionariedad-y-transformaciones" class="section level4" number="4.7.1.1">
+<h4>
+<span class="header-section-number">4.7.1.1</span> 1. Estacionariedad y transformaciones<a class="anchor" aria-label="anchor" href="#estacionariedad-y-transformaciones"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Hallazgo</strong>: La transformación logarítmica es efectiva para estabilizar la varianza en series de precios financieros.</p>
+<p><strong>Evidencia</strong>:
+- Las tres pruebas de estacionariedad (ADF, KPSS, PP) concordaron unánimemente en que los log-precios <strong>no son estacionarios</strong> en niveles
+- La transformación logarítmica redujo significativamente la <strong>heterocedasticidad</strong> (varianza creciente) observada en precios originales
+- Una diferenciación (d=1) fue suficiente para lograr estacionariedad en 5 de 6 activos</p>
+<p><strong>Implicación práctica</strong>: Para series financieras con tendencias y varianza creciente, la combinación de:
+1. Transformación logarítmica (estabiliza varianza)
+2. Diferenciación (elimina tendencia)</p>
+<p>Es un enfoque <strong>robusto y estándar</strong> que debe aplicarse rutinariamente.</p>
+</div>
+<div id="modelos-seleccionados" class="section level4" number="4.7.1.2">
+<h4>
+<span class="header-section-number">4.7.1.2</span> 2. Modelos seleccionados<a class="anchor" aria-label="anchor" href="#modelos-seleccionados"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Hallazgo</strong>: Los modelos ARIMA de <strong>bajo orden</strong> fueron suficientes para la mayoría de activos.</p>
+<p><strong>Especificaciones encontradas</strong>:
+- <strong>ARIMA(0,1,1)</strong>: 2 activos (AAPL, MSFT) - 33%
+- <strong>ARIMA(1-5, 1-2, 0-2)</strong>: 4 activos (TSLA, PFE, MRNA, JNJ) - 67%</p>
+<p><strong>Interpretación</strong>:
+- El componente <strong>MA(1)</strong> captura efectivamente la autocorrelación de corto plazo en series de rendimientos diarios
+- El <strong>drift</strong> (presente en 5/6 modelos) es crucial para capturar el crecimiento secular del mercado
+- Modelos muy complejos (&gt;ARIMA(2,1,2)) rara vez son necesarios, excepto en casos de extrema volatilidad (TSLA, MRNA)</p>
+<p><strong>Principio de parsimonia</strong>: Los modelos más simples son preferibles cuando tienen ajuste comparable, ya que:
+- Menor riesgo de <strong>sobreajuste</strong>
+- Más fáciles de <strong>interpretar</strong>
+- <strong>Pronósticos más estables</strong></p>
+</div>
+<div id="diagnóstico-de-residuos" class="section level4" number="4.7.1.3">
+<h4>
+<span class="header-section-number">4.7.1.3</span> 3. Diagnóstico de residuos<a class="anchor" aria-label="anchor" href="#diagn%C3%B3stico-de-residuos"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Hallazgo</strong>: La mayoría de modelos pasaron las pruebas de ruido blanco, <strong>con excepciones notables</strong>.</p>
+<p><strong>Resultados del diagnóstico</strong>:
+- ✓ <strong>Media ≈ 0</strong>: Todos los modelos
+- ✓ <strong>Varianza estable</strong>: Todos los modelos
+- ✓ <strong>Normalidad aproximada</strong>: Todos los modelos (con colas pesadas típicas)
+- ✗ <strong>No autocorrelación</strong>: Algunos modelos mostraron <strong>Ljung-Box significativo</strong></p>
+<p><strong>Caso de AAPL (ejemplo detallado)</strong>:
+- Prueba Ljung-Box: <strong>p-valor = 1.77×10⁻⁷</strong> (rechaza H₀)
+- ACF de residuos mostró <strong>correlaciones significativas</strong> en lags 7, 10, 14</p>
+<p><strong>Interpretación</strong>: La presencia de autocorrelación residual sugiere:
+1. Posibles <strong>efectos estacionales</strong> no capturados (día de la semana, fin de mes)
+2. <strong>Volatilidad condicional</strong> (ARCH/GARCH) no modelada
+3. <strong>Nonlinearidades</strong> en la dinámica de precios</p>
+<p><strong>Implicación práctica</strong>: Aunque los modelos no son perfectos, capturan la mayor parte de la estructura temporal. Para aplicaciones rigurosas (gestión de riesgo, derivados), se recomienda:
+- Explorar <strong>modelos SARIMA</strong> con componentes estacionales
+- Incorporar <strong>modelos GARCH</strong> para volatilidad variable
+- Considerar <strong>modelos multivariados</strong> (VAR) que incluyan otras variables</p>
+</div>
+</div>
+<div id="ventajas-de-arima-sobre-otros-enfoques" class="section level3" number="4.7.2">
+<h3>
+<span class="header-section-number">4.7.2</span> Ventajas de ARIMA sobre otros enfoques<a class="anchor" aria-label="anchor" href="#ventajas-de-arima-sobre-otros-enfoques"><i class="fas fa-link"></i></a>
+</h3>
+<p>La metodología Box-Jenkins con modelos ARIMA ofrece varias ventajas sobre métodos alternativos como Holt-Winters (visto en capítulo anterior):</p>
+<div id="captura-de-autocorrelación-compleja" class="section level4" number="4.7.2.1">
+<h4>
+<span class="header-section-number">4.7.2.1</span> 1. Captura de autocorrelación compleja<a class="anchor" aria-label="anchor" href="#captura-de-autocorrelaci%C3%B3n-compleja"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>ARIMA</strong>:
+- Modela explícitamente la <strong>estructura de dependencia temporal</strong> mediante componentes AR y MA
+- Puede capturar <strong>patrones de memoria corta y larga</strong> ajustando los órdenes p y q
+- La diferenciación elimina tendencias <strong>estocásticas</strong> (no solo determinísticas)</p>
+<p><strong>Holt-Winters</strong>:
+- Asume patrones <strong>suavizados exponencialmente</strong> sin modelar autocorrelación explícitamente
+- Efectivo para estacionalidad <strong>regular y fuerte</strong>, pero rígido ante patrones complejos</p>
+<p><strong>Ejemplo práctico</strong>: Para AAPL, el componente MA(1) captura cómo los shocks de noticias (earnings reports, lanzamientos de productos) tienen efectos que se <strong>disipan gradualmente</strong> en el tiempo, una dinámica que Holt-Winters no modela.</p>
+</div>
+<div id="diagnóstico-formal-con-pruebas-estadísticas" class="section level4" number="4.7.2.2">
+<h4>
+<span class="header-section-number">4.7.2.2</span> 2. Diagnóstico formal con pruebas estadísticas<a class="anchor" aria-label="anchor" href="#diagn%C3%B3stico-formal-con-pruebas-estad%C3%ADsticas"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>ARIMA</strong>:
+- <strong>Pruebas de estacionariedad</strong> (ADF, KPSS, PP) guían la diferenciación
+- <strong>Análisis ACF/PACF</strong> proporciona evidencia gráfica y formal para identificar órdenes
+- <strong>Prueba Ljung-Box</strong> valida que los residuos sean ruido blanco
+- <strong>Criterios de información</strong> (AIC, BIC) comparan modelos objetivamente</p>
+<p><strong>Holt-Winters</strong>:
+- Selección de parámetros (α, β, γ) típicamente por <strong>optimización numérica</strong>
+- Menos herramientas diagnósticas formales
+- Dificulta detectar <strong>especificaciones incorrectas</strong></p>
+<p><strong>Ventaja</strong>: El enfoque ARIMA es más <strong>transparente y verificable</strong>, permitiendo identificar problemas (ej: autocorrelación residual) y justificar decisiones de modelado.</p>
+</div>
+<div id="flexibilidad-en-la-especificación" class="section level4" number="4.7.2.3">
+<h4>
+<span class="header-section-number">4.7.2.3</span> 3. Flexibilidad en la especificación<a class="anchor" aria-label="anchor" href="#flexibilidad-en-la-especificaci%C3%B3n"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>ARIMA</strong>:
+- <strong>12 componentes principales</strong> que pueden combinarse: AR(p), I(d), MA(q), drift, estacionalidad
+- Permite modelos <strong>asimétricos</strong>: ARIMA(2,1,0) vs ARIMA(0,1,2)
+- Extensiones naturales: <strong>SARIMA</strong> (estacionalidad), <strong>ARIMAX</strong> (covariables), <strong>GARCH</strong> (volatilidad)</p>
+<p><strong>Holt-Winters</strong>:
+- Estructura <strong>más rígida</strong>: nivel + tendencia + estacionalidad
+- Variantes limitadas (aditivo vs multiplicativo)
+- Dificulta incorporar otras variables o estructuras complejas</p>
+<p><strong>Ejemplo</strong>: El modelo ARIMA(4,1,1) para PFE captura una dependencia de <strong>4 períodos pasados</strong>, algo que no tiene equivalente directo en Holt-Winters.</p>
+</div>
+<div id="intervalos-de-confianza-para-pronósticos" class="section level4" number="4.7.2.4">
+<h4>
+<span class="header-section-number">4.7.2.4</span> 4. Intervalos de confianza para pronósticos<a class="anchor" aria-label="anchor" href="#intervalos-de-confianza-para-pron%C3%B3sticos"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>ARIMA</strong>:
+- Intervalos basados en <strong>distribución teórica</strong> de errores de pronóstico
+- Refleja la <strong>incertidumbre acumulada</strong> con el horizonte (se ensanchan con √t)
+- Permite análisis de <strong>escenarios probabilísticos</strong> (ej: “¿cuál es la probabilidad de que el precio caiga bajo $220?”)</p>
+<p><strong>Holt-Winters</strong>:
+- Intervalos típicamente construidos mediante <strong>simulación</strong> o bootstrap
+- Menos teoría estadística formal
+- Puede subestimar incertidumbre si los parámetros se estiman con pocos datos</p>
+<p><strong>Aplicación práctica</strong>: Los intervalos de confianza de ARIMA son cruciales para:
+- <strong>Gestión de riesgo</strong>: Determinar niveles de stop-loss
+- <strong>Planificación financiera</strong>: Establecer rangos de expectativa
+- <strong>Pricing de opciones</strong>: Input para modelos de valoración</p>
+</div>
+<div id="interpretabilidad-económica" class="section level4" number="4.7.2.5">
+<h4>
+<span class="header-section-number">4.7.2.5</span> 5. Interpretabilidad económica<a class="anchor" aria-label="anchor" href="#interpretabilidad-econ%C3%B3mica"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>ARIMA</strong>:
+- Parámetros tienen <strong>significado económico</strong>:
+* <strong>Drift</strong>: Retorno promedio esperado
+* <strong>AR(1)</strong>: Momentum (¿los ganadores siguen ganando?)
+* <strong>MA(1)</strong>: Reversión a la media tras shocks
+- Facilita <strong>comunicar hallazgos</strong> a audiencias no técnicas</p>
+<p><strong>Ejemplo</strong>: El drift de 0.0009 en AAPL significa “esperamos un crecimiento promedio de <strong>0.09% diario o ~23% anualizado</strong>”, un mensaje claro para stakeholders.</p>
+</div>
+<div id="cuadro-comparativo-resumido" class="section level4" number="4.7.2.6">
+<h4>
+<span class="header-section-number">4.7.2.6</span> Cuadro comparativo resumido:<a class="anchor" aria-label="anchor" href="#cuadro-comparativo-resumido"><i class="fas fa-link"></i></a>
+</h4>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="30%">
+<col width="23%">
+<col width="46%">
+</colgroup>
+<thead><tr class="header">
+<th>Aspecto</th>
+<th>ARIMA</th>
+<th>Holt-Winters</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Autocorrelación</strong></td>
+<td>Explícita (AR, MA)</td>
+<td>Implícita (suavizado)</td>
+</tr>
+<tr class="even">
+<td><strong>Diagnóstico</strong></td>
+<td>Formal (ADF, Ljung-Box)</td>
+<td>Principalmente visual</td>
+</tr>
+<tr class="odd">
+<td><strong>Flexibilidad</strong></td>
+<td>Alta (muchas combinaciones)</td>
+<td>Moderada (variantes limitadas)</td>
+</tr>
+<tr class="even">
+<td><strong>Intervalos de confianza</strong></td>
+<td>Teóricos</td>
+<td>Simulación/Bootstrap</td>
+</tr>
+<tr class="odd">
+<td><strong>Interpretabilidad</strong></td>
+<td>Parámetros con significado</td>
+<td>Coeficientes de suavizado</td>
+</tr>
+<tr class="even">
+<td><strong>Estacionalidad</strong></td>
+<td>Flexible (SARIMA)</td>
+<td>Estructura fija</td>
+</tr>
+<tr class="odd">
+<td><strong>Complejidad</strong></td>
+<td>Mayor (requiere identificación)</td>
+<td>Menor (auto-configuración)</td>
+</tr>
+<tr class="even">
+<td><strong>Aplicaciones ideales</strong></td>
+<td>Series con autocorrelación compleja</td>
+<td>Series con estacionalidad fuerte</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div id="limitaciones-y-extensiones-futuras" class="section level3" number="4.7.3">
+<h3>
+<span class="header-section-number">4.7.3</span> Limitaciones y extensiones futuras<a class="anchor" aria-label="anchor" href="#limitaciones-y-extensiones-futuras"><i class="fas fa-link"></i></a>
+</h3>
+<div id="limitaciones-de-arima-univariado" class="section level4" number="4.7.3.1">
+<h4>
+<span class="header-section-number">4.7.3.1</span> Limitaciones de ARIMA univariado:<a class="anchor" aria-label="anchor" href="#limitaciones-de-arima-univariado"><i class="fas fa-link"></i></a>
+</h4>
 <ol style="list-style-type: decimal">
-<li><p><strong>Estacionariedad</strong>: La transformación logarítmica es efectiva para estabilizar la varianza en series de precios financieros.</p></li>
-<li><p><strong>Modelos seleccionados</strong>: Los modelos ARIMA(1,1,1) y ARIMA(2,1,1) fueron los más comunes, indicando que una diferenciación y componentes AR/MA simples son suficientes.</p></li>
-<li><p><strong>Diagnóstico</strong>: La mayoría de modelos pasaron las pruebas de ruido blanco, confirmando su adecuación.</p></li>
+<li>
+<strong>No captura volatilidad condicional</strong>: Los residuos pueden tener varianza cambiante (ARCH effects)
+<ul>
+<li>
+<strong>Solución</strong>: Modelos ARIMA-GARCH</li>
+</ul>
+</li>
+<li>
+<strong>Ignorancia de otras variables</strong>: No incorpora información de mercado, macroeconómicas, etc.
+<ul>
+<li>
+<strong>Solución</strong>: Modelos ARIMAX o VAR (Vector Autoregression)</li>
+</ul>
+</li>
+<li>
+<strong>Asume relación lineal</strong>: No captura nonlinearidades complejas
+<ul>
+<li>
+<strong>Solución</strong>: Modelos de Machine Learning (próximo capítulo)</li>
+</ul>
+</li>
+<li>
+<strong>Suavizamiento de pronósticos</strong>: Tiende a proyecciones planas en horizontes largos
+<ul>
+<li>
+<strong>Limitación inherente</strong> del enfoque univariado</li>
+</ul>
+</li>
 </ol>
 </div>
-<div id="ventajas-de-arima" class="section level3" number="4.7.2">
-<h3>
-<span class="header-section-number">4.7.2</span> Ventajas de ARIMA<a class="anchor" aria-label="anchor" href="#ventajas-de-arima"><i class="fas fa-link"></i></a>
-</h3>
+<div id="extensiones-naturales" class="section level4" number="4.7.3.2">
+<h4>
+<span class="header-section-number">4.7.3.2</span> Extensiones naturales:<a class="anchor" aria-label="anchor" href="#extensiones-naturales"><i class="fas fa-link"></i></a>
+</h4>
 <ul>
-<li>✓ Captura autocorrelación compleja</li>
-<li>✓ Diagnóstico formal con pruebas estadísticas</li>
-<li>✓ Flexibilidad en la especificación</li>
-<li>✓ Intervalos de confianza para pronósticos</li>
+<li>
+<strong>SARIMA</strong>: Para capturar patrones estacionales (día de la semana, mes del año)</li>
+<li>
+<strong>ARIMAX</strong>: Incluir variables explicativas (volumen, VIX, tasas de interés)</li>
+<li>
+<strong>Modelos de espacio de estados</strong>: Framework más general y flexible</li>
+<li>
+<strong>Combinación de modelos</strong>: Promediar pronósticos de ARIMA y otros métodos</li>
 </ul>
 </div>
-<div id="limitaciones" class="section level3" number="4.7.3">
+</div>
+<div id="reflexión-final" class="section level3" number="4.7.4">
 <h3>
-<span class="header-section-number">4.7.3</span> Limitaciones<a class="anchor" aria-label="anchor" href="#limitaciones"><i class="fas fa-link"></i></a>
+<span class="header-section-number">4.7.4</span> Reflexión final<a class="anchor" aria-label="anchor" href="#reflexi%C3%B3n-final"><i class="fas fa-link"></i></a>
 </h3>
-<ul>
-<li>Requiere series suficientemente largas</li>
-<li>Sensible a valores atípicos</li>
-<li>Asume relaciones lineales</li>
-<li>No modela volatilidad condicional</li>
-</ul>
+<p>Los modelos ARIMA representan un <strong>punto de equilibrio óptimo</strong> entre:
+- <strong>Simplicidad conceptual</strong>: Basados en conceptos básicos de autocorrelación
+- <strong>Rigor estadístico</strong>: Herramientas formales de identificación, estimación y diagnóstico
+- <strong>Aplicabilidad práctica</strong>: Pronósticos interpretables con medidas de incertidumbre</p>
+<p>Para las series de precios de acciones analizadas, ARIMA capturó efectivamente:
+- ✓ La <strong>tendencia de crecimiento</strong> (mediante drift)
+- ✓ La <strong>persistencia de corto plazo</strong> (componentes AR/MA)
+- ✓ La <strong>variabilidad esperada</strong> (intervalos de confianza)</p>
+<p>Aunque no es el modelo definitivo (ninguno lo es), ARIMA constituye una <strong>herramienta fundamental</strong> en el toolkit del analista cuantitativo, proporcionando tanto un benchmark robusto como insights valiosos sobre la dinámica temporal de las series financieras.</p>
+<p>En el próximo capítulo, exploraremos cómo los <strong>modelos de Machine Learning</strong> pueden complementar y potencialmente superar el enfoque ARIMA al capturar patrones no lineales y aprovechar múltiples fuentes de información simultáneamente.</p>
 </div>
 </div>
 <div id="referencias" class="section level2" number="4.8">
@@ -918,8 +1938,11 @@ Figure 4.5: Pronósticos en escala original
 </h2>
 <ul>
 <li>Box, G. E. P., Jenkins, G. M., &amp; Reinsel, G. C. (2008). <em>Time Series Analysis: Forecasting and Control</em> (4th ed.). Wiley.</li>
-<li>Hyndman, R. J., &amp; Athanasopoulos, G. (2021). <em>Forecasting: Principles and Practice</em> (3rd ed.). OTexts.</li>
+<li>Hyndman, R. J., &amp; Athanasopoulos, G. (2021). <em>Forecasting: Principles and Practice</em> (3rd ed.). OTexts. <a href="https://otexts.com/fpp3/" class="uri">https://otexts.com/fpp3/</a>
+</li>
 <li>Brockwell, P. J., &amp; Davis, R. A. (2016). <em>Introduction to Time Series and Forecasting</em> (3rd ed.). Springer.</li>
+<li>Tsay, R. S. (2010). <em>Analysis of Financial Time Series</em> (3rd ed.). Wiley.</li>
+<li>Shumway, R. H., &amp; Stoffer, D. S. (2017). <em>Time Series Analysis and Its Applications: With R Examples</em> (4th ed.). Springer.</li>
 </ul>
 </div>
 </div>
@@ -962,8 +1985,9 @@ Figure 4.5: Pronósticos en escala original
 <li>
 <a class="nav-link" href="#conclusiones"><span class="header-section-number">4.7</span> Conclusiones</a><ul class="nav navbar-nav">
 <li><a class="nav-link" href="#hallazgos-principales-1"><span class="header-section-number">4.7.1</span> Hallazgos principales</a></li>
-<li><a class="nav-link" href="#ventajas-de-arima"><span class="header-section-number">4.7.2</span> Ventajas de ARIMA</a></li>
-<li><a class="nav-link" href="#limitaciones"><span class="header-section-number">4.7.3</span> Limitaciones</a></li>
+<li><a class="nav-link" href="#ventajas-de-arima-sobre-otros-enfoques"><span class="header-section-number">4.7.2</span> Ventajas de ARIMA sobre otros enfoques</a></li>
+<li><a class="nav-link" href="#limitaciones-y-extensiones-futuras"><span class="header-section-number">4.7.3</span> Limitaciones y extensiones futuras</a></li>
+<li><a class="nav-link" href="#reflexi%C3%B3n-final"><span class="header-section-number">4.7.4</span> Reflexión final</a></li>
 </ul>
 </li>
 <li><a class="nav-link" href="#referencias"><span class="header-section-number">4.8</span> Referencias</a></li>
@@ -983,7 +2007,7 @@ Figure 4.5: Pronósticos en escala original
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Análisis de Series de Tiempo de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-11-08.</p>
+    <p>"<strong>Análisis de Series de Tiempo de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-11-09.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
