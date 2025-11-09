@@ -1,5 +1,15 @@
 # Metodología Box-Jenkins y Modelos ARIMA {#box-jenkins-arima}
 
+```{r setup-cap4, include=FALSE}
+# Configuración para ocultar código por defecto
+knitr::opts_chunk$set(
+  echo = FALSE,           # Ocultar código
+  warning = FALSE,        # Ocultar warnings
+  message = FALSE,        # Ocultar mensajes
+  fig.align = 'center'    # Centrar figuras
+)
+```
+
 ## Introducción
 
 En el capítulo anterior exploramos los modelos de suavizamiento exponencial y Holt-Winters para el análisis y pronóstico de series de tiempo. Ahora profundizaremos en la **metodología Box-Jenkins** y los **modelos ARIMA** (AutoRegressive Integrated Moving Average), que constituyen uno de los enfoques más robustos y ampliamente utilizados para el modelado de series temporales.
