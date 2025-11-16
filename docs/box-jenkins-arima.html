@@ -51,7 +51,7 @@
 <li><a class="" href="literature.html"><span class="header-section-number">2</span> Descomposición y Estacionariedad</a></li>
 <li><a class="" href="holt-winters.html"><span class="header-section-number">3</span> Modelado con Holt-Winters y Suavizamiento Exponencial</a></li>
 <li><a class="active" href="box-jenkins-arima.html"><span class="header-section-number">4</span> Metodología Box-Jenkins y Modelos ARIMA</a></li>
-<li><a class="" href="final-words.html"><span class="header-section-number">5</span> Final Words</a></li>
+<li><a class="" href="prophet.html"><span class="header-section-number">5</span> Modelo Prophet y Enfoque de Regresión</a></li>
 <li><a class="" href="references.html">References</a></li>
 </ul>
 
@@ -646,7 +646,7 @@ Figure 4.2: Funciones ACF y PACF
 ## AIC: -12956.67</code></pre>
 <pre><code>## BIC: -12939.19</code></pre>
 <p><strong>Interpretación del modelo seleccionado automáticamente:</strong></p>
-<p>La función <code><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima()</a></code> realizó una búsqueda exhaustiva entre múltiples especificaciones y seleccionó:</p>
+<p>La función <code>auto.arima()</code> realizó una búsqueda exhaustiva entre múltiples especificaciones y seleccionó:</p>
 <div id="arima011-with-drift" class="section level4" number="4.3.2.1">
 <h4>
 <span class="header-section-number">4.3.2.1</span> ARIMA(0,1,1) with drift<a class="anchor" aria-label="anchor" href="#arima011-with-drift"><i class="fas fa-link"></i></a>
@@ -733,7 +733,7 @@ Figure 4.3: Diagnóstico de residuos
 ## 
 ## Model df: 1.   Total lags used: 10</code></pre>
 <p><strong>Interpretación integral del diagnóstico de residuos:</strong></p>
-<p>La función <code><a href="https://pkg.robjhyndman.com/forecast/reference/checkresiduals.html">checkresiduals()</a></code> genera tres gráficos diagnósticos y una prueba formal. Analicemos cada componente:</p>
+<p>La función <code>checkresiduals()</code> genera tres gráficos diagnósticos y una prueba formal. Analicemos cada componente:</p>
 <div id="gráfico-de-residuos-estandarizados-panel-superior" class="section level4" number="4.4.1.1">
 <h4>
 <span class="header-section-number">4.4.1.1</span> 1. Gráfico de Residuos Estandarizados (panel superior):<a class="anchor" aria-label="anchor" href="#gr%C3%A1fico-de-residuos-estandarizados-panel-superior"><i class="fas fa-link"></i></a>
@@ -1704,7 +1704,7 @@ Figure 4.5: Pronósticos en escala original
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="holt-winters.html"><span class="header-section-number">3</span> Modelado con Holt-Winters y Suavizamiento Exponencial</a></div>
-<div class="next"><a href="final-words.html"><span class="header-section-number">5</span> Final Words</a></div>
+<div class="next"><a href="prophet.html"><span class="header-section-number">5</span> Modelo Prophet y Enfoque de Regresión</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -1763,7 +1763,7 @@ Figure 4.5: Pronósticos en escala original
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Análisis de Series de Tiempo de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-11-09.</p>
+    <p>"<strong>Análisis de Series de Tiempo de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-11-16.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
