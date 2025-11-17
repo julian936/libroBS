@@ -1,5 +1,14 @@
 # Modelado con Holt-Winters y Suavizamiento Exponencial {#holt-winters}
 
+```{r setup-cap4, include=FALSE}
+# Configuración para ocultar código por defecto
+knitr::opts_chunk$set(
+  echo = FALSE,           # Ocultar código
+  warning = FALSE,        # Ocultar warnings
+  message = FALSE,        # Ocultar mensajes
+  fig.align = 'center'    # Centrar figuras
+)
+```
 En esta sección aplicamos métodos clásicos de pronóstico de series temporales a las series de precios de acciones. Específicamente, utilizamos el método de Holt-Winters y variantes de suavizamiento exponencial (simple, doble y triple) para modelar y pronosticar los precios.
 
 El análisis del Capítulo 2 reveló que nuestras series presentan **tendencia fuerte** pero **estacionalidad despreciable**. Por lo tanto, esperamos que los métodos que modelan tendencia (Holt) funcionen mejor que aquellos que asumen estacionalidad significativa (Holt-Winters completo).
