@@ -211,26 +211,7 @@
 <li>Múltiples quiebres estructurales visibles en el período analizado</li>
 <li>Alta sensibilidad a eventos externos (COVID, políticas gubernamentales)</li>
 </ol>
-<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/facebook/prophet">prophet</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org">lubridate</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.quantmod.com/">quantmod</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mfrasco/Metrics">Metrics</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Cargar datos de Tesla</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/quantmod/man/getSymbols.html">getSymbols</a></span><span class="op">(</span><span class="st">"TSLA"</span>, from <span class="op">=</span> <span class="st">"2015-10-13"</span>, to <span class="op">=</span> <span class="st">"2025-10-10"</span>, src <span class="op">=</span> <span class="st">"yahoo"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## [1] "TSLA"</code></pre>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Preparar datos para Prophet</span></span>
-<span><span class="va">tesla_prophet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  ds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/zoo/man/index.html">index</a></span><span class="op">(</span><span class="va">TSLA</span><span class="op">)</span>,</span>
-<span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/quantmod/man/OHLC.Transformations.html">Cl</a></span><span class="op">(</span><span class="va">TSLA</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Precio de cierre</span></span>
-<span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Mostrar estructura</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">tesla_prophet</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##           ds        y
 ## 1 2015-10-13 14.61667
 ## 2 2015-10-14 14.45867
@@ -238,8 +219,6 @@
 ## 4 2015-10-16 15.13400
 ## 5 2015-10-19 15.20667
 ## 6 2015-10-20 14.20200</code></pre>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">tail</a></span><span class="op">(</span><span class="va">tesla_prophet</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##              ds      y
 ## 2508 2025-10-02 436.00
 ## 2509 2025-10-03 429.83
@@ -247,9 +226,6 @@
 ## 2511 2025-10-07 433.09
 ## 2512 2025-10-08 438.69
 ## 2513 2025-10-09 435.54</code></pre>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Resumen estadístico</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">tesla_prophet</span><span class="op">$</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##   9.578  20.017 136.167 140.062 241.867 479.860</code></pre>
 <div id="transformación-logarítmica-1" class="section level3" number="5.4.1">
@@ -257,19 +233,7 @@
 <span class="header-section-number">5.4.1</span> Transformación Logarítmica<a class="anchor" aria-label="anchor" href="#transformaci%C3%B3n-logar%C3%ADtmica-1"><i class="fas fa-link"></i></a>
 </h3>
 <p>Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una <strong>transformación logarítmica</strong> a los precios:</p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tesla_prophet_log</span> <span class="op">&lt;-</span> <span class="va">tesla_prophet</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Visualización comparativa</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">tesla_prophet</span><span class="op">$</span><span class="va">ds</span>, <span class="va">tesla_prophet</span><span class="op">$</span><span class="va">y</span>, type <span class="op">=</span> <span class="st">'l'</span>, </span>
-<span>     main <span class="op">=</span> <span class="st">"Precio de Tesla - Escala Original"</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"Fecha"</span>, ylab <span class="op">=</span> <span class="st">"Precio (USD)"</span>, col <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">tesla_prophet_log</span><span class="op">$</span><span class="va">ds</span>, <span class="va">tesla_prophet_log</span><span class="op">$</span><span class="va">y</span>, type <span class="op">=</span> <span class="st">'l'</span>, </span>
-<span>     main <span class="op">=</span> <span class="st">"Precio de Tesla - Escala Logarítmica"</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"Fecha"</span>, ylab <span class="op">=</span> <span class="st">"Log(Precio)"</span>, col <span class="op">=</span> <span class="st">"darkgreen"</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="05-summary_files/figure-html/transformacion-log-1.png" width="672"></div>
+<div class="inline-figure"><img src="05-summary_files/figure-html/transformacion-log-1.png" width="672" style="display: block; margin: auto;"></div>
 <p><strong>Justificación de la transformación logarítmica</strong>:</p>
 <ol style="list-style-type: decimal">
 <li>Los precios de acciones siguen un proceso multiplicativo (retornos porcentuales constantes)</li>
@@ -287,43 +251,12 @@
 <h3>
 <span class="header-section-number">5.5.1</span> Configuración del Modelo<a class="anchor" aria-label="anchor" href="#configuraci%C3%B3n-del-modelo"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Dividir en entrenamiento y prueba</span></span>
-<span><span class="co"># Últimos 60 días para prueba (aproximadamente 3 meses de trading)</span></span>
-<span><span class="va">n_test</span> <span class="op">&lt;-</span> <span class="fl">60</span></span>
-<span><span class="va">n_train</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">tesla_prophet_log</span><span class="op">)</span> <span class="op">-</span> <span class="va">n_test</span></span>
-<span></span>
-<span><span class="va">train_data</span> <span class="op">&lt;-</span> <span class="va">tesla_prophet_log</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">n_train</span>, <span class="op">]</span></span>
-<span><span class="va">test_data</span> <span class="op">&lt;-</span> <span class="va">tesla_prophet_log</span><span class="op">[</span><span class="op">(</span><span class="va">n_train</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">tesla_prophet_log</span><span class="op">)</span>, <span class="op">]</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Longitud del conjunto de entrenamiento:"</span>, <span class="va">n_train</span>, <span class="st">"días\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Longitud del conjunto de entrenamiento: 2453 días</code></pre>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Longitud del conjunto de prueba:"</span>, <span class="va">n_test</span>, <span class="st">"días\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Longitud del conjunto de prueba: 60 días</code></pre>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Fecha inicio entrenamiento:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">train_data</span><span class="op">$</span><span class="va">ds</span><span class="op">)</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Fecha inicio entrenamiento: 2015-10-13</code></pre>
-<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Fecha fin entrenamiento:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">train_data</span><span class="op">$</span><span class="va">ds</span><span class="op">)</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Fecha fin entrenamiento: 2025-07-16</code></pre>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Fecha inicio prueba:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">ds</span><span class="op">)</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Fecha inicio prueba: 2025-07-17</code></pre>
-<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Fecha fin prueba:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">ds</span><span class="op">)</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Fecha fin prueba: 2025-10-09</code></pre>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Configurar modelo Prophet</span></span>
-<span><span class="va">modelo_prophet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/prophet/man/prophet.html">prophet</a></span><span class="op">(</span></span>
-<span>  <span class="va">train_data</span>,</span>
-<span>  changepoint.prior.scale <span class="op">=</span> <span class="fl">0.05</span>,  <span class="co"># Flexibilidad para detectar changepoints</span></span>
-<span>  seasonality.prior.scale <span class="op">=</span> <span class="fl">10</span>,     <span class="co"># Importancia de estacionalidad</span></span>
-<span>  n.changepoints <span class="op">=</span> <span class="fl">25</span>,              <span class="co"># Número de posibles puntos de cambio</span></span>
-<span>  yearly.seasonality <span class="op">=</span> <span class="cn">TRUE</span>,        <span class="co"># Estacionalidad anual</span></span>
-<span>  weekly.seasonality <span class="op">=</span> <span class="cn">TRUE</span>,        <span class="co"># Estacionalidad semanal</span></span>
-<span>  daily.seasonality <span class="op">=</span> <span class="cn">FALSE</span>         <span class="co"># No aplica para datos diarios de acciones</span></span>
-<span><span class="op">)</span></span></code></pre></div>
 <p><strong>Parámetros clave</strong>:</p>
 <ul>
 <li>
@@ -340,26 +273,13 @@
 <h3>
 <span class="header-section-number">5.5.2</span> Generación de Pronósticos<a class="anchor" aria-label="anchor" href="#generaci%C3%B3n-de-pron%C3%B3sticos-1"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Crear dataframe futuro para pronóstico</span></span>
-<span><span class="va">future</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/prophet/man/make_future_dataframe.html">make_future_dataframe</a></span><span class="op">(</span><span class="va">modelo_prophet</span>, periods <span class="op">=</span> <span class="va">n_test</span>, freq <span class="op">=</span> <span class="st">'day'</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Filtrar solo días hábiles (lunes a viernes)</span></span>
-<span><span class="va">future</span> <span class="op">&lt;-</span> <span class="va">future</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/day.html">wday</a></span><span class="op">(</span><span class="va">ds</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">7</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Excluir domingos (1) y sábados (7)</span></span>
-<span></span>
-<span><span class="co"># Generar pronósticos</span></span>
-<span><span class="va">forecast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">modelo_prophet</span>, <span class="va">future</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Mostrar columnas relevantes del pronóstico</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">forecast</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'ds'</span>, <span class="st">'yhat'</span>, <span class="st">'yhat_lower'</span>, <span class="st">'yhat_upper'</span>, <span class="st">'trend'</span>, <span class="st">'weekly'</span>, <span class="st">'yearly'</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.430910   2.797378 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.433655   2.791885 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.430532   2.802455 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.412667   2.787868 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.431206   2.797300 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.436978   2.806248 2.643955 -0.004281895 -0.02333556</code></pre>
+## 1 2015-10-13 2.611471   2.408002   2.797171 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.426643   2.800232 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.422281   2.807987 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.422385   2.791288 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.428829   2.796713 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.427413   2.801902 2.643955 -0.004281895 -0.02333556</code></pre>
 </div>
 </div>
 <div id="evaluación-del-modelo" class="section level2" number="5.6">
@@ -370,125 +290,33 @@
 <h3>
 <span class="header-section-number">5.6.1</span> Métricas en Escala Logarítmica<a class="anchor" aria-label="anchor" href="#m%C3%A9tricas-en-escala-logar%C3%ADtmica"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Extraer pronósticos para el conjunto de prueba</span></span>
-<span><span class="va">forecast_test</span> <span class="op">&lt;-</span> <span class="va">forecast</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ds</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">test_data</span><span class="op">$</span><span class="va">ds</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">ds</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Asegurar mismo orden</span></span>
-<span><span class="va">test_data</span> <span class="op">&lt;-</span> <span class="va">test_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">ds</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Calcular métricas</span></span>
-<span><span class="va">rmse_log</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/rmse.html">rmse</a></span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">y</span>, <span class="va">forecast_test</span><span class="op">$</span><span class="va">yhat</span><span class="op">)</span></span>
-<span><span class="va">mae_log</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/mae.html">mae</a></span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">y</span>, <span class="va">forecast_test</span><span class="op">$</span><span class="va">yhat</span><span class="op">)</span></span>
-<span><span class="va">mape_log</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">y</span> <span class="op">-</span> <span class="va">forecast_test</span><span class="op">$</span><span class="va">yhat</span><span class="op">)</span> <span class="op">/</span> <span class="va">test_data</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\n=== Métricas de Rendimiento (Escala Logarítmica) ===\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## === Métricas de Rendimiento (Escala Logarítmica) ===</code></pre>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"RMSE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">rmse_log</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## RMSE: NaN</code></pre>
-<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"MAE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mae_log</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## MAE: NaN</code></pre>
-<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"MAPE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mape_log</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## MAPE: NaN %</code></pre>
 </div>
 <div id="métricas-en-escala-original" class="section level3" number="5.6.2">
 <h3>
 <span class="header-section-number">5.6.2</span> Métricas en Escala Original<a class="anchor" aria-label="anchor" href="#m%C3%A9tricas-en-escala-original"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Transformar de vuelta a escala original</span></span>
-<span><span class="va">test_original</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">y</span><span class="op">)</span></span>
-<span><span class="va">forecast_original</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">forecast_test</span><span class="op">$</span><span class="va">yhat</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Calcular métricas en escala original</span></span>
-<span><span class="va">rmse_original</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/rmse.html">rmse</a></span><span class="op">(</span><span class="va">test_original</span>, <span class="va">forecast_original</span><span class="op">)</span></span>
-<span><span class="va">mae_original</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/mae.html">mae</a></span><span class="op">(</span><span class="va">test_original</span>, <span class="va">forecast_original</span><span class="op">)</span></span>
-<span><span class="va">mape_original</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="op">(</span><span class="va">test_original</span> <span class="op">-</span> <span class="va">forecast_original</span><span class="op">)</span> <span class="op">/</span> <span class="va">test_original</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\n=== Métricas de Rendimiento (Escala Original - USD) ===\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## === Métricas de Rendimiento (Escala Original - USD) ===</code></pre>
-<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"RMSE: $"</span>, <span class="fu"><a href="https://rdrr.io/r/base/format.html">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">rmse_original</span>, <span class="fl">2</span><span class="op">)</span>, big.mark <span class="op">=</span> <span class="st">","</span><span class="op">)</span>, <span class="st">"\n"</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## RMSE: $NaN</code></pre>
-<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"MAE: $"</span>, <span class="fu"><a href="https://rdrr.io/r/base/format.html">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mae_original</span>, <span class="fl">2</span><span class="op">)</span>, big.mark <span class="op">=</span> <span class="st">","</span><span class="op">)</span>, <span class="st">"\n"</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## MAE: $NaN</code></pre>
-<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"MAPE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mape_original</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"%\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## MAPE: NaN %</code></pre>
 </div>
 <div id="visualización-del-pronóstico" class="section level3" number="5.6.3">
 <h3>
 <span class="header-section-number">5.6.3</span> Visualización del Pronóstico<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-del-pron%C3%B3stico"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Crear gráfico comparativo</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">test_data</span>, </span>
-<span>            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds</span>, y <span class="op">=</span> <span class="va">y</span>, color <span class="op">=</span> <span class="st">"Real"</span><span class="op">)</span>, </span>
-<span>            linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">forecast_test</span>, </span>
-<span>            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds</span>, y <span class="op">=</span> <span class="va">yhat</span>, color <span class="op">=</span> <span class="st">"Pronóstico"</span><span class="op">)</span>, </span>
-<span>            linewidth <span class="op">=</span> <span class="fl">0.8</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">forecast_test</span>,</span>
-<span>              <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds</span>, ymin <span class="op">=</span> <span class="va">yhat_lower</span>, ymax <span class="op">=</span> <span class="va">yhat_upper</span><span class="op">)</span>,</span>
-<span>              alpha <span class="op">=</span> <span class="fl">0.2</span>, fill <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Real"</span> <span class="op">=</span> <span class="st">"black"</span>, <span class="st">"Pronóstico"</span> <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Tesla (TSLA): Pronóstico con Prophet - Escala Logarítmica"</span>,</span>
-<span>       subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"RMSE = "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">rmse_log</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">" | MAE = "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mae_log</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Fecha"</span>,</span>
-<span>       y <span class="op">=</span> <span class="st">"Log(Precio)"</span>,</span>
-<span>       color <span class="op">=</span> <span class="st">""</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
-<span>        plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span>, size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span>,</span>
-<span>        plot.subtitle <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> <span class="st">"gray30"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:vis-forecast-test"></span>
 <img src="05-summary_files/figure-html/vis-forecast-test-1.png" alt="Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba" width="960"><p class="caption">
 Figure 5.1: Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba
 </p>
 </div>
-<div class="sourceCode" id="cb128"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Gráfico en escala original</span></span>
-<span><span class="va">forecast_test_original</span> <span class="op">&lt;-</span> <span class="va">forecast_test</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>yhat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">yhat</span><span class="op">)</span>,</span>
-<span>         yhat_lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">yhat_lower</span><span class="op">)</span>,</span>
-<span>         yhat_upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">yhat_upper</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">test_data_original</span> <span class="op">&lt;-</span> <span class="va">test_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">test_data_original</span>, </span>
-<span>            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds</span>, y <span class="op">=</span> <span class="va">y</span>, color <span class="op">=</span> <span class="st">"Real"</span><span class="op">)</span>, </span>
-<span>            linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">forecast_test_original</span>, </span>
-<span>            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds</span>, y <span class="op">=</span> <span class="va">yhat</span>, color <span class="op">=</span> <span class="st">"Pronóstico"</span><span class="op">)</span>, </span>
-<span>            linewidth <span class="op">=</span> <span class="fl">0.8</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html">geom_ribbon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">forecast_test_original</span>,</span>
-<span>              <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds</span>, ymin <span class="op">=</span> <span class="va">yhat_lower</span>, ymax <span class="op">=</span> <span class="va">yhat_upper</span><span class="op">)</span>,</span>
-<span>              alpha <span class="op">=</span> <span class="fl">0.2</span>, fill <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Real"</span> <span class="op">=</span> <span class="st">"black"</span>, <span class="st">"Pronóstico"</span> <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/dollar_format.html">dollar_format</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Tesla (TSLA): Pronóstico con Prophet - Escala Original"</span>,</span>
-<span>       subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MAE = $"</span>, <span class="fu"><a href="https://rdrr.io/r/base/format.html">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mae_original</span>, <span class="fl">2</span><span class="op">)</span>, big.mark <span class="op">=</span> <span class="st">","</span><span class="op">)</span>, </span>
-<span>                        <span class="st">" | MAPE = "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mape_original</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"%"</span><span class="op">)</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Fecha"</span>,</span>
-<span>       y <span class="op">=</span> <span class="st">"Precio (USD)"</span>,</span>
-<span>       color <span class="op">=</span> <span class="st">""</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
-<span>        plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span>, size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span>,</span>
-<span>        plot.subtitle <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, color <span class="op">=</span> <span class="st">"gray30"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:vis-forecast-original"></span>
 <img src="05-summary_files/figure-html/vis-forecast-original-1.png" alt="Pronóstico de Prophet vs Valores Reales - Escala Original" width="960"><p class="caption">
 Figure 5.2: Pronóstico de Prophet vs Valores Reales - Escala Original
@@ -501,9 +329,7 @@ Figure 5.2: Pronóstico de Prophet vs Valores Reales - Escala Original
 <span class="header-section-number">5.7</span> Análisis de Componentes<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-componentes"><i class="fas fa-link"></i></a>
 </h2>
 <p>Prophet permite descomponer la serie en sus componentes fundamentales:</p>
-<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/prophet/man/prophet_plot_components.html">prophet_plot_components</a></span><span class="op">(</span><span class="va">modelo_prophet</span>, <span class="va">forecast</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:componentes-prophet"></span>
 <img src="05-summary_files/figure-html/componentes-prophet-1.png" alt="Descomposición de Componentes del Modelo Prophet" width="960"><p class="caption">
 Figure 5.3: Descomposición de Componentes del Modelo Prophet
@@ -548,15 +374,7 @@ Figure 5.3: Descomposición de Componentes del Modelo Prophet
 <h3>
 <span class="header-section-number">5.7.2</span> Visualización de Changepoints<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-de-changepoints"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Visualizar serie completa con changepoints</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">modelo_prophet</span>, <span class="va">forecast</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/prophet/man/add_changepoints_to_plot.html">add_changepoints_to_plot</a></span><span class="op">(</span><span class="va">modelo_prophet</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Tesla (TSLA): Tendencia y Changepoints Detectados"</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Fecha"</span>,</span>
-<span>       y <span class="op">=</span> <span class="st">"Log(Precio)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:changepoints"></span>
 <img src="05-summary_files/figure-html/changepoints-1.png" alt="Changepoints Detectados por Prophet" width="960"><p class="caption">
 Figure 5.4: Changepoints Detectados por Prophet
@@ -634,128 +452,45 @@ Figure 5.4: Changepoints Detectados por Prophet
 <h3>
 <span class="header-section-number">5.8.3</span> Modelo de Regresión Simple<a class="anchor" aria-label="anchor" href="#modelo-de-regresi%C3%B3n-simple"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Preparar datos para regresión</span></span>
-<span><span class="va">tesla_reg</span> <span class="op">&lt;-</span> <span class="va">tesla_prophet_log</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
-<span>    t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">ds</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">ds</span><span class="op">)</span><span class="op">)</span>,  <span class="co"># Tiempo en días desde inicio</span></span>
-<span>    t2 <span class="op">=</span> <span class="va">t</span><span class="op">^</span><span class="fl">2</span>,                       <span class="co"># Término cuadrático</span></span>
-<span>    t3 <span class="op">=</span> <span class="va">t</span><span class="op">^</span><span class="fl">3</span>                        <span class="co"># Término cúbico</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Modelo lineal</span></span>
-<span><span class="va">modelo_lineal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">t</span>, data <span class="op">=</span> <span class="va">tesla_reg</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Modelo polinomial (grado 3)</span></span>
-<span><span class="va">modelo_poly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">t</span> <span class="op">+</span> <span class="va">t2</span> <span class="op">+</span> <span class="va">t3</span>, data <span class="op">=</span> <span class="va">tesla_reg</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Comparar modelos</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\n=== Modelo Lineal ===\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## === Modelo Lineal ===</code></pre>
-<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">modelo_lineal</span><span class="op">)</span><span class="op">$</span><span class="va">coefficients</span></span></code></pre></div>
 <pre><code>##                Estimate   Std. Error  t value Pr(&gt;|t|)
 ## (Intercept) 2.295546765 2.202333e-02 104.2325        0
 ## t           0.001095145 1.045871e-05 104.7113        0</code></pre>
-<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nR² ajustado:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">modelo_lineal</span><span class="op">)</span><span class="op">$</span><span class="va">adj.r.squared</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## R² ajustado: 0.8136</code></pre>
-<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"AIC:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html">AIC</a></span><span class="op">(</span><span class="va">modelo_lineal</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## AIC: 4151.85</code></pre>
-<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\n=== Modelo Polinomial (Grado 3) ===\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## === Modelo Polinomial (Grado 3) ===</code></pre>
-<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">modelo_poly</span><span class="op">)</span><span class="op">$</span><span class="va">coefficients</span></span></code></pre></div>
 <pre><code>##                  Estimate   Std. Error   t value      Pr(&gt;|t|)
 ## (Intercept)  2.808906e+00 3.626574e-02  77.45342  0.000000e+00
 ## t           -1.014364e-03 8.607855e-05 -11.78416  3.087884e-31
 ## t2           1.617809e-06 5.481223e-08  29.51548 1.310042e-164
 ## t3          -3.165370e-10 9.871835e-12 -32.06465 2.285792e-189</code></pre>
-<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nR² ajustado:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">modelo_poly</span><span class="op">)</span><span class="op">$</span><span class="va">adj.r.squared</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## R² ajustado: 0.8733</code></pre>
-<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"AIC:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html">AIC</a></span><span class="op">(</span><span class="va">modelo_poly</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## AIC: 3182.53</code></pre>
 </div>
 <div id="regresión-con-variables-exógenas" class="section level3" number="5.8.4">
 <h3>
 <span class="header-section-number">5.8.4</span> Regresión con Variables Exógenas<a class="anchor" aria-label="anchor" href="#regresi%C3%B3n-con-variables-ex%C3%B3genas"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Agregar volumen como variable exógena</span></span>
-<span><span class="va">tesla_volume</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  ds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/zoo/man/index.html">index</a></span><span class="op">(</span><span class="va">TSLA</span><span class="op">)</span>,</span>
-<span>  volumen <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/quantmod/man/OHLC.Transformations.html">Vo</a></span><span class="op">(</span><span class="va">TSLA</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">tesla_reg_full</span> <span class="op">&lt;-</span> <span class="va">tesla_reg</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">tesla_volume</span>, by <span class="op">=</span> <span class="st">"ds"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
-<span>    log_volumen <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">volumen</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,  <span class="co"># Transformación log del volumen</span></span>
-<span>    dia_semana <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/day.html">wday</a></span><span class="op">(</span><span class="va">ds</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>  <span class="co"># Día de la semana</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Modelo con volumen</span></span>
-<span><span class="va">modelo_volumen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">t</span> <span class="op">+</span> <span class="va">t2</span> <span class="op">+</span> <span class="va">log_volumen</span>, data <span class="op">=</span> <span class="va">tesla_reg_full</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\n=== Modelo con Volumen ===\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## === Modelo con Volumen ===</code></pre>
-<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">modelo_volumen</span><span class="op">)</span><span class="op">$</span><span class="va">coefficients</span></span></code></pre></div>
 <pre><code>##                  Estimate   Std. Error   t value      Pr(&gt;|t|)
 ## (Intercept)  8.843945e+00 3.802062e-01  23.26092 1.526651e-108
 ## t            1.792391e-03 4.147787e-05  43.21318 1.913446e-305
 ## t2          -1.838960e-07 1.091025e-08 -16.85534  1.796972e-60
 ## log_volumen -3.803351e-01 2.118575e-02 -17.95240  6.794391e-68</code></pre>
-<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nR² ajustado:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">modelo_volumen</span><span class="op">)</span><span class="op">$</span><span class="va">adj.r.squared</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## R² ajustado: 0.8418</code></pre>
-<div class="sourceCode" id="cb153"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"AIC:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html">AIC</a></span><span class="op">(</span><span class="va">modelo_volumen</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## AIC: 3741.89</code></pre>
 </div>
 <div id="visualización-de-ajuste-de-regresión" class="section level3" number="5.8.5">
 <h3>
 <span class="header-section-number">5.8.5</span> Visualización de Ajuste de Regresión<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-de-ajuste-de-regresi%C3%B3n"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb155"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Agregar predicciones al dataframe</span></span>
-<span><span class="va">tesla_reg_full</span> <span class="op">&lt;-</span> <span class="va">tesla_reg_full</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
-<span>    pred_lineal <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">modelo_lineal</span>, newdata <span class="op">=</span> <span class="va">tesla_reg_full</span><span class="op">)</span>,</span>
-<span>    pred_poly <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">modelo_poly</span>, newdata <span class="op">=</span> <span class="va">tesla_reg_full</span><span class="op">)</span>,</span>
-<span>    pred_volumen <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">modelo_volumen</span>, newdata <span class="op">=</span> <span class="va">tesla_reg_full</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Gráfico comparativo</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">tesla_reg_full</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">ds</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span>, color <span class="op">=</span> <span class="st">"Real"</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span>, alpha <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">pred_lineal</span>, color <span class="op">=</span> <span class="st">"Lineal"</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">pred_poly</span>, color <span class="op">=</span> <span class="st">"Polinomial"</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">pred_volumen</span>, color <span class="op">=</span> <span class="st">"Con Volumen"</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Real"</span> <span class="op">=</span> <span class="st">"black"</span>,</span>
-<span>    <span class="st">"Lineal"</span> <span class="op">=</span> <span class="st">"blue"</span>,</span>
-<span>    <span class="st">"Polinomial"</span> <span class="op">=</span> <span class="st">"red"</span>,</span>
-<span>    <span class="st">"Con Volumen"</span> <span class="op">=</span> <span class="st">"darkgreen"</span></span>
-<span>  <span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Tesla (TSLA): Comparación de Modelos de Regresión"</span>,</span>
-<span>       x <span class="op">=</span> <span class="st">"Fecha"</span>,</span>
-<span>       y <span class="op">=</span> <span class="st">"Log(Precio)"</span>,</span>
-<span>       color <span class="op">=</span> <span class="st">"Modelo"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:vis-regresion"></span>
 <img src="05-summary_files/figure-html/vis-regresion-1.png" alt="Comparación de Modelos de Regresión" width="960"><p class="caption">
 Figure 5.5: Comparación de Modelos de Regresión
@@ -766,10 +501,7 @@ Figure 5.5: Comparación de Modelos de Regresión
 <h3>
 <span class="header-section-number">5.8.6</span> Análisis de Residuos<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-residuos-1"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb156"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">modelo_poly</span><span class="op">)</span></span></code></pre></div>
-<div class="figure">
+<div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:residuos-regresion"></span>
 <img src="05-summary_files/figure-html/residuos-regresion-1.png" alt="Diagnóstico de Residuos - Modelo Polinomial" width="960"><p class="caption">
 Figure 5.6: Diagnóstico de Residuos - Modelo Polinomial
@@ -791,48 +523,13 @@ Figure 5.6: Diagnóstico de Residuos - Modelo Polinomial
 <h3>
 <span class="header-section-number">5.8.7</span> Comparación: Regresión vs Prophet<a class="anchor" aria-label="anchor" href="#comparaci%C3%B3n-regresi%C3%B3n-vs-prophet"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb157"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Pronósticos en conjunto de prueba</span></span>
-<span><span class="va">forecast_reg</span> <span class="op">&lt;-</span> <span class="va">forecast_test</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
-<span>    t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">ds</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">tesla_reg_full</span><span class="op">$</span><span class="va">ds</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    t2 <span class="op">=</span> <span class="va">t</span><span class="op">^</span><span class="fl">2</span>,</span>
-<span>    t3 <span class="op">=</span> <span class="va">t</span><span class="op">^</span><span class="fl">3</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">tesla_volume</span>, by <span class="op">=</span> <span class="st">"ds"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>log_volumen <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">volumen</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code>## Warning: There was 1 warning in `mutate()`.
-## ℹ In argument: `t = as.numeric(ds - min(tesla_reg_full$ds))`.
-## Caused by warning:
-## ! Métodos incompatibles ("-.POSIXt", "-.Date") para "-"</code></pre>
-<div class="sourceCode" id="cb159"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Predicciones de regresión</span></span>
-<span><span class="va">pred_poly_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">modelo_poly</span>, newdata <span class="op">=</span> <span class="va">forecast_reg</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Métricas regresión polinomial</span></span>
-<span><span class="va">rmse_reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/rmse.html">rmse</a></span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">y</span>, <span class="va">pred_poly_test</span><span class="op">)</span></span>
-<span><span class="va">mae_reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/mae.html">mae</a></span><span class="op">(</span><span class="va">test_data</span><span class="op">$</span><span class="va">y</span>, <span class="va">pred_poly_test</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\n=== Comparación de Modelos en Conjunto de Prueba ===\n\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## 
 ## === Comparación de Modelos en Conjunto de Prueba ===</code></pre>
-<div class="sourceCode" id="cb161"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Prophet:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Prophet:</code></pre>
-<div class="sourceCode" id="cb163"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"  RMSE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">rmse_log</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##   RMSE: NaN</code></pre>
-<div class="sourceCode" id="cb165"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"  MAE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mae_log</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##   MAE: NaN</code></pre>
-<div class="sourceCode" id="cb167"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Regresión Polinomial:\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>## Regresión Polinomial:</code></pre>
-<div class="sourceCode" id="cb169"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"  RMSE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">rmse_reg</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##   RMSE: NaN</code></pre>
-<div class="sourceCode" id="cb171"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"  MAE:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mae_reg</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##   MAE: NaN</code></pre>
 </div>
 </div>
@@ -841,64 +538,6 @@ Figure 5.6: Diagnóstico de Residuos - Modelo Polinomial
 <span class="header-section-number">5.9</span> Aplicación a Múltiples Acciones<a class="anchor" aria-label="anchor" href="#aplicaci%C3%B3n-a-m%C3%BAltiples-acciones"><i class="fas fa-link"></i></a>
 </h2>
 <p>Para verificar la generalización del modelo, aplicamos Prophet a las 6 acciones:</p>
-<div class="sourceCode" id="cb173"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Símbolos de acciones</span></span>
-<span><span class="va">tickers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"AAPL"</span>, <span class="st">"MSFT"</span>, <span class="st">"TSLA"</span>, <span class="st">"PFE"</span>, <span class="st">"MRNA"</span>, <span class="st">"JNJ"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Función para ajustar Prophet a una acción</span></span>
-<span><span class="va">ajustar_prophet_accion</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">ticker</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Cargar datos</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/quantmod/man/getSymbols.html">getSymbols</a></span><span class="op">(</span><span class="va">ticker</span>, from <span class="op">=</span> <span class="st">"2015-10-13"</span>, to <span class="op">=</span> <span class="st">"2025-10-10"</span>, </span>
-<span>             src <span class="op">=</span> <span class="st">"yahoo"</span>, auto.assign <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Preparar datos</span></span>
-<span>  <span class="va">datos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>    ds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/zoo/man/index.html">index</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="va">ticker</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/quantmod/man/OHLC.Transformations.html">Cl</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="va">ticker</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Dividir en train/test</span></span>
-<span>  <span class="va">n_test</span> <span class="op">&lt;-</span> <span class="fl">60</span></span>
-<span>  <span class="va">n_train</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">datos</span><span class="op">)</span> <span class="op">-</span> <span class="va">n_test</span></span>
-<span>  <span class="va">train</span> <span class="op">&lt;-</span> <span class="va">datos</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">n_train</span>, <span class="op">]</span></span>
-<span>  <span class="va">test</span> <span class="op">&lt;-</span> <span class="va">datos</span><span class="op">[</span><span class="op">(</span><span class="va">n_train</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">datos</span><span class="op">)</span>, <span class="op">]</span></span>
-<span>  </span>
-<span>  <span class="co"># Ajustar modelo</span></span>
-<span>  <span class="va">modelo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/prophet/man/prophet.html">prophet</a></span><span class="op">(</span><span class="va">train</span>, </span>
-<span>                   changepoint.prior.scale <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>                   yearly.seasonality <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                   weekly.seasonality <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                   daily.seasonality <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Pronóstico</span></span>
-<span>  <span class="va">future</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/prophet/man/make_future_dataframe.html">make_future_dataframe</a></span><span class="op">(</span><span class="va">modelo</span>, periods <span class="op">=</span> <span class="va">n_test</span>, freq <span class="op">=</span> <span class="st">'day'</span><span class="op">)</span></span>
-<span>  <span class="va">future</span> <span class="op">&lt;-</span> <span class="va">future</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/day.html">wday</a></span><span class="op">(</span><span class="va">ds</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">7</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">forecast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">modelo</span>, <span class="va">future</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Métricas</span></span>
-<span>  <span class="va">forecast_test</span> <span class="op">&lt;-</span> <span class="va">forecast</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">ds</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">test</span><span class="op">$</span><span class="va">ds</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">ds</span><span class="op">)</span></span>
-<span>  <span class="va">test</span> <span class="op">&lt;-</span> <span class="va">test</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">ds</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
-<span>    ticker <span class="op">=</span> <span class="va">ticker</span>,</span>
-<span>    rmse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/rmse.html">rmse</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">y</span>, <span class="va">forecast_test</span><span class="op">$</span><span class="va">yhat</span><span class="op">)</span>,</span>
-<span>    mae <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/Metrics/man/mae.html">mae</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">y</span>, <span class="va">forecast_test</span><span class="op">$</span><span class="va">yhat</span><span class="op">)</span>,</span>
-<span>    mape <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">y</span> <span class="op">-</span> <span class="va">forecast_test</span><span class="op">$</span><span class="va">yhat</span><span class="op">)</span> <span class="op">/</span> <span class="va">test</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span></span>
-<span>  <span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Aplicar a todas las acciones</span></span>
-<span><span class="va">resultados</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="va">tickers</span>, <span class="va">ajustar_prophet_accion</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb174"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Mostrar resultados</span></span>
-<span><span class="va">resultados</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
-<span>    RMSE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">rmse</span>, <span class="fl">4</span><span class="op">)</span>,</span>
-<span>    MAE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mae</span>, <span class="fl">4</span><span class="op">)</span>,</span>
-<span>    MAPE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mape</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span>Ticker <span class="op">=</span> <span class="va">ticker</span>, <span class="va">RMSE</span>, <span class="va">MAE</span>, `MAPE (%)` <span class="op">=</span> <span class="va">MAPE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">"Métricas de Pronóstico Prophet por Acción (Escala Log)"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
 <span id="tab:tabla-resultados">Table 5.1: </span>Métricas de Pronóstico Prophet por Acción (Escala Log)</caption>

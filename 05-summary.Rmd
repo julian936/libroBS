@@ -1,5 +1,16 @@
 # Modelo Prophet y Enfoque de Regresión {#prophet}
 
+```{r setup-cap4, include=FALSE}
+# Configuración para ocultar código por defecto
+knitr::opts_chunk$set(
+  echo = FALSE,           # Ocultar código
+  warning = FALSE,        # Ocultar warnings
+  message = FALSE,        # Ocultar mensajes
+  fig.align = 'center'    # Centrar figuras
+)
+```
+
+
 ## Flujo de Análisis del Capítulo
 
 ```

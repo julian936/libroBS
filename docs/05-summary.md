@@ -1,5 +1,8 @@
 # Modelo Prophet y Enfoque de Regresión {#prophet}
 
+
+
+
 ## Flujo de Análisis del Capítulo
 
 ```
@@ -129,31 +132,8 @@ Seleccionaremos **Tesla (TSLA)** para el análisis detallado por las siguientes 
 4. Alta sensibilidad a eventos externos (COVID, políticas gubernamentales)
 
 
-``` r
-library(prophet)
-library(tidyverse)
-library(lubridate)
-library(quantmod)
-library(Metrics)
-
-# Cargar datos de Tesla
-getSymbols("TSLA", from = "2015-10-13", to = "2025-10-10", src = "yahoo")
-```
-
 ```
 ## [1] "TSLA"
-```
-
-``` r
-# Preparar datos para Prophet
-tesla_prophet <- data.frame(
-  ds = index(TSLA),
-  y = as.numeric(Cl(TSLA))  # Precio de cierre
-) %>%
-  na.omit()
-
-# Mostrar estructura
-head(tesla_prophet)
 ```
 
 ```
@@ -166,10 +146,6 @@ head(tesla_prophet)
 ## 6 2015-10-20 14.20200
 ```
 
-``` r
-tail(tesla_prophet)
-```
-
 ```
 ##              ds      y
 ## 2508 2025-10-02 436.00
@@ -178,11 +154,6 @@ tail(tesla_prophet)
 ## 2511 2025-10-07 433.09
 ## 2512 2025-10-08 438.69
 ## 2513 2025-10-09 435.54
-```
-
-``` r
-# Resumen estadístico
-summary(tesla_prophet$y)
 ```
 
 ```
@@ -194,22 +165,7 @@ summary(tesla_prophet$y)
 
 Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una **transformación logarítmica** a los precios:
 
-
-``` r
-tesla_prophet_log <- tesla_prophet %>%
-  mutate(y = log(y))
-
-# Visualización comparativa
-par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
-plot(tesla_prophet$ds, tesla_prophet$y, type = 'l', 
-     main = "Precio de Tesla - Escala Original",
-     xlab = "Fecha", ylab = "Precio (USD)", col = "blue")
-plot(tesla_prophet_log$ds, tesla_prophet_log$y, type = 'l', 
-     main = "Precio de Tesla - Escala Logarítmica",
-     xlab = "Fecha", ylab = "Log(Precio)", col = "darkgreen")
-```
-
-<img src="05-summary_files/figure-html/transformacion-log-1.png" width="672" />
+<img src="05-summary_files/figure-html/transformacion-log-1.png" width="672" style="display: block; margin: auto;" />
 
 **Justificación de la transformación logarítmica**:
 
@@ -223,56 +179,24 @@ plot(tesla_prophet_log$ds, tesla_prophet_log$y, type = 'l',
 ### Configuración del Modelo
 
 
-``` r
-# Dividir en entrenamiento y prueba
-# Últimos 60 días para prueba (aproximadamente 3 meses de trading)
-n_test <- 60
-n_train <- nrow(tesla_prophet_log) - n_test
-
-train_data <- tesla_prophet_log[1:n_train, ]
-test_data <- tesla_prophet_log[(n_train + 1):nrow(tesla_prophet_log), ]
-
-cat("Longitud del conjunto de entrenamiento:", n_train, "días\n")
-```
-
 ```
 ## Longitud del conjunto de entrenamiento: 2453 días
-```
-
-``` r
-cat("Longitud del conjunto de prueba:", n_test, "días\n")
 ```
 
 ```
 ## Longitud del conjunto de prueba: 60 días
 ```
 
-``` r
-cat("Fecha inicio entrenamiento:", as.character(min(train_data$ds)), "\n")
-```
-
 ```
 ## Fecha inicio entrenamiento: 2015-10-13
-```
-
-``` r
-cat("Fecha fin entrenamiento:", as.character(max(train_data$ds)), "\n")
 ```
 
 ```
 ## Fecha fin entrenamiento: 2025-07-16
 ```
 
-``` r
-cat("Fecha inicio prueba:", as.character(min(test_data$ds)), "\n")
-```
-
 ```
 ## Fecha inicio prueba: 2025-07-17
-```
-
-``` r
-cat("Fecha fin prueba:", as.character(max(test_data$ds)), "\n")
 ```
 
 ```
@@ -280,18 +204,6 @@ cat("Fecha fin prueba:", as.character(max(test_data$ds)), "\n")
 ```
 
 
-``` r
-# Configurar modelo Prophet
-modelo_prophet <- prophet(
-  train_data,
-  changepoint.prior.scale = 0.05,  # Flexibilidad para detectar changepoints
-  seasonality.prior.scale = 10,     # Importancia de estacionalidad
-  n.changepoints = 25,              # Número de posibles puntos de cambio
-  yearly.seasonality = TRUE,        # Estacionalidad anual
-  weekly.seasonality = TRUE,        # Estacionalidad semanal
-  daily.seasonality = FALSE         # No aplica para datos diarios de acciones
-)
-```
 
 **Parámetros clave**:
 
@@ -303,29 +215,14 @@ modelo_prophet <- prophet(
 ### Generación de Pronósticos
 
 
-``` r
-# Crear dataframe futuro para pronóstico
-future <- make_future_dataframe(modelo_prophet, periods = n_test, freq = 'day')
-
-# Filtrar solo días hábiles (lunes a viernes)
-future <- future %>%
-  filter(!(wday(ds) %in% c(1, 7)))  # Excluir domingos (1) y sábados (7)
-
-# Generar pronósticos
-forecast <- predict(modelo_prophet, future)
-
-# Mostrar columnas relevantes del pronóstico
-head(forecast[, c('ds', 'yhat', 'yhat_lower', 'yhat_upper', 'trend', 'weekly', 'yearly')])
-```
-
 ```
 ##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.430910   2.797378 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.433655   2.791885 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.430532   2.802455 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.412667   2.787868 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.431206   2.797300 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.436978   2.806248 2.643955 -0.004281895 -0.02333556
+## 1 2015-10-13 2.611471   2.408002   2.797171 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.426643   2.800232 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.422281   2.807987 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.422385   2.791288 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.428829   2.796713 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.427413   2.801902 2.643955 -0.004281895 -0.02333556
 ```
 
 ## Evaluación del Modelo
@@ -333,46 +230,17 @@ head(forecast[, c('ds', 'yhat', 'yhat_lower', 'yhat_upper', 'trend', 'weekly', '
 ### Métricas en Escala Logarítmica
 
 
-``` r
-# Extraer pronósticos para el conjunto de prueba
-forecast_test <- forecast %>%
-  filter(ds %in% test_data$ds) %>%
-  arrange(ds)
-
-# Asegurar mismo orden
-test_data <- test_data %>% arrange(ds)
-
-# Calcular métricas
-rmse_log <- rmse(test_data$y, forecast_test$yhat)
-mae_log <- mae(test_data$y, forecast_test$yhat)
-mape_log <- mean(abs((test_data$y - forecast_test$yhat) / test_data$y)) * 100
-
-cat("\n=== Métricas de Rendimiento (Escala Logarítmica) ===\n")
-```
-
 ```
 ## 
 ## === Métricas de Rendimiento (Escala Logarítmica) ===
-```
-
-``` r
-cat("RMSE:", round(rmse_log, 4), "\n")
 ```
 
 ```
 ## RMSE: NaN
 ```
 
-``` r
-cat("MAE:", round(mae_log, 4), "\n")
-```
-
 ```
 ## MAE: NaN
-```
-
-``` r
-cat("MAPE:", round(mape_log, 2), "%\n")
 ```
 
 ```
@@ -382,42 +250,17 @@ cat("MAPE:", round(mape_log, 2), "%\n")
 ### Métricas en Escala Original
 
 
-``` r
-# Transformar de vuelta a escala original
-test_original <- exp(test_data$y)
-forecast_original <- exp(forecast_test$yhat)
-
-# Calcular métricas en escala original
-rmse_original <- rmse(test_original, forecast_original)
-mae_original <- mae(test_original, forecast_original)
-mape_original <- mean(abs((test_original - forecast_original) / test_original)) * 100
-
-cat("\n=== Métricas de Rendimiento (Escala Original - USD) ===\n")
-```
-
 ```
 ## 
 ## === Métricas de Rendimiento (Escala Original - USD) ===
-```
-
-``` r
-cat("RMSE: $", format(round(rmse_original, 2), big.mark = ","), "\n", sep = "")
 ```
 
 ```
 ## RMSE: $NaN
 ```
 
-``` r
-cat("MAE: $", format(round(mae_original, 2), big.mark = ","), "\n", sep = "")
-```
-
 ```
 ## MAE: $NaN
-```
-
-``` r
-cat("MAPE:", round(mape_original, 2), "%\n")
 ```
 
 ```
@@ -426,72 +269,12 @@ cat("MAPE:", round(mape_original, 2), "%\n")
 
 ### Visualización del Pronóstico
 
-
-``` r
-# Crear gráfico comparativo
-ggplot() +
-  geom_line(data = test_data, 
-            aes(x = ds, y = y, color = "Real"), 
-            linewidth = 0.8) +
-  geom_line(data = forecast_test, 
-            aes(x = ds, y = yhat, color = "Pronóstico"), 
-            linewidth = 0.8, linetype = "dashed") +
-  geom_ribbon(data = forecast_test,
-              aes(x = ds, ymin = yhat_lower, ymax = yhat_upper),
-              alpha = 0.2, fill = "red") +
-  scale_color_manual(values = c("Real" = "black", "Pronóstico" = "red")) +
-  labs(title = "Tesla (TSLA): Pronóstico con Prophet - Escala Logarítmica",
-       subtitle = paste0("RMSE = ", round(rmse_log, 4), " | MAE = ", round(mae_log, 4)),
-       x = "Fecha",
-       y = "Log(Precio)",
-       color = "") +
-  theme_minimal() +
-  theme(legend.position = "bottom",
-        plot.title = element_text(face = "bold", size = 14),
-        plot.subtitle = element_text(size = 10, color = "gray30"))
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="05-summary_files/figure-html/vis-forecast-test-1.png" alt="Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba" width="960" />
 <p class="caption">(\#fig:vis-forecast-test)Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba</p>
 </div>
 
-
-``` r
-# Gráfico en escala original
-forecast_test_original <- forecast_test %>%
-  mutate(yhat = exp(yhat),
-         yhat_lower = exp(yhat_lower),
-         yhat_upper = exp(yhat_upper))
-
-test_data_original <- test_data %>%
-  mutate(y = exp(y))
-
-ggplot() +
-  geom_line(data = test_data_original, 
-            aes(x = ds, y = y, color = "Real"), 
-            linewidth = 0.8) +
-  geom_line(data = forecast_test_original, 
-            aes(x = ds, y = yhat, color = "Pronóstico"), 
-            linewidth = 0.8, linetype = "dashed") +
-  geom_ribbon(data = forecast_test_original,
-              aes(x = ds, ymin = yhat_lower, ymax = yhat_upper),
-              alpha = 0.2, fill = "red") +
-  scale_color_manual(values = c("Real" = "black", "Pronóstico" = "red")) +
-  scale_y_continuous(labels = scales::dollar_format()) +
-  labs(title = "Tesla (TSLA): Pronóstico con Prophet - Escala Original",
-       subtitle = paste0("MAE = $", format(round(mae_original, 2), big.mark = ","), 
-                        " | MAPE = ", round(mape_original, 2), "%"),
-       x = "Fecha",
-       y = "Precio (USD)",
-       color = "") +
-  theme_minimal() +
-  theme(legend.position = "bottom",
-        plot.title = element_text(face = "bold", size = 14),
-        plot.subtitle = element_text(size = 10, color = "gray30"))
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="05-summary_files/figure-html/vis-forecast-original-1.png" alt="Pronóstico de Prophet vs Valores Reales - Escala Original" width="960" />
 <p class="caption">(\#fig:vis-forecast-original)Pronóstico de Prophet vs Valores Reales - Escala Original</p>
 </div>
@@ -500,12 +283,7 @@ ggplot() +
 
 Prophet permite descomponer la serie en sus componentes fundamentales:
 
-
-``` r
-prophet_plot_components(modelo_prophet, forecast)
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="05-summary_files/figure-html/componentes-prophet-1.png" alt="Descomposición de Componentes del Modelo Prophet" width="960" />
 <p class="caption">(\#fig:componentes-prophet)Descomposición de Componentes del Modelo Prophet</p>
 </div>
@@ -530,18 +308,7 @@ prophet_plot_components(modelo_prophet, forecast)
 
 ### Visualización de Changepoints
 
-
-``` r
-# Visualizar serie completa con changepoints
-plot(modelo_prophet, forecast) +
-  add_changepoints_to_plot(modelo_prophet) +
-  labs(title = "Tesla (TSLA): Tendencia y Changepoints Detectados",
-       x = "Fecha",
-       y = "Log(Precio)") +
-  theme_minimal()
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="05-summary_files/figure-html/changepoints-1.png" alt="Changepoints Detectados por Prophet" width="960" />
 <p class="caption">(\#fig:changepoints)Changepoints Detectados por Prophet</p>
 </div>
@@ -592,32 +359,9 @@ El enfoque de regresión es **viable y complementario** para las acciones analiz
 ### Modelo de Regresión Simple
 
 
-``` r
-# Preparar datos para regresión
-tesla_reg <- tesla_prophet_log %>%
-  mutate(
-    t = as.numeric(ds - min(ds)),  # Tiempo en días desde inicio
-    t2 = t^2,                       # Término cuadrático
-    t3 = t^3                        # Término cúbico
-  )
-
-# Modelo lineal
-modelo_lineal <- lm(y ~ t, data = tesla_reg)
-
-# Modelo polinomial (grado 3)
-modelo_poly <- lm(y ~ t + t2 + t3, data = tesla_reg)
-
-# Comparar modelos
-cat("\n=== Modelo Lineal ===\n")
-```
-
 ```
 ## 
 ## === Modelo Lineal ===
-```
-
-``` r
-summary(modelo_lineal)$coefficients
 ```
 
 ```
@@ -626,34 +370,18 @@ summary(modelo_lineal)$coefficients
 ## t           0.001095145 1.045871e-05 104.7113        0
 ```
 
-``` r
-cat("\nR² ajustado:", round(summary(modelo_lineal)$adj.r.squared, 4), "\n")
-```
-
 ```
 ## 
 ## R² ajustado: 0.8136
-```
-
-``` r
-cat("AIC:", round(AIC(modelo_lineal), 2), "\n")
 ```
 
 ```
 ## AIC: 4151.85
 ```
 
-``` r
-cat("\n=== Modelo Polinomial (Grado 3) ===\n")
-```
-
 ```
 ## 
 ## === Modelo Polinomial (Grado 3) ===
-```
-
-``` r
-summary(modelo_poly)$coefficients
 ```
 
 ```
@@ -664,17 +392,9 @@ summary(modelo_poly)$coefficients
 ## t3          -3.165370e-10 9.871835e-12 -32.06465 2.285792e-189
 ```
 
-``` r
-cat("\nR² ajustado:", round(summary(modelo_poly)$adj.r.squared, 4), "\n")
-```
-
 ```
 ## 
 ## R² ajustado: 0.8733
-```
-
-``` r
-cat("AIC:", round(AIC(modelo_poly), 2), "\n")
 ```
 
 ```
@@ -684,34 +404,9 @@ cat("AIC:", round(AIC(modelo_poly), 2), "\n")
 ### Regresión con Variables Exógenas
 
 
-``` r
-# Agregar volumen como variable exógena
-tesla_volume <- data.frame(
-  ds = index(TSLA),
-  volumen = as.numeric(Vo(TSLA))
-) %>%
-  na.omit()
-
-tesla_reg_full <- tesla_reg %>%
-  left_join(tesla_volume, by = "ds") %>%
-  mutate(
-    log_volumen = log(volumen + 1),  # Transformación log del volumen
-    dia_semana = wday(ds, label = TRUE)  # Día de la semana
-  )
-
-# Modelo con volumen
-modelo_volumen <- lm(y ~ t + t2 + log_volumen, data = tesla_reg_full)
-
-cat("\n=== Modelo con Volumen ===\n")
-```
-
 ```
 ## 
 ## === Modelo con Volumen ===
-```
-
-``` r
-summary(modelo_volumen)$coefficients
 ```
 
 ```
@@ -722,17 +417,9 @@ summary(modelo_volumen)$coefficients
 ## log_volumen -3.803351e-01 2.118575e-02 -17.95240  6.794391e-68
 ```
 
-``` r
-cat("\nR² ajustado:", round(summary(modelo_volumen)$adj.r.squared, 4), "\n")
-```
-
 ```
 ## 
 ## R² ajustado: 0.8418
-```
-
-``` r
-cat("AIC:", round(AIC(modelo_volumen), 2), "\n")
 ```
 
 ```
@@ -741,50 +428,14 @@ cat("AIC:", round(AIC(modelo_volumen), 2), "\n")
 
 ### Visualización de Ajuste de Regresión
 
-
-``` r
-# Agregar predicciones al dataframe
-tesla_reg_full <- tesla_reg_full %>%
-  mutate(
-    pred_lineal = predict(modelo_lineal, newdata = tesla_reg_full),
-    pred_poly = predict(modelo_poly, newdata = tesla_reg_full),
-    pred_volumen = predict(modelo_volumen, newdata = tesla_reg_full)
-  )
-
-# Gráfico comparativo
-ggplot(tesla_reg_full, aes(x = ds)) +
-  geom_line(aes(y = y, color = "Real"), linewidth = 0.5, alpha = 0.6) +
-  geom_line(aes(y = pred_lineal, color = "Lineal"), linewidth = 0.8) +
-  geom_line(aes(y = pred_poly, color = "Polinomial"), linewidth = 0.8) +
-  geom_line(aes(y = pred_volumen, color = "Con Volumen"), linewidth = 0.8) +
-  scale_color_manual(values = c(
-    "Real" = "black",
-    "Lineal" = "blue",
-    "Polinomial" = "red",
-    "Con Volumen" = "darkgreen"
-  )) +
-  labs(title = "Tesla (TSLA): Comparación de Modelos de Regresión",
-       x = "Fecha",
-       y = "Log(Precio)",
-       color = "Modelo") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="05-summary_files/figure-html/vis-regresion-1.png" alt="Comparación de Modelos de Regresión" width="960" />
 <p class="caption">(\#fig:vis-regresion)Comparación de Modelos de Regresión</p>
 </div>
 
 ### Análisis de Residuos
 
-
-``` r
-par(mfrow = c(2, 2))
-plot(modelo_poly)
-```
-
-<div class="figure">
+<div class="figure" style="text-align: center">
 <img src="05-summary_files/figure-html/residuos-regresion-1.png" alt="Diagnóstico de Residuos - Modelo Polinomial" width="960" />
 <p class="caption">(\#fig:residuos-regresion)Diagnóstico de Residuos - Modelo Polinomial</p>
 </div>
@@ -799,83 +450,29 @@ plot(modelo_poly)
 ### Comparación: Regresión vs Prophet
 
 
-``` r
-# Pronósticos en conjunto de prueba
-forecast_reg <- forecast_test %>%
-  mutate(
-    t = as.numeric(ds - min(tesla_reg_full$ds)),
-    t2 = t^2,
-    t3 = t^3
-  ) %>%
-  left_join(tesla_volume, by = "ds") %>%
-  mutate(log_volumen = log(volumen + 1))
-```
-
-```
-## Warning: There was 1 warning in `mutate()`.
-## ℹ In argument: `t = as.numeric(ds - min(tesla_reg_full$ds))`.
-## Caused by warning:
-## ! Métodos incompatibles ("-.POSIXt", "-.Date") para "-"
-```
-
-``` r
-# Predicciones de regresión
-pred_poly_test <- predict(modelo_poly, newdata = forecast_reg)
-
-# Métricas regresión polinomial
-rmse_reg <- rmse(test_data$y, pred_poly_test)
-mae_reg <- mae(test_data$y, pred_poly_test)
-
-cat("\n=== Comparación de Modelos en Conjunto de Prueba ===\n\n")
-```
-
 ```
 ## 
 ## === Comparación de Modelos en Conjunto de Prueba ===
-```
-
-``` r
-cat("Prophet:\n")
 ```
 
 ```
 ## Prophet:
 ```
 
-``` r
-cat("  RMSE:", round(rmse_log, 4), "\n")
-```
-
 ```
 ##   RMSE: NaN
-```
-
-``` r
-cat("  MAE:", round(mae_log, 4), "\n\n")
 ```
 
 ```
 ##   MAE: NaN
 ```
 
-``` r
-cat("Regresión Polinomial:\n")
-```
-
 ```
 ## Regresión Polinomial:
 ```
 
-``` r
-cat("  RMSE:", round(rmse_reg, 4), "\n")
-```
-
 ```
 ##   RMSE: NaN
-```
-
-``` r
-cat("  MAE:", round(mae_reg, 4), "\n")
 ```
 
 ```
@@ -886,69 +483,6 @@ cat("  MAE:", round(mae_reg, 4), "\n")
 
 Para verificar la generalización del modelo, aplicamos Prophet a las 6 acciones:
 
-
-``` r
-# Símbolos de acciones
-tickers <- c("AAPL", "MSFT", "TSLA", "PFE", "MRNA", "JNJ")
-
-# Función para ajustar Prophet a una acción
-ajustar_prophet_accion <- function(ticker) {
-  # Cargar datos
-  getSymbols(ticker, from = "2015-10-13", to = "2025-10-10", 
-             src = "yahoo", auto.assign = TRUE)
-  
-  # Preparar datos
-  datos <- data.frame(
-    ds = index(get(ticker)),
-    y = log(as.numeric(Cl(get(ticker))))
-  ) %>% na.omit()
-  
-  # Dividir en train/test
-  n_test <- 60
-  n_train <- nrow(datos) - n_test
-  train <- datos[1:n_train, ]
-  test <- datos[(n_train+1):nrow(datos), ]
-  
-  # Ajustar modelo
-  modelo <- prophet(train, 
-                   changepoint.prior.scale = 0.05,
-                   yearly.seasonality = TRUE,
-                   weekly.seasonality = TRUE,
-                   daily.seasonality = FALSE)
-  
-  # Pronóstico
-  future <- make_future_dataframe(modelo, periods = n_test, freq = 'day')
-  future <- future %>% filter(!(wday(ds) %in% c(1, 7)))
-  forecast <- predict(modelo, future)
-  
-  # Métricas
-  forecast_test <- forecast %>% filter(ds %in% test$ds) %>% arrange(ds)
-  test <- test %>% arrange(ds)
-  
-  return(list(
-    ticker = ticker,
-    rmse = rmse(test$y, forecast_test$yhat),
-    mae = mae(test$y, forecast_test$yhat),
-    mape = mean(abs((test$y - forecast_test$yhat) / test$y)) * 100
-  ))
-}
-
-# Aplicar a todas las acciones
-resultados <- map_dfr(tickers, ajustar_prophet_accion)
-```
-
-
-``` r
-# Mostrar resultados
-resultados %>%
-  mutate(
-    RMSE = round(rmse, 4),
-    MAE = round(mae, 4),
-    MAPE = round(mape, 2)
-  ) %>%
-  select(Ticker = ticker, RMSE, MAE, `MAPE (%)` = MAPE) %>%
-  knitr::kable(caption = "Métricas de Pronóstico Prophet por Acción (Escala Log)")
-```
 
 
 
