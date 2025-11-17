@@ -217,12 +217,12 @@ Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una **tra
 
 ```
 ##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.426017   2.807893 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.414249   2.797240 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.425126   2.790819 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.413670   2.788677 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.424465   2.802051 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.429213   2.804019 2.643955 -0.004281895 -0.02333556
+## 1 2015-10-13 2.611471   2.427131   2.796319 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.410012   2.794517 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.414372   2.797415 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.420011   2.795672 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.430204   2.806738 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.436511   2.805633 2.643955 -0.004281895 -0.02333556
 ```
 
 ## Evaluación del Modelo
@@ -519,49 +519,6 @@ El enfoque de regresión es **viable y complementario** para las acciones analiz
 | Interpretabilidad | Baja | Media | Alta |
 | Intervalos de confianza | Sí | Sí | Sí |
 
-### Limitaciones
-
-1. **Mercados Financieros**:
-   - Los precios de acciones tienen componente aleatorio fuerte (random walk hypothesis)
-   - La eficiencia de mercado limita la predecibilidad de largo plazo
-   - Los eventos extremos (black swans) no son predecibles
-
-2. **Modelo Prophet**:
-   - Asume que patrones históricos se repiten (puede fallar en cambios de régimen)
-   - No captura correlaciones entre acciones (análisis univariado)
-   - Pronósticos de largo plazo (>3 meses) tienen alta incertidumbre
-
-3. **Regresión Temporal**:
-   - Residuos muestran heterocedasticidad y autocorrelación
-   - Viola supuestos de regresión clásica (errores i.i.d.)
-   - Necesita correcciones (errores estándar robustos, GLS)
-
-### Recomendaciones Prácticas
-
-1. **Para Trading de Corto Plazo (<1 mes)**:
-   - Usar modelos ARIMA-GARCH para capturar volatilidad clustering
-   - Complementar con análisis técnico y sentiment analysis
-
-2. **Para Inversión de Mediano Plazo (1-6 meses)**:
-   - Prophet es una opción sólida para tendencias y patrones
-   - Incorporar variables macroeconómicas en regresión
-
-3. **Para Análisis Estratégico (>6 meses)**:
-   - Combinar Prophet (tendencia) + modelos fundamentales (P/E, flujos de caja)
-   - Usar escenarios y simulación Monte Carlo para incertidumbre
-
-4. **Modelo Híbrido Sugerido**:
-   ```
-   Precio_t = Tendencia_Prophet + Componente_ARIMA + Variables_Exógenas + Error
-   ```
-
-### Trabajo Futuro
-
-1. Implementar modelo ARIMAX con variables exógenas identificadas
-2. Aplicar modelos de regresión con cambio de régimen (threshold models)
-3. Incorporar análisis de volatilidad (GARCH) a los residuos
-4. Evaluar modelos de machine learning (Random Forest, XGBoost) para comparación
-5. Desarrollar sistema de trading algorítmico basado en pronósticos combinados
 
 ### Reflexión Final
 

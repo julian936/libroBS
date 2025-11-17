@@ -610,49 +610,6 @@ cat("  MAE:", round(mae_reg, 4), "\n")
 | Interpretabilidad | Baja | Media | Alta |
 | Intervalos de confianza | Sí | Sí | Sí |
 
-### Limitaciones
-
-1. **Mercados Financieros**:
-   - Los precios de acciones tienen componente aleatorio fuerte (random walk hypothesis)
-   - La eficiencia de mercado limita la predecibilidad de largo plazo
-   - Los eventos extremos (black swans) no son predecibles
-
-2. **Modelo Prophet**:
-   - Asume que patrones históricos se repiten (puede fallar en cambios de régimen)
-   - No captura correlaciones entre acciones (análisis univariado)
-   - Pronósticos de largo plazo (>3 meses) tienen alta incertidumbre
-
-3. **Regresión Temporal**:
-   - Residuos muestran heterocedasticidad y autocorrelación
-   - Viola supuestos de regresión clásica (errores i.i.d.)
-   - Necesita correcciones (errores estándar robustos, GLS)
-
-### Recomendaciones Prácticas
-
-1. **Para Trading de Corto Plazo (<1 mes)**:
-   - Usar modelos ARIMA-GARCH para capturar volatilidad clustering
-   - Complementar con análisis técnico y sentiment analysis
-
-2. **Para Inversión de Mediano Plazo (1-6 meses)**:
-   - Prophet es una opción sólida para tendencias y patrones
-   - Incorporar variables macroeconómicas en regresión
-
-3. **Para Análisis Estratégico (>6 meses)**:
-   - Combinar Prophet (tendencia) + modelos fundamentales (P/E, flujos de caja)
-   - Usar escenarios y simulación Monte Carlo para incertidumbre
-
-4. **Modelo Híbrido Sugerido**:
-   ```
-   Precio_t = Tendencia_Prophet + Componente_ARIMA + Variables_Exógenas + Error
-   ```
-
-### Trabajo Futuro
-
-1. Implementar modelo ARIMAX con variables exógenas identificadas
-2. Aplicar modelos de regresión con cambio de régimen (threshold models)
-3. Incorporar análisis de volatilidad (GARCH) a los residuos
-4. Evaluar modelos de machine learning (Random Forest, XGBoost) para comparación
-5. Desarrollar sistema de trading algorítmico basado en pronósticos combinados
 
 ### Reflexión Final
 

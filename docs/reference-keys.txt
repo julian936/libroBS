@@ -201,7 +201,4 @@ comparación-regresión-vs-prophet
 conclusiones-y-recomendaciones
 hallazgos-principales-2
 comparación-con-modelos-previos
-limitaciones
-recomendaciones-prácticas
-trabajo-futuro
 reflexión-final-1

@@ -274,12 +274,12 @@
 <span class="header-section-number">5.5.2</span> Generación de Pronósticos<a class="anchor" aria-label="anchor" href="#generaci%C3%B3n-de-pron%C3%B3sticos-1"><i class="fas fa-link"></i></a>
 </h3>
 <pre><code>##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.426017   2.807893 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.414249   2.797240 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.425126   2.790819 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.413670   2.788677 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.424465   2.802051 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.429213   2.804019 2.643955 -0.004281895 -0.02333556</code></pre>
+## 1 2015-10-13 2.611471   2.427131   2.796319 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.410012   2.794517 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.414372   2.797415 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.420011   2.795672 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.430204   2.806738 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.436511   2.805633 2.643955 -0.004281895 -0.02333556</code></pre>
 </div>
 </div>
 <div id="evaluación-del-modelo" class="section level2" number="5.6">
@@ -635,84 +635,9 @@ Figure 5.6: Diagnóstico de Residuos - Modelo Polinomial
 </tbody>
 </table></div>
 </div>
-<div id="limitaciones" class="section level3" number="5.9.3">
+<div id="reflexión-final-1" class="section level3" number="5.9.3">
 <h3>
-<span class="header-section-number">5.9.3</span> Limitaciones<a class="anchor" aria-label="anchor" href="#limitaciones"><i class="fas fa-link"></i></a>
-</h3>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Mercados Financieros</strong>:
-<ul>
-<li>Los precios de acciones tienen componente aleatorio fuerte (random walk hypothesis)</li>
-<li>La eficiencia de mercado limita la predecibilidad de largo plazo</li>
-<li>Los eventos extremos (black swans) no son predecibles</li>
-</ul>
-</li>
-<li>
-<strong>Modelo Prophet</strong>:
-<ul>
-<li>Asume que patrones históricos se repiten (puede fallar en cambios de régimen)</li>
-<li>No captura correlaciones entre acciones (análisis univariado)</li>
-<li>Pronósticos de largo plazo (&gt;3 meses) tienen alta incertidumbre</li>
-</ul>
-</li>
-<li>
-<strong>Regresión Temporal</strong>:
-<ul>
-<li>Residuos muestran heterocedasticidad y autocorrelación</li>
-<li>Viola supuestos de regresión clásica (errores i.i.d.)</li>
-<li>Necesita correcciones (errores estándar robustos, GLS)</li>
-</ul>
-</li>
-</ol>
-</div>
-<div id="recomendaciones-prácticas" class="section level3" number="5.9.4">
-<h3>
-<span class="header-section-number">5.9.4</span> Recomendaciones Prácticas<a class="anchor" aria-label="anchor" href="#recomendaciones-pr%C3%A1cticas"><i class="fas fa-link"></i></a>
-</h3>
-<ol style="list-style-type: decimal">
-<li>
-<p><strong>Para Trading de Corto Plazo (&lt;1 mes)</strong>:</p>
-<ul>
-<li>Usar modelos ARIMA-GARCH para capturar volatilidad clustering</li>
-<li>Complementar con análisis técnico y sentiment analysis</li>
-</ul>
-</li>
-<li>
-<p><strong>Para Inversión de Mediano Plazo (1-6 meses)</strong>:</p>
-<ul>
-<li>Prophet es una opción sólida para tendencias y patrones</li>
-<li>Incorporar variables macroeconómicas en regresión</li>
-</ul>
-</li>
-<li>
-<p><strong>Para Análisis Estratégico (&gt;6 meses)</strong>:</p>
-<ul>
-<li>Combinar Prophet (tendencia) + modelos fundamentales (P/E, flujos de caja)</li>
-<li>Usar escenarios y simulación Monte Carlo para incertidumbre</li>
-</ul>
-</li>
-<li>
-<p><strong>Modelo Híbrido Sugerido</strong>:</p>
-<pre><code>Precio_t = Tendencia_Prophet + Componente_ARIMA + Variables_Exógenas + Error</code></pre>
-</li>
-</ol>
-</div>
-<div id="trabajo-futuro" class="section level3" number="5.9.5">
-<h3>
-<span class="header-section-number">5.9.5</span> Trabajo Futuro<a class="anchor" aria-label="anchor" href="#trabajo-futuro"><i class="fas fa-link"></i></a>
-</h3>
-<ol style="list-style-type: decimal">
-<li>Implementar modelo ARIMAX con variables exógenas identificadas</li>
-<li>Aplicar modelos de regresión con cambio de régimen (threshold models)</li>
-<li>Incorporar análisis de volatilidad (GARCH) a los residuos</li>
-<li>Evaluar modelos de machine learning (Random Forest, XGBoost) para comparación</li>
-<li>Desarrollar sistema de trading algorítmico basado en pronósticos combinados</li>
-</ol>
-</div>
-<div id="reflexión-final-1" class="section level3" number="5.9.6">
-<h3>
-<span class="header-section-number">5.9.6</span> Reflexión Final<a class="anchor" aria-label="anchor" href="#reflexi%C3%B3n-final-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">5.9.3</span> Reflexión Final<a class="anchor" aria-label="anchor" href="#reflexi%C3%B3n-final-1"><i class="fas fa-link"></i></a>
 </h3>
 <p>Este capítulo demuestra que el <strong>modelado de series de tiempo financieras requiere un enfoque multimodelo</strong>. Prophet aporta automatización y robustez en la detección de patrones, mientras que la regresión proporciona interpretabilidad y flexibilidad para incorporar información externa. Sin embargo, ningún modelo por sí solo captura toda la complejidad de los mercados financieros.</p>
 <p>La <strong>serie de tiempo como regresión es viable</strong> cuando:</p>
@@ -777,10 +702,7 @@ Figure 5.6: Diagnóstico de Residuos - Modelo Polinomial
 <a class="nav-link" href="#conclusiones-y-recomendaciones"><span class="header-section-number">5.9</span> Conclusiones y Recomendaciones</a><ul class="nav navbar-nav">
 <li><a class="nav-link" href="#hallazgos-principales-2"><span class="header-section-number">5.9.1</span> Hallazgos Principales</a></li>
 <li><a class="nav-link" href="#comparaci%C3%B3n-con-modelos-previos"><span class="header-section-number">5.9.2</span> Comparación con Modelos Previos</a></li>
-<li><a class="nav-link" href="#limitaciones"><span class="header-section-number">5.9.3</span> Limitaciones</a></li>
-<li><a class="nav-link" href="#recomendaciones-pr%C3%A1cticas"><span class="header-section-number">5.9.4</span> Recomendaciones Prácticas</a></li>
-<li><a class="nav-link" href="#trabajo-futuro"><span class="header-section-number">5.9.5</span> Trabajo Futuro</a></li>
-<li><a class="nav-link" href="#reflexi%C3%B3n-final-1"><span class="header-section-number">5.9.6</span> Reflexión Final</a></li>
+<li><a class="nav-link" href="#reflexi%C3%B3n-final-1"><span class="header-section-number">5.9.3</span> Reflexión Final</a></li>
 </ul>
 </li>
 </ul>
