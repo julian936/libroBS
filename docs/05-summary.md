@@ -217,12 +217,12 @@ Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una **tra
 
 ```
 ##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.425003   2.794446 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.425903   2.795304 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.416644   2.789706 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.404395   2.788137 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.427500   2.793020 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.419862   2.815460 2.643955 -0.004281895 -0.02333556
+## 1 2015-10-13 2.611471   2.426275   2.812878 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.432539   2.789616 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.424651   2.783476 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.425653   2.801046 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.406022   2.791824 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.415095   2.791478 2.643955 -0.004281895 -0.02333556
 ```
 
 ## Evaluación del Modelo
@@ -484,18 +484,25 @@ El enfoque de regresión es **viable y complementario** para las acciones analiz
 Para verificar la generalización del modelo, aplicamos Prophet a las 6 acciones:
 
 
+```
+## Procesando 6 acciones. Esto puede tomar varios minutos...
+```
+
+```
+## Procesamiento completado.
+```
 
 
 Table: (\#tab:tabla-resultados)Métricas de Pronóstico Prophet por Acción (Escala Log)
 
-|Ticker | RMSE| MAE| MAPE (%)|
-|:------|----:|---:|--------:|
-|AAPL   |  NaN| NaN|      NaN|
-|MSFT   |  NaN| NaN|      NaN|
-|TSLA   |  NaN| NaN|      NaN|
-|PFE    |  NaN| NaN|      NaN|
-|MRNA   |  NaN| NaN|      NaN|
-|JNJ    |  NaN| NaN|      NaN|
+|Ticker |   RMSE|    MAE| MAPE (%)|
+|:------|------:|------:|--------:|
+|AAPL   | 0.0903| 0.0770|   1.4256|
+|MSFT   | 0.1085| 0.1002|   1.6046|
+|TSLA   | 0.1565| 0.1109|   1.8445|
+|PFE    | 0.0487| 0.0344|   1.0637|
+|MRNA   | 0.2342| 0.2110|   6.3930|
+|JNJ    | 0.1310| 0.1236|   2.3852|
 
 ## Conclusiones y Recomendaciones
 

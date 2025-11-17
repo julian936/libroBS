@@ -574,66 +574,105 @@ cat("  MAE:", round(mae_reg, 4), "\n")
 
 Para verificar la generalización del modelo, aplicamos Prophet a las 6 acciones:
 
-```{r prophet-multiples, warning=FALSE, message=FALSE, results='hide'}
+```{r prophet-multiples, warning=FALSE, message=FALSE}
 # Símbolos de acciones
 tickers <- c("AAPL", "MSFT", "TSLA", "PFE", "MRNA", "JNJ")
 
-# Función para ajustar Prophet a una acción
+# Función para ajustar Prophet a una acción (CORREGIDA)
 ajustar_prophet_accion <- function(ticker) {
-  # Cargar datos
-  getSymbols(ticker, from = "2015-10-13", to = "2025-10-10", 
-             src = "yahoo", auto.assign = TRUE)
-  
-  # Preparar datos
-  datos <- data.frame(
-    ds = index(get(ticker)),
-    y = log(as.numeric(Cl(get(ticker))))
-  ) %>% na.omit()
-  
-  # Dividir en train/test
-  n_test <- 60
-  n_train <- nrow(datos) - n_test
-  train <- datos[1:n_train, ]
-  test <- datos[(n_train+1):nrow(datos), ]
-  
-  # Ajustar modelo
-  modelo <- prophet(train, 
-                   changepoint.prior.scale = 0.05,
-                   yearly.seasonality = TRUE,
-                   weekly.seasonality = TRUE,
-                   daily.seasonality = FALSE)
-  
-  # Pronóstico
-  future <- make_future_dataframe(modelo, periods = n_test, freq = 'day')
-  future <- future %>% filter(!(wday(ds) %in% c(1, 7)))
-  forecast <- predict(modelo, future)
-  
-  # Métricas
-  forecast_test <- forecast %>% filter(ds %in% test$ds) %>% arrange(ds)
-  test <- test %>% arrange(ds)
-  
-  return(list(
-    ticker = ticker,
-    rmse = rmse(test$y, forecast_test$yhat),
-    mae = mae(test$y, forecast_test$yhat),
-    mape = mean(abs((test$y - forecast_test$yhat) / test$y)) * 100
-  ))
+  tryCatch({
+    # Cargar datos
+    suppressMessages(
+      getSymbols(ticker, from = "2015-10-13", to = "2025-10-10", 
+                 src = "yahoo", auto.assign = TRUE)
+    )
+    
+    # Preparar datos
+    datos <- data.frame(
+      ds = index(get(ticker)),
+      y = log(as.numeric(Cl(get(ticker))))
+    )
+    datos <- datos[complete.cases(datos), ]
+    
+    # Dividir en train/test
+    n_test <- 60
+    n_train <- nrow(datos) - n_test
+    train <- datos[1:n_train, ]
+    test <- datos[(n_train+1):nrow(datos), ]
+    
+    # Ajustar modelo
+    modelo <- suppressMessages(
+      prophet(train, 
+              changepoint.prior.scale = 0.05,
+              yearly.seasonality = TRUE,
+              weekly.seasonality = TRUE,
+              daily.seasonality = FALSE)
+    )
+    
+    # Pronóstico
+    future <- make_future_dataframe(modelo, periods = n_test, freq = 'day')
+    forecast <- predict(modelo, future)
+    
+    # Tomar últimas predicciones
+    forecast_test <- tail(forecast, n_test)
+    test <- test[order(test$ds), ]
+    
+    # Ajustar longitud
+    n_min <- min(nrow(test), nrow(forecast_test))
+    test <- tail(test, n_min)
+    forecast_test <- tail(forecast_test, n_min)
+    
+    # Extraer vectores
+    y_real <- test$y
+    y_pred <- forecast_test$yhat
+    
+    # Eliminar NAs
+    idx_validos <- complete.cases(y_real, y_pred)
+    y_real <- y_real[idx_validos]
+    y_pred <- y_pred[idx_validos]
+    
+    # Calcular métricas manualmente
+    if(length(y_real) > 0) {
+      rmse_val <- sqrt(mean((y_real - y_pred)^2))
+      mae_val <- mean(abs(y_real - y_pred))
+      mape_val <- mean(abs((y_real - y_pred) / y_real)) * 100
+      
+      return(data.frame(
+        ticker = ticker,
+        rmse = rmse_val,
+        mae = mae_val,
+        mape = mape_val
+      ))
+    } else {
+      return(data.frame(ticker = ticker, rmse = NA, mae = NA, mape = NA))
+    }
+    
+  }, error = function(e) {
+    cat("Error en", ticker, ":", e$message, "\n")
+    return(data.frame(ticker = ticker, rmse = NA, mae = NA, mape = NA))
+  })
 }
 
-# Aplicar a todas las acciones
-resultados <- map_dfr(tickers, ajustar_prophet_accion)
+# Aplicar a todas las acciones (usar lapply en lugar de map_dfr)
+cat("Procesando", length(tickers), "acciones. Esto puede tomar varios minutos...\n")
+lista_resultados <- lapply(tickers, ajustar_prophet_accion)
+resultados <- do.call(rbind, lista_resultados)
+cat("Procesamiento completado.\n")
 ```
 
 ```{r tabla-resultados}
 # Mostrar resultados
-resultados %>%
-  mutate(
-    RMSE = round(rmse, 4),
-    MAE = round(mae, 4),
-    MAPE = round(mape, 2)
-  ) %>%
-  select(Ticker = ticker, RMSE, MAE, `MAPE (%)` = MAPE) %>%
-  knitr::kable(caption = "Métricas de Pronóstico Prophet por Acción (Escala Log)")
+if(exists("resultados") && nrow(resultados) > 0) {
+  knitr::kable(
+    resultados,
+    col.names = c("Ticker", "RMSE", "MAE", "MAPE (%)"),
+    caption = "Métricas de Pronóstico Prophet por Acción (Escala Log)",
+    digits = 4,
+    align = c('l', 'r', 'r', 'r')
+  )
+} else {
+  cat("No se pudieron calcular los resultados.\n")
+}
 ```
 
 ## Conclusiones y Recomendaciones
