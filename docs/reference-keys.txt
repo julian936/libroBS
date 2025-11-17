@@ -38,7 +38,6 @@ fig:componentes-prophet
 fig:changepoints
 fig:vis-regresion
 fig:residuos-regresion
-tab:tabla-resultados
 información-a-utilizar
 estadísticas-descriptivas-del-dataset
 comparación-por-sector
@@ -199,7 +198,6 @@ regresión-con-variables-exógenas
 visualización-de-ajuste-de-regresión
 análisis-de-residuos-1
 comparación-regresión-vs-prophet
-aplicación-a-múltiples-acciones
 conclusiones-y-recomendaciones
 hallazgos-principales-2
 comparación-con-modelos-previos

@@ -217,12 +217,12 @@ Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una **tra
 
 ```
 ##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.426275   2.812878 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.432539   2.789616 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.424651   2.783476 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.425653   2.801046 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.406022   2.791824 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.415095   2.791478 2.643955 -0.004281895 -0.02333556
+## 1 2015-10-13 2.611471   2.426017   2.807893 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.414249   2.797240 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.425126   2.790819 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.413670   2.788677 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.424465   2.802051 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.429213   2.804019 2.643955 -0.004281895 -0.02333556
 ```
 
 ## Evaluación del Modelo
@@ -479,30 +479,7 @@ El enfoque de regresión es **viable y complementario** para las acciones analiz
 ##   MAE: 0.5485
 ```
 
-## Aplicación a Múltiples Acciones
 
-Para verificar la generalización del modelo, aplicamos Prophet a las 6 acciones:
-
-
-```
-## Procesando 6 acciones. Esto puede tomar varios minutos...
-```
-
-```
-## Procesamiento completado.
-```
-
-
-Table: (\#tab:tabla-resultados)Métricas de Pronóstico Prophet por Acción (Escala Log)
-
-|Ticker |   RMSE|    MAE| MAPE (%)|
-|:------|------:|------:|--------:|
-|AAPL   | 0.0903| 0.0770|   1.4256|
-|MSFT   | 0.1085| 0.1002|   1.6046|
-|TSLA   | 0.1565| 0.1109|   1.8445|
-|PFE    | 0.0487| 0.0344|   1.0637|
-|MRNA   | 0.2342| 0.2110|   6.3930|
-|JNJ    | 0.1310| 0.1236|   2.3852|
 
 ## Conclusiones y Recomendaciones
 
@@ -512,7 +489,7 @@ Table: (\#tab:tabla-resultados)Métricas de Pronóstico Prophet por Acción (Esc
    - Prophet captura exitosamente la tendencia de largo plazo en acciones tecnológicas
    - La detección automática de changepoints identifica quiebres estructurales (COVID-19, eventos corporativos)
    - Los intervalos de confianza son razonables para horizontes de corto plazo (60 días)
-   - Mejor desempeño en acciones con tendencias fuertes (TSLA, AAPL, MSFT)
+   - Mejor desempeño en acciones con tendencias fuertes (TSLA)
 
 2. **Estacionalidad en Mercados Financieros**:
    - La estacionalidad semanal es menos pronunciada que en series de ventas
