@@ -217,12 +217,12 @@ Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una **tra
 
 ```
 ##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.408002   2.797171 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.426643   2.800232 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.422281   2.807987 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.422385   2.791288 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.428829   2.796713 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.427413   2.801902 2.643955 -0.004281895 -0.02333556
+## 1 2015-10-13 2.611471   2.425003   2.794446 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.425903   2.795304 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.416644   2.789706 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.404395   2.788137 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.427500   2.793020 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.419862   2.815460 2.643955 -0.004281895 -0.02333556
 ```
 
 ## Evaluación del Modelo
@@ -232,19 +232,19 @@ Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una **tra
 
 ```
 ## 
-## === Métricas de Rendimiento (Escala Logarítmica) ===
+## === Métricas (Escala Log) ===
 ```
 
 ```
-## RMSE: NaN
+## RMSE: 0.1621
 ```
 
 ```
-## MAE: NaN
+## MAE: 0.1185
 ```
 
 ```
-## MAPE: NaN %
+## MAPE: 1.97 %
 ```
 
 ### Métricas en Escala Original
@@ -252,31 +252,31 @@ Para estabilizar la varianza y mejorar el ajuste del modelo, aplicamos una **tra
 
 ```
 ## 
-## === Métricas de Rendimiento (Escala Original - USD) ===
+## === Métricas (Escala USD) ===
 ```
 
 ```
-## RMSE: $NaN
+## RMSE: $61.09
 ```
 
 ```
-## MAE: $NaN
+## MAE: $43.45
 ```
 
 ```
-## MAPE: NaN %
+## MAPE: 10.65 %
 ```
 
 ### Visualización del Pronóstico
 
 <div class="figure" style="text-align: center">
-<img src="05-summary_files/figure-html/vis-forecast-test-1.png" alt="Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba" width="960" />
-<p class="caption">(\#fig:vis-forecast-test)Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba</p>
+<img src="05-summary_files/figure-html/vis-forecast-test-1.png" alt="Pronóstico vs Valores Reales" width="960" />
+<p class="caption">(\#fig:vis-forecast-test)Pronóstico vs Valores Reales</p>
 </div>
 
 <div class="figure" style="text-align: center">
-<img src="05-summary_files/figure-html/vis-forecast-original-1.png" alt="Pronóstico de Prophet vs Valores Reales - Escala Original" width="960" />
-<p class="caption">(\#fig:vis-forecast-original)Pronóstico de Prophet vs Valores Reales - Escala Original</p>
+<img src="05-summary_files/figure-html/vis-forecast-original-1.png" alt="Pronóstico Escala Original" width="960" />
+<p class="caption">(\#fig:vis-forecast-original)Pronóstico Escala Original</p>
 </div>
 
 ## Análisis de Componentes
@@ -452,7 +452,7 @@ El enfoque de regresión es **viable y complementario** para las acciones analiz
 
 ```
 ## 
-## === Comparación de Modelos en Conjunto de Prueba ===
+## === Comparación de Modelos ===
 ```
 
 ```
@@ -460,11 +460,11 @@ El enfoque de regresión es **viable y complementario** para las acciones analiz
 ```
 
 ```
-##   RMSE: NaN
+##   RMSE: 0.1621
 ```
 
 ```
-##   MAE: NaN
+##   MAE: 0.1185
 ```
 
 ```
@@ -472,11 +472,11 @@ El enfoque de regresión es **viable y complementario** para las acciones analiz
 ```
 
 ```
-##   RMSE: NaN
+##   RMSE: 0.5744
 ```
 
 ```
-##   MAE: NaN
+##   MAE: 0.5485
 ```
 
 ## Aplicación a Múltiples Acciones

@@ -252,20 +252,31 @@ head(forecast[, c('ds', 'yhat', 'yhat_lower', 'yhat_upper', 'trend', 'weekly', '
 ### Métricas en Escala Logarítmica
 
 ```{r metricas-log}
-# Extraer pronósticos para el conjunto de prueba
-forecast_test <- forecast %>%
-  filter(ds %in% test_data$ds) %>%
-  arrange(ds)
+# Tomar últimas predicciones
+forecast_test <- tail(forecast, n_test)
 
-# Asegurar mismo orden
-test_data <- test_data %>% arrange(ds)
+# Ajustar longitudes
+if(nrow(test_data) != nrow(forecast_test)) {
+  n_min <- min(nrow(test_data), nrow(forecast_test))
+  test_data <- tail(test_data, n_min)
+  forecast_test <- tail(forecast_test, n_min)
+}
+
+# Extraer vectores
+y_real <- test_data$y
+y_pred <- forecast_test$yhat
+
+# Eliminar NAs
+idx <- complete.cases(y_real, y_pred)
+y_real <- y_real[idx]
+y_pred <- y_pred[idx]
 
 # Calcular métricas
-rmse_log <- rmse(test_data$y, forecast_test$yhat)
-mae_log <- mae(test_data$y, forecast_test$yhat)
-mape_log <- mean(abs((test_data$y - forecast_test$yhat) / test_data$y)) * 100
+rmse_log <- sqrt(mean((y_real - y_pred)^2))
+mae_log <- mean(abs(y_real - y_pred))
+mape_log <- mean(abs((y_real - y_pred) / y_real)) * 100
 
-cat("\n=== Métricas de Rendimiento (Escala Logarítmica) ===\n")
+cat("\n=== Métricas (Escala Log) ===\n")
 cat("RMSE:", round(rmse_log, 4), "\n")
 cat("MAE:", round(mae_log, 4), "\n")
 cat("MAPE:", round(mape_log, 2), "%\n")
@@ -274,16 +285,16 @@ cat("MAPE:", round(mape_log, 2), "%\n")
 ### Métricas en Escala Original
 
 ```{r metricas-original}
-# Transformar de vuelta a escala original
-test_original <- exp(test_data$y)
-forecast_original <- exp(forecast_test$yhat)
+# Transformar a escala original
+test_original <- exp(y_real)
+forecast_original <- exp(y_pred)
 
-# Calcular métricas en escala original
-rmse_original <- rmse(test_original, forecast_original)
-mae_original <- mae(test_original, forecast_original)
+# Calcular métricas
+rmse_original <- sqrt(mean((test_original - forecast_original)^2))
+mae_original <- mean(abs(test_original - forecast_original))
 mape_original <- mean(abs((test_original - forecast_original) / test_original)) * 100
 
-cat("\n=== Métricas de Rendimiento (Escala Original - USD) ===\n")
+cat("\n=== Métricas (Escala USD) ===\n")
 cat("RMSE: $", format(round(rmse_original, 2), big.mark = ","), "\n", sep = "")
 cat("MAE: $", format(round(mae_original, 2), big.mark = ","), "\n", sep = "")
 cat("MAPE:", round(mape_original, 2), "%\n")
@@ -291,62 +302,58 @@ cat("MAPE:", round(mape_original, 2), "%\n")
 
 ### Visualización del Pronóstico
 
-```{r vis-forecast-test, fig.height=6, fig.width=10, fig.cap="Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba"}
-# Crear gráfico comparativo
-ggplot() +
-  geom_line(data = test_data, 
-            aes(x = ds, y = y, color = "Real"), 
-            linewidth = 0.8) +
-  geom_line(data = forecast_test, 
-            aes(x = ds, y = yhat, color = "Pronóstico"), 
-            linewidth = 0.8, linetype = "dashed") +
-  geom_ribbon(data = forecast_test,
-              aes(x = ds, ymin = yhat_lower, ymax = yhat_upper),
+```{r vis-forecast-test, fig.height=6, fig.width=10, fig.cap="Pronóstico vs Valores Reales"}
+# Preparar datos para gráfico
+n_datos <- length(y_real)
+datos_plot <- data.frame(
+  ds = tail(test_data$ds, n_datos),
+  y_real = y_real,
+  y_pred = y_pred,
+  yhat_lower = tail(forecast_test$yhat_lower, n_datos),
+  yhat_upper = tail(forecast_test$yhat_upper, n_datos)
+)
+
+# Crear gráfico
+ggplot(datos_plot, aes(x = ds)) +
+  geom_ribbon(aes(ymin = yhat_lower, ymax = yhat_upper),
               alpha = 0.2, fill = "red") +
+  geom_line(aes(y = y_real, color = "Real"), linewidth = 0.8) +
+  geom_line(aes(y = y_pred, color = "Pronóstico"), 
+            linewidth = 0.8, linetype = "dashed") +
   scale_color_manual(values = c("Real" = "black", "Pronóstico" = "red")) +
   labs(title = "Tesla (TSLA): Pronóstico con Prophet - Escala Logarítmica",
        subtitle = paste0("RMSE = ", round(rmse_log, 4), " | MAE = ", round(mae_log, 4)),
-       x = "Fecha",
-       y = "Log(Precio)",
-       color = "") +
+       x = "Fecha", y = "Log(Precio)", color = "") +
   theme_minimal() +
-  theme(legend.position = "bottom",
-        plot.title = element_text(face = "bold", size = 14),
-        plot.subtitle = element_text(size = 10, color = "gray30"))
+  theme(legend.position = "bottom")
 ```
 
-```{r vis-forecast-original, fig.height=6, fig.width=10, fig.cap="Pronóstico de Prophet vs Valores Reales - Escala Original"}
-# Gráfico en escala original
-forecast_test_original <- forecast_test %>%
-  mutate(yhat = exp(yhat),
-         yhat_lower = exp(yhat_lower),
-         yhat_upper = exp(yhat_upper))
+```{r vis-forecast-original, fig.height=6, fig.width=10, fig.cap="Pronóstico Escala Original"}
+# Preparar datos en escala original
+n_datos <- length(test_original)
+datos_plot_orig <- data.frame(
+  ds = tail(test_data$ds, n_datos),
+  y_real = test_original,
+  y_pred = forecast_original,
+  yhat_lower = exp(tail(forecast_test$yhat_lower, n_datos)),
+  yhat_upper = exp(tail(forecast_test$yhat_upper, n_datos))
+)
 
-test_data_original <- test_data %>%
-  mutate(y = exp(y))
-
-ggplot() +
-  geom_line(data = test_data_original, 
-            aes(x = ds, y = y, color = "Real"), 
-            linewidth = 0.8) +
-  geom_line(data = forecast_test_original, 
-            aes(x = ds, y = yhat, color = "Pronóstico"), 
-            linewidth = 0.8, linetype = "dashed") +
-  geom_ribbon(data = forecast_test_original,
-              aes(x = ds, ymin = yhat_lower, ymax = yhat_upper),
+# Gráfico
+ggplot(datos_plot_orig, aes(x = ds)) +
+  geom_ribbon(aes(ymin = yhat_lower, ymax = yhat_upper),
               alpha = 0.2, fill = "red") +
+  geom_line(aes(y = y_real, color = "Real"), linewidth = 0.8) +
+  geom_line(aes(y = y_pred, color = "Pronóstico"), 
+            linewidth = 0.8, linetype = "dashed") +
   scale_color_manual(values = c("Real" = "black", "Pronóstico" = "red")) +
   scale_y_continuous(labels = scales::dollar_format()) +
   labs(title = "Tesla (TSLA): Pronóstico con Prophet - Escala Original",
        subtitle = paste0("MAE = $", format(round(mae_original, 2), big.mark = ","), 
                         " | MAPE = ", round(mape_original, 2), "%"),
-       x = "Fecha",
-       y = "Precio (USD)",
-       color = "") +
+       x = "Fecha", y = "Precio (USD)", color = "") +
   theme_minimal() +
-  theme(legend.position = "bottom",
-        plot.title = element_text(face = "bold", size = 14),
-        plot.subtitle = element_text(size = 10, color = "gray30"))
+  theme(legend.position = "bottom")
 ```
 
 ## Análisis de Componentes
@@ -533,24 +540,28 @@ plot(modelo_poly)
 ### Comparación: Regresión vs Prophet
 
 ```{r comparacion-modelos}
-# Pronósticos en conjunto de prueba
-forecast_reg <- forecast_test %>%
-  mutate(
-    t = as.numeric(ds - min(tesla_reg_full$ds)),
-    t2 = t^2,
-    t3 = t^3
-  ) %>%
-  left_join(tesla_volume, by = "ds") %>%
-  mutate(log_volumen = log(volumen + 1))
+# Preparar datos para regresión
+n_datos <- length(y_real)
+fechas_test <- tail(test_data$ds, n_datos)
 
-# Predicciones de regresión
-pred_poly_test <- predict(modelo_poly, newdata = forecast_reg)
+datos_reg <- data.frame(
+  ds = fechas_test,
+  t = as.numeric(fechas_test - min(tesla_reg$ds))
+)
+datos_reg$t2 <- datos_reg$t^2
+datos_reg$t3 <- datos_reg$t^3
 
-# Métricas regresión polinomial
-rmse_reg <- rmse(test_data$y, pred_poly_test)
-mae_reg <- mae(test_data$y, pred_poly_test)
+# Predicción regresión
+pred_poly_test <- predict(modelo_poly, newdata = datos_reg)
 
-cat("\n=== Comparación de Modelos en Conjunto de Prueba ===\n\n")
+# Ajustar longitud
+n_min <- min(length(y_real), length(pred_poly_test))
+
+# Métricas regresión
+rmse_reg <- sqrt(mean((y_real[1:n_min] - pred_poly_test[1:n_min])^2))
+mae_reg <- mean(abs(y_real[1:n_min] - pred_poly_test[1:n_min]))
+
+cat("\n=== Comparación de Modelos ===\n\n")
 cat("Prophet:\n")
 cat("  RMSE:", round(rmse_log, 4), "\n")
 cat("  MAE:", round(mae_log, 4), "\n\n")

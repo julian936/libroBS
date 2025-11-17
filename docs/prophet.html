@@ -274,12 +274,12 @@
 <span class="header-section-number">5.5.2</span> Generación de Pronósticos<a class="anchor" aria-label="anchor" href="#generaci%C3%B3n-de-pron%C3%B3sticos-1"><i class="fas fa-link"></i></a>
 </h3>
 <pre><code>##           ds     yhat yhat_lower yhat_upper    trend       weekly      yearly
-## 1 2015-10-13 2.611471   2.408002   2.797171 2.643452 -0.004281895 -0.02769880
-## 2 2015-10-14 2.611160   2.426643   2.800232 2.643524 -0.003619222 -0.02874447
-## 3 2015-10-15 2.607944   2.422281   2.807987 2.643595 -0.006419905 -0.02923164
-## 4 2015-10-16 2.606919   2.422385   2.791288 2.643667 -0.007598376 -0.02914978
-## 5 2015-10-19 2.617154   2.428829   2.796713 2.643883 -0.001166601 -0.02556292
-## 6 2015-10-20 2.616338   2.427413   2.801902 2.643955 -0.004281895 -0.02333556</code></pre>
+## 1 2015-10-13 2.611471   2.425003   2.794446 2.643452 -0.004281895 -0.02769880
+## 2 2015-10-14 2.611160   2.425903   2.795304 2.643524 -0.003619222 -0.02874447
+## 3 2015-10-15 2.607944   2.416644   2.789706 2.643595 -0.006419905 -0.02923164
+## 4 2015-10-16 2.606919   2.404395   2.788137 2.643667 -0.007598376 -0.02914978
+## 5 2015-10-19 2.617154   2.427500   2.793020 2.643883 -0.001166601 -0.02556292
+## 6 2015-10-20 2.616338   2.419862   2.815460 2.643955 -0.004281895 -0.02333556</code></pre>
 </div>
 </div>
 <div id="evaluación-del-modelo" class="section level2" number="5.6">
@@ -291,20 +291,20 @@
 <span class="header-section-number">5.6.1</span> Métricas en Escala Logarítmica<a class="anchor" aria-label="anchor" href="#m%C3%A9tricas-en-escala-logar%C3%ADtmica"><i class="fas fa-link"></i></a>
 </h3>
 <pre><code>## 
-## === Métricas de Rendimiento (Escala Logarítmica) ===</code></pre>
-<pre><code>## RMSE: NaN</code></pre>
-<pre><code>## MAE: NaN</code></pre>
-<pre><code>## MAPE: NaN %</code></pre>
+## === Métricas (Escala Log) ===</code></pre>
+<pre><code>## RMSE: 0.1621</code></pre>
+<pre><code>## MAE: 0.1185</code></pre>
+<pre><code>## MAPE: 1.97 %</code></pre>
 </div>
 <div id="métricas-en-escala-original" class="section level3" number="5.6.2">
 <h3>
 <span class="header-section-number">5.6.2</span> Métricas en Escala Original<a class="anchor" aria-label="anchor" href="#m%C3%A9tricas-en-escala-original"><i class="fas fa-link"></i></a>
 </h3>
 <pre><code>## 
-## === Métricas de Rendimiento (Escala Original - USD) ===</code></pre>
-<pre><code>## RMSE: $NaN</code></pre>
-<pre><code>## MAE: $NaN</code></pre>
-<pre><code>## MAPE: NaN %</code></pre>
+## === Métricas (Escala USD) ===</code></pre>
+<pre><code>## RMSE: $61.09</code></pre>
+<pre><code>## MAE: $43.45</code></pre>
+<pre><code>## MAPE: 10.65 %</code></pre>
 </div>
 <div id="visualización-del-pronóstico" class="section level3" number="5.6.3">
 <h3>
@@ -312,14 +312,14 @@
 </h3>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:vis-forecast-test"></span>
-<img src="05-summary_files/figure-html/vis-forecast-test-1.png" alt="Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba" width="960"><p class="caption">
-Figure 5.1: Pronóstico de Prophet vs Valores Reales - Conjunto de Prueba
+<img src="05-summary_files/figure-html/vis-forecast-test-1.png" alt="Pronóstico vs Valores Reales" width="960"><p class="caption">
+Figure 5.1: Pronóstico vs Valores Reales
 </p>
 </div>
 <div class="figure" style="text-align: center">
 <span style="display:block;" id="fig:vis-forecast-original"></span>
-<img src="05-summary_files/figure-html/vis-forecast-original-1.png" alt="Pronóstico de Prophet vs Valores Reales - Escala Original" width="960"><p class="caption">
-Figure 5.2: Pronóstico de Prophet vs Valores Reales - Escala Original
+<img src="05-summary_files/figure-html/vis-forecast-original-1.png" alt="Pronóstico Escala Original" width="960"><p class="caption">
+Figure 5.2: Pronóstico Escala Original
 </p>
 </div>
 </div>
@@ -524,13 +524,13 @@ Figure 5.6: Diagnóstico de Residuos - Modelo Polinomial
 <span class="header-section-number">5.8.7</span> Comparación: Regresión vs Prophet<a class="anchor" aria-label="anchor" href="#comparaci%C3%B3n-regresi%C3%B3n-vs-prophet"><i class="fas fa-link"></i></a>
 </h3>
 <pre><code>## 
-## === Comparación de Modelos en Conjunto de Prueba ===</code></pre>
+## === Comparación de Modelos ===</code></pre>
 <pre><code>## Prophet:</code></pre>
-<pre><code>##   RMSE: NaN</code></pre>
-<pre><code>##   MAE: NaN</code></pre>
+<pre><code>##   RMSE: 0.1621</code></pre>
+<pre><code>##   MAE: 0.1185</code></pre>
 <pre><code>## Regresión Polinomial:</code></pre>
-<pre><code>##   RMSE: NaN</code></pre>
-<pre><code>##   MAE: NaN</code></pre>
+<pre><code>##   RMSE: 0.5744</code></pre>
+<pre><code>##   MAE: 0.5485</code></pre>
 </div>
 </div>
 <div id="aplicación-a-múltiples-acciones" class="section level2" number="5.9">
