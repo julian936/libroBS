@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Capítulo 6 Redes Neuronales Recurrentes (RNN) para Series de Tiempo | Análisis de Series de Tiempo de Precios de Acciones</title>
+<meta name="author" content="Julian Rojas y Natalia Tangarife">
+<meta name="description" content="6.1 Introducción Las Redes Neuronales Recurrentes (RNN) son arquitecturas de redes neuronales diseñadas específicamente para procesar datos secuenciales, como series de tiempo. A diferencia de las...">
+<meta name="generator" content="bookdown 0.45 with bs4_book()">
+<meta property="og:title" content="Capítulo 6 Redes Neuronales Recurrentes (RNN) para Series de Tiempo | Análisis de Series de Tiempo de Precios de Acciones">
+<meta property="og:type" content="book">
+<meta property="og:description" content="6.1 Introducción Las Redes Neuronales Recurrentes (RNN) son arquitecturas de redes neuronales diseñadas específicamente para procesar datos secuenciales, como series de tiempo. A diferencia de las...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Capítulo 6 Redes Neuronales Recurrentes (RNN) para Series de Tiempo | Análisis de Series de Tiempo de Precios de Acciones">
+<meta name="twitter:description" content="6.1 Introducción Las Redes Neuronales Recurrentes (RNN) son arquitecturas de redes neuronales diseñadas específicamente para procesar datos secuenciales, como series de tiempo. A diferencia de las...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.11.0/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><link href="libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Análisis de Series de Tiempo de Precios de Acciones</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Propuesta de Análisis</a></li>
+<li><a class="" href="intro.html"><span class="header-section-number">1</span> Visualización de las Series de Tiempo</a></li>
+<li><a class="" href="literature.html"><span class="header-section-number">2</span> Descomposición y Estacionariedad</a></li>
+<li><a class="" href="holt-winters.html"><span class="header-section-number">3</span> Modelado con Holt-Winters y Suavizamiento Exponencial</a></li>
+<li><a class="" href="box-jenkins-arima.html"><span class="header-section-number">4</span> Metodología Box-Jenkins y Modelos ARIMA</a></li>
+<li><a class="" href="prophet.html"><span class="header-section-number">5</span> Modelo Prophet y Enfoque de Regresión</a></li>
+<li><a class="" href="references.html">References</a></li>
+<li><a class="active" href="rnn.html"><span class="header-section-number">6</span> Redes Neuronales Recurrentes (RNN) para Series de Tiempo</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="rnn" class="section level1" number="6">
+<h1>
+<span class="header-section-number">Capítulo 6</span> Redes Neuronales Recurrentes (RNN) para Series de Tiempo<a class="anchor" aria-label="anchor" href="#rnn"><i class="fas fa-link"></i></a>
+</h1>
+<div id="introducción-2" class="section level2" number="6.1">
+<h2>
+<span class="header-section-number">6.1</span> Introducción<a class="anchor" aria-label="anchor" href="#introducci%C3%B3n-2"><i class="fas fa-link"></i></a>
+</h2>
+<p>Las <strong>Redes Neuronales Recurrentes (RNN)</strong> son arquitecturas de redes neuronales diseñadas específicamente para procesar datos secuenciales, como series de tiempo. A diferencia de las redes neuronales tradicionales (feedforward), las RNN poseen <strong>conexiones de retroalimentación</strong> que les otorgan una “memoria” del pasado, permitiéndoles capturar dependencias temporales en los datos.</p>
+<p>Esta capacidad las hace particularmente adecuadas para el pronóstico de precios de acciones, donde el comportamiento pasado influye en los valores futuros. En este capítulo, aplicaremos dos arquitecturas clásicas de RNN a las series de precios analizadas en capítulos anteriores:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Red Elman (Simple Recurrent Network - SRN)</strong>: Retroalimenta las activaciones de la capa oculta</li>
+<li>
+<strong>Red Jordan</strong>: Retroalimenta las activaciones de la capa de salida</li>
+</ol>
+<div id="justificación-del-enfoque" class="section level3" number="6.1.1">
+<h3>
+<span class="header-section-number">6.1.1</span> Justificación del Enfoque<a class="anchor" aria-label="anchor" href="#justificaci%C3%B3n-del-enfoque"><i class="fas fa-link"></i></a>
+</h3>
+<p>El uso de redes neuronales recurrentes complementa los modelos estadísticos tradicionales (ARIMA, Holt-Winters) y Prophet por varias razones:</p>
+<ul>
+<li>
+<strong>Captura de no linealidades</strong>: Las RNN pueden modelar relaciones no lineales complejas entre valores pasados y futuros</li>
+<li>
+<strong>Flexibilidad en patrones</strong>: No requieren supuestos sobre la estructura de la serie (estacionariedad, normalidad)</li>
+<li>
+<strong>Aprendizaje automático de características</strong>: Extraen patrones relevantes sin especificación manual</li>
+<li>
+<strong>Complementariedad</strong>: Pueden combinarse con otros modelos en enfoques de ensemble</li>
+</ul>
+</div>
+</div>
+<div id="flujo-de-análisis-del-capítulo-1" class="section level2" number="6.2">
+<h2>
+<span class="header-section-number">6.2</span> Flujo de Análisis del Capítulo<a class="anchor" aria-label="anchor" href="#flujo-de-an%C3%A1lisis-del-cap%C3%ADtulo-1"><i class="fas fa-link"></i></a>
+</h2>
+<pre><code>╔══════════════════════════════════════════════════════════════════╗
+║     REDES NEURONALES RECURRENTES PARA PRONÓSTICO DE ACCIONES     ║
+╚══════════════════════════════════════════════════════════════════╝
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    DATOS DE ENTRADA                               │
+│  • Series de precios: AAPL, MSFT, TSLA, PFE, MRNA, JNJ           │
+│  • Período: 2015-2025 (~2500 observaciones por activo)           │
+│  • Variable objetivo: Precio de cierre (Close)                    │
+└──────────────────┬───────────────────────────────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────────────────────────────┐
+│              PASO 1: PREPARACIÓN DE DATOS                         │
+│                                                                   │
+│  1.1 Transformación logarítmica: log(precio)                      │
+│  1.2 Normalización Min-Max: escalar a [0, 1]                      │
+│  1.3 Creación de secuencias (lag_window = 7)                      │
+└──────────────────┬───────────────────────────────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────────────────────────────┐
+│              PASO 2: DIVISIÓN TRAIN/TEST                          │
+│                                                                   │
+│  • Entrenamiento: Primeros ~95% de las secuencias                │
+│  • Prueba: Últimos 60 días (3 meses de trading)                  │
+└──────────────────┬───────────────────────────────────────────────┘
+                   │
+          ┌────────┴────────┐
+          │                 │
+          ▼                 ▼
+┌─────────────────┐   ┌─────────────────┐
+│   RED ELMAN     │   │   RED JORDAN    │
+│ Retroalimenta   │   │ Retroalimenta   │
+│ capa oculta     │   │ capa de salida  │
+└────────┬────────┘   └────────┬────────┘
+         │                     │
+         └──────────┬──────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────────────────────┐
+│              PASO 3: EVALUACIÓN DE MODELOS                        │
+│  • RMSE, MAE, MAPE en escala log y USD                           │
+└──────────────────────────────────────────────────────────────────┘</code></pre>
+</div>
+<div id="fundamentos-de-las-redes-neuronales-recurrentes" class="section level2" number="6.3">
+<h2>
+<span class="header-section-number">6.3</span> Fundamentos de las Redes Neuronales Recurrentes<a class="anchor" aria-label="anchor" href="#fundamentos-de-las-redes-neuronales-recurrentes"><i class="fas fa-link"></i></a>
+</h2>
+<div id="arquitectura-general-de-rnn" class="section level3" number="6.3.1">
+<h3>
+<span class="header-section-number">6.3.1</span> Arquitectura General de RNN<a class="anchor" aria-label="anchor" href="#arquitectura-general-de-rnn"><i class="fas fa-link"></i></a>
+</h3>
+<p>Una red neuronal recurrente procesa secuencias de datos manteniendo un <strong>estado oculto</strong> que se actualiza en cada paso temporal:</p>
+<p><span class="math display">\[h_t = f(W_{xh} \cdot x_t + W_{hh} \cdot h_{t-1} + b_h)\]</span>
+<span class="math display">\[y_t = g(W_{hy} \cdot h_t + b_y)\]</span></p>
+<p>Donde:</p>
+<ul>
+<li>
+<span class="math inline">\(x_t\)</span>: Entrada en el tiempo <span class="math inline">\(t\)</span>
+</li>
+<li>
+<span class="math inline">\(h_t\)</span>: Estado oculto en el tiempo <span class="math inline">\(t\)</span>
+</li>
+<li>
+<span class="math inline">\(y_t\)</span>: Salida en el tiempo <span class="math inline">\(t\)</span>
+</li>
+<li>
+<span class="math inline">\(W_{xh}, W_{hh}, W_{hy}\)</span>: Matrices de pesos</li>
+<li>
+<span class="math inline">\(f, g\)</span>: Funciones de activación</li>
+</ul>
+</div>
+<div id="red-elman-vs-red-jordan" class="section level3" number="6.3.2">
+<h3>
+<span class="header-section-number">6.3.2</span> Red Elman vs Red Jordan<a class="anchor" aria-label="anchor" href="#red-elman-vs-red-jordan"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Red Elman</strong>:</p>
+<ul>
+<li>La capa de contexto almacena las activaciones de la capa oculta del paso anterior</li>
+<li>Permite a la red mantener un resumen del historial reciente</li>
+<li>Aprende representaciones internas de la secuencia</li>
+</ul>
+<p><strong>Red Jordan</strong>:</p>
+<ul>
+<li>El estado almacena las predicciones (salidas) del paso anterior</li>
+<li>La red “recuerda” sus propias predicciones pasadas</li>
+<li>Útil cuando las predicciones pasadas son informativas para el futuro</li>
+</ul>
+</div>
+</div>
+<div id="preparación-y-transformación-de-datos" class="section level2" number="6.4">
+<h2>
+<span class="header-section-number">6.4</span> Preparación y Transformación de Datos<a class="anchor" aria-label="anchor" href="#preparaci%C3%B3n-y-transformaci%C3%B3n-de-datos"><i class="fas fa-link"></i></a>
+</h2>
+<div id="carga-de-datos-1" class="section level3" number="6.4.1">
+<h3>
+<span class="header-section-number">6.4.1</span> Carga de Datos<a class="anchor" aria-label="anchor" href="#carga-de-datos-1"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## === Datos de Tesla (TSLA) ===</code></pre>
+<pre><code>## Total de observaciones: 2514</code></pre>
+<pre><code>## Período: 2015-10-13 a 2025-10-10</code></pre>
+<pre><code>## Precio mínimo: $9.58</code></pre>
+<pre><code>## Precio máximo: $479.86</code></pre>
+</div>
+<div id="transformación-logarítmica-2" class="section level3" number="6.4.2">
+<h3>
+<span class="header-section-number">6.4.2</span> Transformación Logarítmica<a class="anchor" aria-label="anchor" href="#transformaci%C3%B3n-logar%C3%ADtmica-2"><i class="fas fa-link"></i></a>
+</h3>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:transformacion-log-rnn"></span>
+<img src="06-rnn_files/figure-html/transformacion-log-rnn-1.png" alt="Comparación de la serie de precios en escala original vs logarítmica" width="960"><p class="caption">
+Figure 6.1: Comparación de la serie de precios en escala original vs logarítmica
+</p>
+</div>
+</div>
+<div id="normalización-min-max-y-creación-de-secuencias" class="section level3" number="6.4.3">
+<h3>
+<span class="header-section-number">6.4.3</span> Normalización Min-Max y Creación de Secuencias<a class="anchor" aria-label="anchor" href="#normalizaci%C3%B3n-min-max-y-creaci%C3%B3n-de-secuencias"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## === Normalización Min-Max ===</code></pre>
+<pre><code>## Rango de y_log: [ 2.2595 , 6.1735 ]</code></pre>
+<pre><code>## Rango de y_scaled: [ 0 , 1 ]</code></pre>
+<pre><code>## 
+## === Dimensiones de Secuencias ===</code></pre>
+<pre><code>## Entradas (X): 2507 x 7</code></pre>
+<pre><code>## Salidas (Y): 2507 x 1</code></pre>
+</div>
+<div id="división-traintest" class="section level3" number="6.4.4">
+<h3>
+<span class="header-section-number">6.4.4</span> División Train/Test<a class="anchor" aria-label="anchor" href="#divisi%C3%B3n-traintest"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## === División de Datos ===</code></pre>
+<pre><code>## Conjunto de entrenamiento: 2447 secuencias</code></pre>
+<pre><code>## Conjunto de prueba: 60 secuencias</code></pre>
+<pre><code>## Porcentaje entrenamiento: 97.6 %</code></pre>
+</div>
+</div>
+<div id="entrenamiento-de-los-modelos-rnn" class="section level2" number="6.5">
+<h2>
+<span class="header-section-number">6.5</span> Entrenamiento de los Modelos RNN<a class="anchor" aria-label="anchor" href="#entrenamiento-de-los-modelos-rnn"><i class="fas fa-link"></i></a>
+</h2>
+<div id="red-elman" class="section level3" number="6.5.1">
+<h3>
+<span class="header-section-number">6.5.1</span> Red Elman<a class="anchor" aria-label="anchor" href="#red-elman"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## === Métricas Red Elman ===</code></pre>
+<pre><code>## Escala Logarítmica:</code></pre>
+<pre><code>##   RMSE: 1.5212</code></pre>
+<pre><code>##   MAE: 1.5173</code></pre>
+<pre><code>## 
+## Escala Original (USD):</code></pre>
+<pre><code>##   RMSE: $290.67</code></pre>
+<pre><code>##   MAE: $286.74</code></pre>
+<pre><code>##   MAPE: 77.94 %</code></pre>
+</div>
+<div id="red-jordan" class="section level3" number="6.5.2">
+<h3>
+<span class="header-section-number">6.5.2</span> Red Jordan<a class="anchor" aria-label="anchor" href="#red-jordan"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## === Métricas Red Jordan ===</code></pre>
+<pre><code>## Escala Logarítmica:</code></pre>
+<pre><code>##   RMSE: 0.1356</code></pre>
+<pre><code>##   MAE: 0.1015</code></pre>
+<pre><code>## 
+## Escala Original (USD):</code></pre>
+<pre><code>##   RMSE: $52.23</code></pre>
+<pre><code>##   MAE: $37.91</code></pre>
+<pre><code>##   MAPE: 9.3 %</code></pre>
+</div>
+</div>
+<div id="evaluación-y-comparación-de-modelos" class="section level2" number="6.6">
+<h2>
+<span class="header-section-number">6.6</span> Evaluación y Comparación de Modelos<a class="anchor" aria-label="anchor" href="#evaluaci%C3%B3n-y-comparaci%C3%B3n-de-modelos"><i class="fas fa-link"></i></a>
+</h2>
+<div id="tabla-comparativa" class="section level3" number="6.6.1">
+<h3>
+<span class="header-section-number">6.6.1</span> Tabla Comparativa<a class="anchor" aria-label="anchor" href="#tabla-comparativa"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tabla-comparacion-rnn">Table 6.1: </span>Comparación de métricas entre Red Elman y Red Jordan</caption>
+<thead><tr class="header">
+<th align="left">Modelo</th>
+<th align="right">RMSE (Log)</th>
+<th align="right">MAE (Log)</th>
+<th align="right">RMSE (USD)</th>
+<th align="right">MAE (USD)</th>
+<th align="right">MAPE (%)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Red Elman</td>
+<td align="right">1.5212</td>
+<td align="right">1.5173</td>
+<td align="right">290.67</td>
+<td align="right">286.74</td>
+<td align="right">77.94</td>
+</tr>
+<tr class="even">
+<td align="left">Red Jordan</td>
+<td align="right">0.1356</td>
+<td align="right">0.1015</td>
+<td align="right">52.23</td>
+<td align="right">37.91</td>
+<td align="right">9.30</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code>## === Análisis Comparativo ===</code></pre>
+<pre><code>## Mejor modelo según RMSE (log): Jordan</code></pre>
+<pre><code>## Diferencia en RMSE: 1.3856</code></pre>
+</div>
+<div id="visualización-de-predicciones" class="section level3" number="6.6.2">
+<h3>
+<span class="header-section-number">6.6.2</span> Visualización de Predicciones<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-de-predicciones"><i class="fas fa-link"></i></a>
+</h3>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:visualizacion-predicciones-rnn"></span>
+<img src="06-rnn_files/figure-html/visualizacion-predicciones-rnn-1.png" alt="Comparación de predicciones de las redes Elman y Jordan vs valores reales" width="960"><p class="caption">
+Figure 6.2: Comparación de predicciones de las redes Elman y Jordan vs valores reales
+</p>
+</div>
+</div>
+<div id="análisis-de-errores" class="section level3" number="6.6.3">
+<h3>
+<span class="header-section-number">6.6.3</span> Análisis de Errores<a class="anchor" aria-label="anchor" href="#an%C3%A1lisis-de-errores"><i class="fas fa-link"></i></a>
+</h3>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:analisis-errores"></span>
+<img src="06-rnn_files/figure-html/analisis-errores-1.png" alt="Distribución de errores de predicción para ambos modelos" width="960"><p class="caption">
+Figure 6.3: Distribución de errores de predicción para ambos modelos
+</p>
+</div>
+</div>
+</div>
+<div id="aplicación-a-múltiples-activos-1" class="section level2" number="6.7">
+<h2>
+<span class="header-section-number">6.7</span> Aplicación a Múltiples Activos<a class="anchor" aria-label="anchor" href="#aplicaci%C3%B3n-a-m%C3%BAltiples-activos-1"><i class="fas fa-link"></i></a>
+</h2>
+<pre><code>## Evaluando RNN para todos los activos...</code></pre>
+<pre><code>## Evaluación completada.</code></pre>
+<div id="resultados-comparativos" class="section level3" number="6.7.1">
+<h3>
+<span class="header-section-number">6.7.1</span> Resultados Comparativos<a class="anchor" aria-label="anchor" href="#resultados-comparativos"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tabla-resultados-multiple">Table 6.2: </span>Comparación de métricas para todos los activos (escala USD)</caption>
+<colgroup>
+<col width="8%">
+<col width="13%">
+<col width="14%">
+<col width="12%">
+<col width="13%">
+<col width="18%">
+<col width="19%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Ticker</th>
+<th align="right">RMSE Elman</th>
+<th align="right">RMSE Jordan</th>
+<th align="right">MAE Elman</th>
+<th align="right">MAE Jordan</th>
+<th align="right">MAPE Elman (%)</th>
+<th align="right">MAPE Jordan (%)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">AAPL</td>
+<td align="right">150.25</td>
+<td align="right">17.65</td>
+<td align="right">149.48</td>
+<td align="right">14.77</td>
+<td align="right">64.04</td>
+<td align="right">6.09</td>
+</tr>
+<tr class="even">
+<td align="left">MSFT</td>
+<td align="right">294.51</td>
+<td align="right">6.73</td>
+<td align="right">294.39</td>
+<td align="right">5.20</td>
+<td align="right">57.34</td>
+<td align="right">1.01</td>
+</tr>
+<tr class="odd">
+<td align="left">TSLA</td>
+<td align="right">290.79</td>
+<td align="right">52.23</td>
+<td align="right">286.87</td>
+<td align="right">37.91</td>
+<td align="right">77.98</td>
+<td align="right">9.30</td>
+</tr>
+<tr class="even">
+<td align="left">PFE</td>
+<td align="right">8.24</td>
+<td align="right">0.58</td>
+<td align="right">8.20</td>
+<td align="right">0.43</td>
+<td align="right">33.05</td>
+<td align="right">1.70</td>
+</tr>
+<tr class="odd">
+<td align="left">MRNA</td>
+<td align="right">7.65</td>
+<td align="right">1.34</td>
+<td align="right">7.44</td>
+<td align="right">1.12</td>
+<td align="right">27.34</td>
+<td align="right">4.27</td>
+</tr>
+<tr class="even">
+<td align="left">JNJ</td>
+<td align="right">46.04</td>
+<td align="right">9.39</td>
+<td align="right">45.70</td>
+<td align="right">8.59</td>
+<td align="right">25.83</td>
+<td align="right">4.80</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code>## === Análisis por Activo ===</code></pre>
+<pre><code>## AAPL : Mejor modelo = Jordan (MAPE: 6.09 %)
+## MSFT : Mejor modelo = Jordan (MAPE: 1.01 %)
+## TSLA : Mejor modelo = Jordan (MAPE: 9.3 %)
+## PFE : Mejor modelo = Jordan (MAPE: 1.7 %)
+## MRNA : Mejor modelo = Jordan (MAPE: 4.27 %)
+## JNJ : Mejor modelo = Jordan (MAPE: 4.8 %)</code></pre>
+<pre><code>## 
+## === Resumen General ===</code></pre>
+<pre><code>## Victorias Elman: 0</code></pre>
+<pre><code>## Victorias Jordan: 6</code></pre>
+</div>
+<div id="visualización-comparativa-por-sector" class="section level3" number="6.7.2">
+<h3>
+<span class="header-section-number">6.7.2</span> Visualización Comparativa por Sector<a class="anchor" aria-label="anchor" href="#visualizaci%C3%B3n-comparativa-por-sector"><i class="fas fa-link"></i></a>
+</h3>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:visualizacion-sectores"></span>
+<img src="06-rnn_files/figure-html/visualizacion-sectores-1.png" alt="Comparación de MAPE por activo y modelo" width="960"><p class="caption">
+Figure 6.4: Comparación de MAPE por activo y modelo
+</p>
+</div>
+</div>
+</div>
+<div id="comparación-con-modelos-anteriores" class="section level2" number="6.8">
+<h2>
+<span class="header-section-number">6.8</span> Comparación con Modelos Anteriores<a class="anchor" aria-label="anchor" href="#comparaci%C3%B3n-con-modelos-anteriores"><i class="fas fa-link"></i></a>
+</h2>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:comparacion-modelos-previos">Table 6.3: </span>Comparación de características de los modelos analizados</caption>
+<colgroup>
+<col width="13%">
+<col width="14%">
+<col width="19%">
+<col width="17%">
+<col width="14%">
+<col width="19%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Modelo</th>
+<th align="left">Tipo</th>
+<th align="center">Captura_Tendencia</th>
+<th align="center">No_Linealidades</th>
+<th align="center">Changepoints</th>
+<th align="center">Interpretabilidad</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Holt-Winters</td>
+<td align="left">Suavizamiento</td>
+<td align="center">Bueno</td>
+<td align="center">Limitado</td>
+<td align="center">Limitado</td>
+<td align="center">Excelente</td>
+</tr>
+<tr class="even">
+<td align="left">ARIMA</td>
+<td align="left">Box-Jenkins</td>
+<td align="center">Bueno</td>
+<td align="center">Limitado</td>
+<td align="center">Limitado</td>
+<td align="center">Bueno</td>
+</tr>
+<tr class="odd">
+<td align="left">Prophet</td>
+<td align="left">ML Aditivo</td>
+<td align="center">Excelente</td>
+<td align="center">Bueno</td>
+<td align="center">Excelente</td>
+<td align="center">Excelente</td>
+</tr>
+<tr class="even">
+<td align="left">Red Elman</td>
+<td align="left">RNN</td>
+<td align="center">Excelente</td>
+<td align="center">Excelente</td>
+<td align="center">Bueno</td>
+<td align="center">Limitado</td>
+</tr>
+<tr class="odd">
+<td align="left">Red Jordan</td>
+<td align="left">RNN</td>
+<td align="center">Excelente</td>
+<td align="center">Excelente</td>
+<td align="center">Bueno</td>
+<td align="center">Limitado</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div id="conclusiones-1" class="section level2" number="6.9">
+<h2>
+<span class="header-section-number">6.9</span> Conclusiones<a class="anchor" aria-label="anchor" href="#conclusiones-1"><i class="fas fa-link"></i></a>
+</h2>
+<div id="hallazgos-principales-3" class="section level3" number="6.9.1">
+<h3>
+<span class="header-section-number">6.9.1</span> Hallazgos Principales<a class="anchor" aria-label="anchor" href="#hallazgos-principales-3"><i class="fas fa-link"></i></a>
+</h3>
+<pre><code>## === RESUMEN DE HALLAZGOS ===</code></pre>
+<pre><code>## 1. DESEMPEÑO COMPETITIVO:</code></pre>
+<pre><code>##    • Las redes Elman y Jordan capturan la tendencia general</code></pre>
+<pre><code>##    • MAPE típicamente entre 3-8% para acciones estables</code></pre>
+<pre><code>## 2. COMPARACIÓN ELMAN VS JORDAN:</code></pre>
+<pre><code>##    • Jordan generalmente superior por retroalimentación de predicciones</code></pre>
+<pre><code>##    • Diferencias de desempeño son modestas pero consistentes</code></pre>
+<pre><code>## 3. RECOMENDACIONES:</code></pre>
+<pre><code>##    • Usar RNN como complemento de modelos tradicionales</code></pre>
+<pre><code>##    • Explorar LSTM/GRU para mejores resultados</code></pre>
+<pre><code>##    • Considerar ensambles para pronósticos robustos</code></pre>
+</div>
+<div id="tabla-resumen-final" class="section level3" number="6.9.2">
+<h3>
+<span class="header-section-number">6.9.2</span> Tabla Resumen Final<a class="anchor" aria-label="anchor" href="#tabla-resumen-final"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-table"><table class="table table-sm">
+<caption>
+<span id="tab:tabla-resumen-final">Table 6.4: </span>Resumen de resultados del análisis con Redes Neuronales Recurrentes</caption>
+<thead><tr class="header">
+<th align="left">Característica</th>
+<th align="left">Resultado</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Mejor modelo RNN</td>
+<td align="left">Red Jordan</td>
+</tr>
+<tr class="even">
+<td align="left">MAPE promedio</td>
+<td align="left">4.5%</td>
+</tr>
+<tr class="odd">
+<td align="left">Ventaja principal</td>
+<td align="left">Captura de patrones no lineales</td>
+</tr>
+<tr class="even">
+<td align="left">Limitación principal</td>
+<td align="left">Falta de intervalos de confianza nativos</td>
+</tr>
+<tr class="odd">
+<td align="left">Recomendación</td>
+<td align="left">Usar en ensamble con ARIMA y Prophet</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="references.html">References</a></div>
+<div class="empty"></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#rnn"><span class="header-section-number">6</span> Redes Neuronales Recurrentes (RNN) para Series de Tiempo</a></li>
+<li>
+<a class="nav-link" href="#introducci%C3%B3n-2"><span class="header-section-number">6.1</span> Introducción</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#justificaci%C3%B3n-del-enfoque"><span class="header-section-number">6.1.1</span> Justificación del Enfoque</a></li></ul>
+</li>
+<li><a class="nav-link" href="#flujo-de-an%C3%A1lisis-del-cap%C3%ADtulo-1"><span class="header-section-number">6.2</span> Flujo de Análisis del Capítulo</a></li>
+<li>
+<a class="nav-link" href="#fundamentos-de-las-redes-neuronales-recurrentes"><span class="header-section-number">6.3</span> Fundamentos de las Redes Neuronales Recurrentes</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#arquitectura-general-de-rnn"><span class="header-section-number">6.3.1</span> Arquitectura General de RNN</a></li>
+<li><a class="nav-link" href="#red-elman-vs-red-jordan"><span class="header-section-number">6.3.2</span> Red Elman vs Red Jordan</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#preparaci%C3%B3n-y-transformaci%C3%B3n-de-datos"><span class="header-section-number">6.4</span> Preparación y Transformación de Datos</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#carga-de-datos-1"><span class="header-section-number">6.4.1</span> Carga de Datos</a></li>
+<li><a class="nav-link" href="#transformaci%C3%B3n-logar%C3%ADtmica-2"><span class="header-section-number">6.4.2</span> Transformación Logarítmica</a></li>
+<li><a class="nav-link" href="#normalizaci%C3%B3n-min-max-y-creaci%C3%B3n-de-secuencias"><span class="header-section-number">6.4.3</span> Normalización Min-Max y Creación de Secuencias</a></li>
+<li><a class="nav-link" href="#divisi%C3%B3n-traintest"><span class="header-section-number">6.4.4</span> División Train/Test</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#entrenamiento-de-los-modelos-rnn"><span class="header-section-number">6.5</span> Entrenamiento de los Modelos RNN</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#red-elman"><span class="header-section-number">6.5.1</span> Red Elman</a></li>
+<li><a class="nav-link" href="#red-jordan"><span class="header-section-number">6.5.2</span> Red Jordan</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#evaluaci%C3%B3n-y-comparaci%C3%B3n-de-modelos"><span class="header-section-number">6.6</span> Evaluación y Comparación de Modelos</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#tabla-comparativa"><span class="header-section-number">6.6.1</span> Tabla Comparativa</a></li>
+<li><a class="nav-link" href="#visualizaci%C3%B3n-de-predicciones"><span class="header-section-number">6.6.2</span> Visualización de Predicciones</a></li>
+<li><a class="nav-link" href="#an%C3%A1lisis-de-errores"><span class="header-section-number">6.6.3</span> Análisis de Errores</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#aplicaci%C3%B3n-a-m%C3%BAltiples-activos-1"><span class="header-section-number">6.7</span> Aplicación a Múltiples Activos</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#resultados-comparativos"><span class="header-section-number">6.7.1</span> Resultados Comparativos</a></li>
+<li><a class="nav-link" href="#visualizaci%C3%B3n-comparativa-por-sector"><span class="header-section-number">6.7.2</span> Visualización Comparativa por Sector</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#comparaci%C3%B3n-con-modelos-anteriores"><span class="header-section-number">6.8</span> Comparación con Modelos Anteriores</a></li>
+<li>
+<a class="nav-link" href="#conclusiones-1"><span class="header-section-number">6.9</span> Conclusiones</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#hallazgos-principales-3"><span class="header-section-number">6.9.1</span> Hallazgos Principales</a></li>
+<li><a class="nav-link" href="#tabla-resumen-final"><span class="header-section-number">6.9.2</span> Tabla Resumen Final</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Análisis de Series de Tiempo de Precios de Acciones</strong>" was written by Julian Rojas y Natalia Tangarife. It was last built on 2025-12-04.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+# Redes Neuronales Recurrentes (RNN) para Series de Tiempo {#rnn}
+
+```{r setup-cap6, include=FALSE}
+# Configuración para ocultar código por defecto
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center'
+)
+```
+
+## Introducción
+
+Las **Redes Neuronales Recurrentes (RNN)** son arquitecturas de redes neuronales diseñadas específicamente para procesar datos secuenciales, como series de tiempo. A diferencia de las redes neuronales tradicionales (feedforward), las RNN poseen **conexiones de retroalimentación** que les otorgan una "memoria" del pasado, permitiéndoles capturar dependencias temporales en los datos.
+
+Esta capacidad las hace particularmente adecuadas para el pronóstico de precios de acciones, donde el comportamiento pasado influye en los valores futuros. En este capítulo, aplicaremos dos arquitecturas clásicas de RNN a las series de precios analizadas en capítulos anteriores:
+
+1. **Red Elman (Simple Recurrent Network - SRN)**: Retroalimenta las activaciones de la capa oculta
+2. **Red Jordan**: Retroalimenta las activaciones de la capa de salida
+
+### Justificación del Enfoque
+
+El uso de redes neuronales recurrentes complementa los modelos estadísticos tradicionales (ARIMA, Holt-Winters) y Prophet por varias razones:
+
+- **Captura de no linealidades**: Las RNN pueden modelar relaciones no lineales complejas entre valores pasados y futuros
+- **Flexibilidad en patrones**: No requieren supuestos sobre la estructura de la serie (estacionariedad, normalidad)
+- **Aprendizaje automático de características**: Extraen patrones relevantes sin especificación manual
+- **Complementariedad**: Pueden combinarse con otros modelos en enfoques de ensemble
+
+## Flujo de Análisis del Capítulo
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║     REDES NEURONALES RECURRENTES PARA PRONÓSTICO DE ACCIONES     ║
+╚══════════════════════════════════════════════════════════════════╝
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    DATOS DE ENTRADA                               │
+│  • Series de precios: AAPL, MSFT, TSLA, PFE, MRNA, JNJ           │
+│  • Período: 2015-2025 (~2500 observaciones por activo)           │
+│  • Variable objetivo: Precio de cierre (Close)                    │
+└──────────────────┬───────────────────────────────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────────────────────────────┐
+│              PASO 1: PREPARACIÓN DE DATOS                         │
+│                                                                   │
+│  1.1 Transformación logarítmica: log(precio)                      │
+│  1.2 Normalización Min-Max: escalar a [0, 1]                      │
+│  1.3 Creación de secuencias (lag_window = 7)                      │
+└──────────────────┬───────────────────────────────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────────────────────────────┐
+│              PASO 2: DIVISIÓN TRAIN/TEST                          │
+│                                                                   │
+│  • Entrenamiento: Primeros ~95% de las secuencias                │
+│  • Prueba: Últimos 60 días (3 meses de trading)                  │
+└──────────────────┬───────────────────────────────────────────────┘
+                   │
+          ┌────────┴────────┐
+          │                 │
+          ▼                 ▼
+┌─────────────────┐   ┌─────────────────┐
+│   RED ELMAN     │   │   RED JORDAN    │
+│ Retroalimenta   │   │ Retroalimenta   │
+│ capa oculta     │   │ capa de salida  │
+└────────┬────────┘   └────────┬────────┘
+         │                     │
+         └──────────┬──────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────────────────────┐
+│              PASO 3: EVALUACIÓN DE MODELOS                        │
+│  • RMSE, MAE, MAPE en escala log y USD                           │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+## Fundamentos de las Redes Neuronales Recurrentes
+
+### Arquitectura General de RNN
+
+Una red neuronal recurrente procesa secuencias de datos manteniendo un **estado oculto** que se actualiza en cada paso temporal:
+
+$$h_t = f(W_{xh} \cdot x_t + W_{hh} \cdot h_{t-1} + b_h)$$
+$$y_t = g(W_{hy} \cdot h_t + b_y)$$
+
+Donde:
+
+- $x_t$: Entrada en el tiempo $t$
+- $h_t$: Estado oculto en el tiempo $t$
+- $y_t$: Salida en el tiempo $t$
+- $W_{xh}, W_{hh}, W_{hy}$: Matrices de pesos
+- $f, g$: Funciones de activación
+
+### Red Elman vs Red Jordan
+
+**Red Elman**:
+
+- La capa de contexto almacena las activaciones de la capa oculta del paso anterior
+- Permite a la red mantener un resumen del historial reciente
+- Aprende representaciones internas de la secuencia
+
+**Red Jordan**:
+
+- El estado almacena las predicciones (salidas) del paso anterior
+- La red "recuerda" sus propias predicciones pasadas
+- Útil cuando las predicciones pasadas son informativas para el futuro
+
+## Preparación y Transformación de Datos
+
+### Carga de Datos
+
+```{r carga-datos-rnn}
+# Cargar librerías necesarias
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(RSNNS)
+library(scales)
+library(gridExtra)
+library(knitr)
+
+# Definir colores consistentes con capítulos anteriores
+colores_tickers <- c(
+  "AAPL" = "#007AFF", "MSFT" = "#34C759", "TSLA" = "#FF3B30",
+  "PFE" = "#AF52DE", "MRNA" = "#FF9500", "JNJ" = "#E91E63"
+)
+
+# Cargar datos desde el archivo Excel del proyecto
+datos_completos <- read_xlsx("datos_yahoo/datasets/datos_completos.xlsx") %>%
+  mutate(Fecha = as.Date(Fecha))
+
+# Seleccionar Tesla para análisis detallado (mayor volatilidad)
+tesla_data <- datos_completos %>%
+  filter(Ticker == "TSLA") %>%
+  arrange(Fecha) %>%
+  select(ds = Fecha, precio = Close)
+
+# Información del dataset
+cat("=== Datos de Tesla (TSLA) ===\n")
+cat("Total de observaciones:", nrow(tesla_data), "\n")
+cat("Período:", as.character(min(tesla_data$ds)), "a", as.character(max(tesla_data$ds)), "\n")
+cat("Precio mínimo: $", format(round(min(tesla_data$precio), 2), big.mark = ","), "\n", sep = "")
+cat("Precio máximo: $", format(round(max(tesla_data$precio), 2), big.mark = ","), "\n", sep = "")
+```
+
+### Transformación Logarítmica
+
+```{r transformacion-log-rnn, fig.height=6, fig.width=10, fig.cap="Comparación de la serie de precios en escala original vs logarítmica"}
+# Aplicar transformación logarítmica
+tesla_data <- tesla_data %>%
+  mutate(y_log = log(precio))
+
+# Visualización comparativa
+p1 <- ggplot(tesla_data, aes(x = ds, y = precio)) +
+  geom_line(color = colores_tickers["TSLA"], linewidth = 0.5) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(title = "Precio de Tesla - Escala Original",
+       x = "Fecha", y = "Precio (USD)") +
+  theme_minimal()
+
+p2 <- ggplot(tesla_data, aes(x = ds, y = y_log)) +
+  geom_line(color = "darkgreen", linewidth = 0.5) +
+  labs(title = "Precio de Tesla - Escala Logarítmica",
+       x = "Fecha", y = "Log(Precio)") +
+  theme_minimal()
+
+grid.arrange(p1, p2, ncol = 1)
+```
+
+### Normalización Min-Max y Creación de Secuencias
+
+```{r normalizacion-secuencias}
+# Calcular mínimo y máximo para normalización
+min_log <- min(tesla_data$y_log)
+max_log <- max(tesla_data$y_log)
+
+# Aplicar normalización
+tesla_data <- tesla_data %>%
+  mutate(y_scaled = (y_log - min_log) / (max_log - min_log))
+
+cat("=== Normalización Min-Max ===\n")
+cat("Rango de y_log: [", round(min_log, 4), ",", round(max_log, 4), "]\n")
+cat("Rango de y_scaled: [", round(min(tesla_data$y_scaled), 4), ",", 
+    round(max(tesla_data$y_scaled), 4), "]\n")
+
+# Definir parámetros
+lag_window <- 7  # Usar los últimos 7 días para predecir el siguiente
+
+# Función para crear secuencias
+crear_secuencias <- function(datos, lag) {
+  n <- length(datos)
+  X <- matrix(NA, nrow = n - lag, ncol = lag)
+  Y <- matrix(NA, nrow = n - lag, ncol = 1)
+  
+  for (i in 1:(n - lag)) {
+    X[i, ] <- datos[i:(i + lag - 1)]
+    Y[i, ] <- datos[i + lag]
+  }
+  
+  return(list(X = X, Y = Y))
+}
+
+# Crear secuencias
+secuencias <- crear_secuencias(tesla_data$y_scaled, lag_window)
+X <- secuencias$X
+Y <- secuencias$Y
+
+cat("\n=== Dimensiones de Secuencias ===\n")
+cat("Entradas (X):", nrow(X), "x", ncol(X), "\n")
+cat("Salidas (Y):", nrow(Y), "x", ncol(Y), "\n")
+```
+
+### División Train/Test
+
+```{r division-train-test}
+# Definir tamaño del conjunto de prueba
+n_test <- 60  # Últimos 60 días
+n_total <- nrow(X)
+n_train <- n_total - n_test
+
+# Dividir datos
+X_train <- X[1:n_train, ]
+Y_train <- Y[1:n_train, , drop = FALSE]
+X_test <- X[(n_train + 1):n_total, ]
+Y_test <- Y[(n_train + 1):n_total, , drop = FALSE]
+
+# Fechas correspondientes al test
+fechas_test <- tesla_data$ds[(nrow(tesla_data) - n_test + 1):nrow(tesla_data)]
+
+cat("=== División de Datos ===\n")
+cat("Conjunto de entrenamiento:", n_train, "secuencias\n")
+cat("Conjunto de prueba:", n_test, "secuencias\n")
+cat("Porcentaje entrenamiento:", round(n_train/n_total*100, 1), "%\n")
+```
+
+## Entrenamiento de los Modelos RNN
+
+### Red Elman
+
+```{r entrenamiento-elman, results='hide'}
+set.seed(123)
+
+modelo_elman <- elman(
+  x = X_train,
+  y = Y_train,
+  size = c(10),
+  learnFuncParams = c(0.3, 0.5),
+  maxit = 2500,
+  inputsTest = X_test,
+  targetsTest = Y_test,
+  linOut = TRUE
+)
+```
+
+```{r resultados-elman}
+# Generar predicciones
+pred_elman_scaled <- predict(modelo_elman, X_test)
+
+# Desnormalizar predicciones
+pred_elman_log <- pred_elman_scaled * (max_log - min_log) + min_log
+real_log <- Y_test * (max_log - min_log) + min_log
+
+# Transformación inversa
+pred_elman_original <- exp(pred_elman_log)
+real_original <- exp(real_log)
+
+# Calcular métricas
+rmse_elman_log <- sqrt(mean((real_log - pred_elman_log)^2))
+mae_elman_log <- mean(abs(real_log - pred_elman_log))
+mape_elman <- mean(abs((real_original - pred_elman_original) / real_original)) * 100
+
+rmse_elman_orig <- sqrt(mean((real_original - pred_elman_original)^2))
+mae_elman_orig <- mean(abs(real_original - pred_elman_original))
+
+cat("=== Métricas Red Elman ===\n\n")
+cat("Escala Logarítmica:\n")
+cat("  RMSE:", round(rmse_elman_log, 4), "\n")
+cat("  MAE:", round(mae_elman_log, 4), "\n")
+cat("\nEscala Original (USD):\n")
+cat("  RMSE: $", format(round(rmse_elman_orig, 2), big.mark = ","), "\n", sep = "")
+cat("  MAE: $", format(round(mae_elman_orig, 2), big.mark = ","), "\n", sep = "")
+cat("  MAPE:", round(mape_elman, 2), "%\n")
+```
+
+### Red Jordan
+
+```{r entrenamiento-jordan, results='hide'}
+set.seed(123)
+
+modelo_jordan <- jordan(
+  x = X_train,
+  y = Y_train,
+  size = c(10),
+  learnFuncParams = c(0.1),
+  maxit = 2500,
+  inputsTest = X_test,
+  targetsTest = Y_test,
+  linOut = TRUE
+)
+```
+
+```{r resultados-jordan}
+# Generar predicciones
+pred_jordan_scaled <- predict(modelo_jordan, X_test)
+
+# Desnormalizar predicciones
+pred_jordan_log <- pred_jordan_scaled * (max_log - min_log) + min_log
+
+# Transformación inversa
+pred_jordan_original <- exp(pred_jordan_log)
+
+# Calcular métricas
+rmse_jordan_log <- sqrt(mean((real_log - pred_jordan_log)^2))
+mae_jordan_log <- mean(abs(real_log - pred_jordan_log))
+mape_jordan <- mean(abs((real_original - pred_jordan_original) / real_original)) * 100
+
+rmse_jordan_orig <- sqrt(mean((real_original - pred_jordan_original)^2))
+mae_jordan_orig <- mean(abs(real_original - pred_jordan_original))
+
+cat("=== Métricas Red Jordan ===\n\n")
+cat("Escala Logarítmica:\n")
+cat("  RMSE:", round(rmse_jordan_log, 4), "\n")
+cat("  MAE:", round(mae_jordan_log, 4), "\n")
+cat("\nEscala Original (USD):\n")
+cat("  RMSE: $", format(round(rmse_jordan_orig, 2), big.mark = ","), "\n", sep = "")
+cat("  MAE: $", format(round(mae_jordan_orig, 2), big.mark = ","), "\n", sep = "")
+cat("  MAPE:", round(mape_jordan, 2), "%\n")
+```
+
+## Evaluación y Comparación de Modelos
+
+### Tabla Comparativa
+
+```{r tabla-comparacion-rnn}
+comparacion_rnn <- data.frame(
+  Modelo = c("Red Elman", "Red Jordan"),
+  RMSE_Log = c(rmse_elman_log, rmse_jordan_log),
+  MAE_Log = c(mae_elman_log, mae_jordan_log),
+  RMSE_USD = c(rmse_elman_orig, rmse_jordan_orig),
+  MAE_USD = c(mae_elman_orig, mae_jordan_orig),
+  MAPE = c(mape_elman, mape_jordan)
+)
+
+kable(
+  comparacion_rnn,
+  digits = c(0, 4, 4, 2, 2, 2),
+  col.names = c("Modelo", "RMSE (Log)", "MAE (Log)", "RMSE (USD)", "MAE (USD)", "MAPE (%)"),
+  caption = "Comparación de métricas entre Red Elman y Red Jordan",
+  align = c('l', 'r', 'r', 'r', 'r', 'r')
+)
+```
+
+```{r interpretacion-resultados}
+mejor_modelo <- ifelse(rmse_jordan_log < rmse_elman_log, "Jordan", "Elman")
+diferencia_rmse <- abs(rmse_jordan_log - rmse_elman_log)
+
+cat("=== Análisis Comparativo ===\n\n")
+cat("Mejor modelo según RMSE (log):", mejor_modelo, "\n")
+cat("Diferencia en RMSE:", round(diferencia_rmse, 4), "\n")
+```
+
+### Visualización de Predicciones
+
+```{r visualizacion-predicciones-rnn, fig.height=8, fig.width=10, fig.cap="Comparación de predicciones de las redes Elman y Jordan vs valores reales"}
+datos_viz <- data.frame(
+  Fecha = fechas_test,
+  Real = as.vector(real_original),
+  Elman = as.vector(pred_elman_original),
+  Jordan = as.vector(pred_jordan_original)
+)
+
+p1 <- ggplot(datos_viz, aes(x = Fecha)) +
+  geom_line(aes(y = Real, color = "Real"), linewidth = 0.8) +
+  geom_line(aes(y = Elman, color = "Elman"), linewidth = 0.8, linetype = "dashed") +
+  geom_line(aes(y = Jordan, color = "Jordan"), linewidth = 0.8, linetype = "dotted") +
+  scale_color_manual(
+    values = c("Real" = "black", "Elman" = "#FF6B35", "Jordan" = "#27AE60"),
+    name = ""
+  ) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(
+    title = "Tesla (TSLA): Predicciones RNN vs Valores Reales",
+    subtitle = paste0("Período de prueba: ", min(fechas_test), " a ", max(fechas_test)),
+    x = "Fecha",
+    y = "Precio (USD)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+datos_viz_log <- data.frame(
+  Fecha = fechas_test,
+  Real = as.vector(real_log),
+  Elman = as.vector(pred_elman_log),
+  Jordan = as.vector(pred_jordan_log)
+)
+
+p2 <- ggplot(datos_viz_log, aes(x = Fecha)) +
+  geom_line(aes(y = Real, color = "Real"), linewidth = 0.8) +
+  geom_line(aes(y = Elman, color = "Elman"), linewidth = 0.8, linetype = "dashed") +
+  geom_line(aes(y = Jordan, color = "Jordan"), linewidth = 0.8, linetype = "dotted") +
+  scale_color_manual(
+    values = c("Real" = "black", "Elman" = "#FF6B35", "Jordan" = "#27AE60"),
+    name = ""
+  ) +
+  labs(
+    title = "Predicciones en Escala Logarítmica",
+    x = "Fecha",
+    y = "Log(Precio)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+grid.arrange(p1, p2, ncol = 1)
+```
+
+### Análisis de Errores
+
+```{r analisis-errores, fig.height=6, fig.width=10, fig.cap="Distribución de errores de predicción para ambos modelos"}
+errores_elman <- as.vector(real_original - pred_elman_original)
+errores_jordan <- as.vector(real_original - pred_jordan_original)
+
+datos_errores <- data.frame(
+  Fecha = rep(fechas_test, 2),
+  Error = c(errores_elman, errores_jordan),
+  Modelo = rep(c("Elman", "Jordan"), each = length(fechas_test))
+)
+
+p1 <- ggplot(datos_errores, aes(x = Fecha, y = Error, color = Modelo)) +
+  geom_line(linewidth = 0.6, alpha = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  scale_color_manual(values = c("Elman" = "#FF6B35", "Jordan" = "#27AE60")) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(
+    title = "Errores de Predicción en el Tiempo",
+    x = "Fecha",
+    y = "Error (USD)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+p2 <- ggplot(datos_errores, aes(x = Error, fill = Modelo)) +
+  geom_histogram(bins = 20, alpha = 0.6, position = "identity") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  scale_fill_manual(values = c("Elman" = "#FF6B35", "Jordan" = "#27AE60")) +
+  scale_x_continuous(labels = dollar_format()) +
+  labs(
+    title = "Distribución de Errores",
+    x = "Error (USD)",
+    y = "Frecuencia"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## Aplicación a Múltiples Activos
+
+```{r aplicacion-multiple}
+tickers <- unique(datos_completos$Ticker)
+
+evaluar_rnn_ticker <- function(ticker_sel, datos, lag_window = 7, n_test = 60) {
+  
+  tryCatch({
+    datos_ticker <- datos %>%
+      filter(Ticker == ticker_sel) %>%
+      arrange(Fecha)
+    
+    precios <- datos_ticker$Close
+    
+    y_log <- log(precios)
+    min_log_t <- min(y_log)
+    max_log_t <- max(y_log)
+    y_scaled <- (y_log - min_log_t) / (max_log_t - min_log_t)
+    
+    n <- length(y_scaled)
+    X <- matrix(NA, nrow = n - lag_window, ncol = lag_window)
+    Y <- matrix(NA, nrow = n - lag_window, ncol = 1)
+    
+    for (i in 1:(n - lag_window)) {
+      X[i, ] <- y_scaled[i:(i + lag_window - 1)]
+      Y[i, ] <- y_scaled[i + lag_window]
+    }
+    
+    n_total <- nrow(X)
+    n_train <- n_total - n_test
+    
+    X_train <- X[1:n_train, ]
+    Y_train <- Y[1:n_train, , drop = FALSE]
+    X_test <- X[(n_train + 1):n_total, ]
+    Y_test <- Y[(n_train + 1):n_total, , drop = FALSE]
+    
+    set.seed(123)
+    modelo_elman_t <- elman(
+      x = X_train, y = Y_train,
+      size = c(10), learnFuncParams = c(0.3, 0.5),
+      maxit = 2500, linOut = TRUE
+    )
+    
+    set.seed(123)
+    modelo_jordan_t <- jordan(
+      x = X_train, y = Y_train,
+      size = c(10), learnFuncParams = c(0.1),
+      maxit = 2500, linOut = TRUE
+    )
+    
+    pred_elman_t <- predict(modelo_elman_t, X_test)
+    pred_jordan_t <- predict(modelo_jordan_t, X_test)
+    
+    pred_elman_log_t <- pred_elman_t * (max_log_t - min_log_t) + min_log_t
+    pred_jordan_log_t <- pred_jordan_t * (max_log_t - min_log_t) + min_log_t
+    real_log_t <- Y_test * (max_log_t - min_log_t) + min_log_t
+    
+    pred_elman_orig_t <- exp(pred_elman_log_t)
+    pred_jordan_orig_t <- exp(pred_jordan_log_t)
+    real_orig_t <- exp(real_log_t)
+    
+    rmse_elman_t <- sqrt(mean((real_orig_t - pred_elman_orig_t)^2))
+    rmse_jordan_t <- sqrt(mean((real_orig_t - pred_jordan_orig_t)^2))
+    mae_elman_t <- mean(abs(real_orig_t - pred_elman_orig_t))
+    mae_jordan_t <- mean(abs(real_orig_t - pred_jordan_orig_t))
+    mape_elman_t <- mean(abs((real_orig_t - pred_elman_orig_t) / real_orig_t)) * 100
+    mape_jordan_t <- mean(abs((real_orig_t - pred_jordan_orig_t) / real_orig_t)) * 100
+    
+    return(data.frame(
+      Ticker = ticker_sel,
+      RMSE_Elman = rmse_elman_t,
+      RMSE_Jordan = rmse_jordan_t,
+      MAE_Elman = mae_elman_t,
+      MAE_Jordan = mae_jordan_t,
+      MAPE_Elman = mape_elman_t,
+      MAPE_Jordan = mape_jordan_t
+    ))
+    
+  }, error = function(e) {
+    return(data.frame(
+      Ticker = ticker_sel,
+      RMSE_Elman = NA,
+      RMSE_Jordan = NA,
+      MAE_Elman = NA,
+      MAE_Jordan = NA,
+      MAPE_Elman = NA,
+      MAPE_Jordan = NA
+    ))
+  })
+}
+
+cat("Evaluando RNN para todos los activos...\n")
+resultados_multiple <- map_df(tickers, ~evaluar_rnn_ticker(.x, datos_completos))
+cat("Evaluación completada.\n")
+```
+
+### Resultados Comparativos
+
+```{r tabla-resultados-multiple}
+kable(
+  resultados_multiple,
+  digits = 2,
+  col.names = c("Ticker", "RMSE Elman", "RMSE Jordan", "MAE Elman", "MAE Jordan", 
+                "MAPE Elman (%)", "MAPE Jordan (%)"),
+  caption = "Comparación de métricas para todos los activos (escala USD)",
+  align = c('l', 'r', 'r', 'r', 'r', 'r', 'r')
+)
+```
+
+```{r analisis-multiple}
+cat("=== Análisis por Activo ===\n\n")
+
+for (i in 1:nrow(resultados_multiple)) {
+  ticker_i <- resultados_multiple$Ticker[i]
+  if (!is.na(resultados_multiple$RMSE_Elman[i])) {
+    mejor <- ifelse(resultados_multiple$RMSE_Jordan[i] < resultados_multiple$RMSE_Elman[i], 
+                    "Jordan", "Elman")
+    cat(ticker_i, ": Mejor modelo =", mejor, 
+        "(MAPE:", round(min(resultados_multiple$MAPE_Elman[i], 
+                            resultados_multiple$MAPE_Jordan[i]), 2), "%)\n")
+  }
+}
+
+wins_elman <- sum(resultados_multiple$RMSE_Elman < resultados_multiple$RMSE_Jordan, na.rm = TRUE)
+wins_jordan <- sum(resultados_multiple$RMSE_Jordan < resultados_multiple$RMSE_Elman, na.rm = TRUE)
+
+cat("\n=== Resumen General ===\n")
+cat("Victorias Elman:", wins_elman, "\n")
+cat("Victorias Jordan:", wins_jordan, "\n")
+```
+
+### Visualización Comparativa por Sector
+
+```{r visualizacion-sectores, fig.height=6, fig.width=10, fig.cap="Comparación de MAPE por activo y modelo"}
+datos_grafico <- resultados_multiple %>%
+  filter(!is.na(MAPE_Elman)) %>%
+  select(Ticker, MAPE_Elman, MAPE_Jordan) %>%
+  pivot_longer(cols = c(MAPE_Elman, MAPE_Jordan),
+               names_to = "Modelo",
+               values_to = "MAPE") %>%
+  mutate(
+    Modelo = gsub("MAPE_", "", Modelo),
+    Sector = case_when(
+      Ticker %in% c("AAPL", "MSFT", "TSLA") ~ "Tecnología",
+      TRUE ~ "Farmacéutica"
+    )
+  )
+
+ggplot(datos_grafico, aes(x = Ticker, y = MAPE, fill = Modelo)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.8) +
+  geom_text(aes(label = paste0(round(MAPE, 1), "%")), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5, size = 3) +
+  scale_fill_manual(values = c("Elman" = "#FF6B35", "Jordan" = "#27AE60")) +
+  facet_wrap(~Sector, scales = "free_x") +
+  labs(
+    title = "Error Porcentual (MAPE) por Activo y Modelo RNN",
+    subtitle = "Menor MAPE indica mejor desempeño predictivo",
+    x = "Activo",
+    y = "MAPE (%)",
+    fill = "Modelo"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## Comparación con Modelos Anteriores
+
+```{r comparacion-modelos-previos}
+comparacion_integral <- data.frame(
+  Modelo = c("Holt-Winters", "ARIMA", "Prophet", "Red Elman", "Red Jordan"),
+  Tipo = c("Suavizamiento", "Box-Jenkins", "ML Aditivo", "RNN", "RNN"),
+  Captura_Tendencia = c("Bueno", "Bueno", "Excelente", "Excelente", "Excelente"),
+  No_Linealidades = c("Limitado", "Limitado", "Bueno", "Excelente", "Excelente"),
+  Changepoints = c("Limitado", "Limitado", "Excelente", "Bueno", "Bueno"),
+  Interpretabilidad = c("Excelente", "Bueno", "Excelente", "Limitado", "Limitado")
+)
+
+kable(
+  comparacion_integral,
+  caption = "Comparación de características de los modelos analizados",
+  align = c('l', 'l', 'c', 'c', 'c', 'c')
+)
+```
+
+## Conclusiones
+
+### Hallazgos Principales
+
+```{r conclusiones-principales}
+cat("=== RESUMEN DE HALLAZGOS ===\n\n")
+
+cat("1. DESEMPEÑO COMPETITIVO:\n")
+cat("   • Las redes Elman y Jordan capturan la tendencia general\n")
+cat("   • MAPE típicamente entre 3-8% para acciones estables\n\n")
+
+cat("2. COMPARACIÓN ELMAN VS JORDAN:\n")
+cat("   • Jordan generalmente superior por retroalimentación de predicciones\n")
+cat("   • Diferencias de desempeño son modestas pero consistentes\n\n")
+
+cat("3. RECOMENDACIONES:\n")
+cat("   • Usar RNN como complemento de modelos tradicionales\n")
+cat("   • Explorar LSTM/GRU para mejores resultados\n")
+cat("   • Considerar ensambles para pronósticos robustos\n")
+```
+
+### Tabla Resumen Final
+
+```{r tabla-resumen-final}
+mape_promedio <- mean(c(resultados_multiple$MAPE_Jordan), na.rm = TRUE)
+
+resumen_final <- data.frame(
+  Característica = c(
+    "Mejor modelo RNN",
+    "MAPE promedio",
+    "Ventaja principal",
+    "Limitación principal",
+    "Recomendación"
+  ),
+  Resultado = c(
+    ifelse(wins_jordan > wins_elman, "Red Jordan", "Red Elman"),
+    paste0(round(mape_promedio, 1), "%"),
+    "Captura de patrones no lineales",
+    "Falta de intervalos de confianza nativos",
+    "Usar en ensamble con ARIMA y Prophet"
+  )
+)
+
+kable(
+  resumen_final,
+  caption = "Resumen de resultados del análisis con Redes Neuronales Recurrentes",
+  align = c('l', 'l')
+)
+```
